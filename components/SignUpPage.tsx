@@ -1,10 +1,9 @@
-// components/SignUpPage.tsx
 import React, { useState } from 'react';
 import { View, Image, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/signup';
 
-export default function SignUpPage({ togglePage }: { togglePage: () => void }) { 
+export default function SignUpPage({ togglePage }: { togglePage: () => void }) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,12 +13,32 @@ export default function SignUpPage({ togglePage }: { togglePage: () => void }) {
     Alert.alert('Sign Up', 'Registro exitoso');
   };
 
+  const handleGoogleSignUp = () => {
+    Alert.alert('Sign Up', 'Registrarse con Google');
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
       </View>
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
+
+      {/* Botón de registro con Google */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignUp}>
+          <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
+          <Text style={styles.buttonText}>Registrarse con Google</Text>
+        </TouchableOpacity>
+
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.orText}>o</Text>
+          <View style={styles.divider} />
+        </View>
+      </View>
+
+      {/* Campos de correo y contraseña */}
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Correo electrónico"
@@ -42,9 +61,11 @@ export default function SignUpPage({ togglePage }: { togglePage: () => void }) {
           </TouchableOpacity>
         </View>
       </View>
+
       <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Registrarse</Text>
       </TouchableOpacity>
+
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>
           ¿Ya tienes una cuenta?{" "}

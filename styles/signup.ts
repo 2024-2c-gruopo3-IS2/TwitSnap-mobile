@@ -20,6 +20,10 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 20,
   },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'center',
+  },
   inputContainer: {
     width: '100%',
     maxWidth: 400,
@@ -63,7 +67,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'black',
     fontSize: 16,
-    fontWeight: 'bold',
   },
   signupContainer: {
     alignItems: 'center',
