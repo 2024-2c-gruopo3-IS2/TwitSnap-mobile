@@ -4,7 +4,7 @@ import { View, Image, Text, TextInput, TouchableOpacity, Alert } from 'react-nat
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/login';
 
-export default function LoginPage() {
+export default function LoginPage({ togglePage }: { togglePage: () => void }) { 
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -63,7 +63,7 @@ export default function LoginPage() {
       <View style={styles.signupContainer}>
         <Text style={styles.signupText}>
           ¿No tienes una cuenta?{" "}
-          <Text style={styles.signupLink} onPress={() => { }}>
+          <Text style={styles.signupLink} onPress={togglePage}> {/* Llamar a togglePage */}
             Regístrate
           </Text>
         </Text>
