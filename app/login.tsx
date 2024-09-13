@@ -1,44 +1,53 @@
-// components/LoginPage.tsx
 import React, { useState } from 'react';
-import { View, Image, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Image, Text, TextInput, Pressable, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Link } from 'expo-router';
 import styles from '../styles/login';
 
-export default function LoginPage({ togglePage }: { togglePage: () => void }) { 
+export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+
   const handleLogin = () => {
     Alert.alert('Login', 'Iniciar sesión con Google');
-  };
-
-  const handleForgotPassword = () => {
-    Alert.alert('Forgot Password', '¿Olvidaste tu contraseña?');
+    // Navigate to FeedPage after logging in
   };
 
   return (
     <View style={styles.container}>
+      {/* Logo Section */}
       <View style={styles.logoContainer}>
         <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
       </View>
+
+      {/* Title Section */}
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
+
+      {/* Login Button Section */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.googleButton} onPress={handleLogin}>
+        <Pressable style={styles.googleButton} onPress={handleLogin}>
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
-        </TouchableOpacity>
+        </Pressable>
+
+        {/* Divider */}
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
           <Text style={styles.orText}>o</Text>
           <View style={styles.divider} />
         </View>
+
+        {/* Input Fields */}
         <TextInput
           placeholder="Teléfono, correo electrónico o nombre"
           placeholderTextColor="#aaa"
           style={styles.input}
           onChangeText={setPhone}
         />
+
+        {/* Password Input Field */}
         {phone.length > 0 && (
           <View style={styles.passwordContainer}>
             <TextInput
@@ -48,25 +57,28 @@ export default function LoginPage({ togglePage }: { togglePage: () => void }) {
               secureTextEntry={!isPasswordVisible}
               onChangeText={setPassword}
             />
-            <TouchableOpacity style={styles.passwordVisibilityButton} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+            <Pressable style={styles.passwordVisibilityButton} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
               <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
-        <TouchableOpacity style={styles.nextButton} onPress={() => { }}>
-          <Text style={styles.buttonText}>Siguiente</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.ghostButton} onPress={handleForgotPassword}>
-          <Text style={styles.ghostButtonText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>
-          ¿No tienes una cuenta?{" "}
-          <Text style={styles.signupLink} onPress={togglePage}> {/* Llamar a togglePage */}
-            Regístrate
+
+        {/* Login Button */}
+        <Link href="/feed" asChild>
+          <Pressable style={styles.nextButton}>
+            <Text style={styles.buttonText}>Siguiente</Text>
+          </Pressable>
+        </Link>
+
+        {/* Sign Up Section */}
+        <View style={styles.signupContainer}>
+          <Text style={styles.signupText}>
+            ¿No tienes una cuenta?{' '}
+            <Link href="./signup">
+              <Text style={styles.signupLink}>Regístrate</Text>
+            </Link>
           </Text>
-        </Text>
+        </View>
       </View>
     </View>
   );
