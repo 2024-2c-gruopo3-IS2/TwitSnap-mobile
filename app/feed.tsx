@@ -1,29 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Image, Pressable, ScrollView, Alert } from 'react-native';
 import styles from '../styles/feed';
+import Footer from '../components/footer'; 
 
-// Feed data
+// Datos simulados para el feed
 const feedData = [
   {
-    username: 'Acme Inc',
+    username: 'Tincho',
     time: '1h ago',
     content: 'Introducing our latest product, the Acme Prism T-Shirt! Crafted with a blend of 60% combed ringspun cotton and 40% polyester...',
   },
   {
-    username: 'Acme Inc',
+    username: 'Valen',
     time: '2h ago',
     content: 'We are excited to announce the launch of our new Acme Prism T-Shirt!',
   },
   {
-    username: 'Acme Inc',
+    username: 'Brandon',
     time: '3h ago',
     content: 'Get yours now and be the first to rock the latest Acme fashion!',
   },
 ];
 
 export default function Feed() {
-  const [newPost, setNewPost] = useState(''); // Handle new post content
-  const [posts, setPosts] = useState(feedData); // Handle the posts' state
+  const [newPost, setNewPost] = useState(''); // Maneja el contenido del nuevo post
+  const [posts, setPosts] = useState(feedData); // Maneja el estado de los posts
 
   const handlePost = () => {
     if (newPost.trim() === '') {
@@ -32,40 +33,32 @@ export default function Feed() {
     }
 
     const newPostData = {
-      username: 'User', // Here you can add dynamic username
+      username: 'User', // Aquí puedes agregar el nombre de usuario dinámico
       time: 'Just now',
       content: newPost,
     };
 
-    setPosts([newPostData, ...posts]); // Add new post to the top
-    setNewPost(''); // Clear the text field
+    setPosts([newPostData, ...posts]); // Agregar el nuevo post al inicio del array
+    setNewPost(''); // Limpiar el campo de texto
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable style={styles.avatarContainer}>
-          <Image source={require('../assets/images/placeholder-user.jpg')} style={styles.avatar} />
-          <Text style={styles.srOnly}>Toggle user menu</Text>
-        </Pressable>
-      </View>
-
-      {/* Input for new post */}
+      {/* Sección para publicar un nuevo mensaje */}
       <View style={styles.newPostContainer}>
         <TextInput
           style={styles.newPostInput}
           placeholder="Escribe algo..."
           placeholderTextColor="#888"
           value={newPost}
-          onChangeText={setNewPost} // Update the new post state
+          onChangeText={setNewPost} // Actualiza el estado del nuevo post
         />
         <Pressable style={styles.postButton} onPress={handlePost}>
           <Text style={styles.postButtonText}>Postear</Text>
         </Pressable>
       </View>
 
-      {/* Main Content */}
+      {/* Sección de los posts */}
       <ScrollView style={styles.feed}>
         {posts.map((post, index) => (
           <View key={index} style={styles.card}>
@@ -96,33 +89,8 @@ export default function Feed() {
         ))}
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Pressable>
-          <Image 
-            source={{ uri: 'https://img.icons8.com/?size=100&id=O4uwtuMQi925&format=png&color=FFFFFF' }} 
-            style={styles.footerIcon}
-          />
-        </Pressable>
-        <Pressable>
-          <Image 
-            source={{ uri: 'https://img.icons8.com/?size=100&id=2sWrwEXiaegS&format=png&color=FFFFFF' }} 
-            style={styles.footerIcon}
-          />
-        </Pressable>
-        <Pressable>
-          <Image 
-            source={{ uri: 'https://img.icons8.com/?size=100&id=nY7Q73ERmlBS&format=png&color=FFFFFF' }} 
-            style={styles.footerIcon}
-          />
-        </Pressable>
-        <Pressable>
-          <Image 
-            source={{ uri: 'https://img.icons8.com/?size=100&id=87019&format=png&color=FFFFFF' }} 
-            style={styles.footerIcon}
-          />
-        </Pressable>
-      </View>
+      {/* Footer global con navegación */}
+      <Footer />
     </View>
   );
 }

@@ -1,18 +1,56 @@
 import React, { useState } from 'react';
-import { View, Image, Text, TextInput, Pressable, Alert } from 'react-native';
+import { View, Image, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import styles from '../styles/signup';
 
 export default function SignUpPage() {
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter(); // Para manejar la navegación
 
+  const handleSignUp = async () => {
+    // Validación de campos obligatorios (CA4)
+    let missingFields = [];
+    if (!email) {
+      missingFields.push('Correo electrónico');
+    }
+    if (!password) {
+      missingFields.push('Contraseña');
+    }
+    if (missingFields.length > 0) {
+      alert(`Faltan los siguientes campos: ${missingFields.join(', ')}.`);
+      return;
+    }
+    setIsLoading(true);
 
-  const handleSignUp = () => {
-    Alert.alert('Sign Up', 'Registro exitoso');
+    try {
+      // Simulación de una llamada al servidor para el registro
+      // const response = await fetch('https://api.ejemplo.com/signup', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email, password }),
+      // });
+      const response = { ok: true }; // Simulación de respuesta exitosa
+
+      if (response.ok) {
+        // Registro exitoso, redirigir a la página de ubicación (CA2)
+        router.push('./location');
+      } else {
+        // Registro fallido
+        alert('Error al registrar el usuario. Inténtalo de nuevo.');
+        // const data = await response.json();
+        // alert(`Error del servicio: ${data.message || 'Ha ocurrido un error al registrar el usuario.'}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error al conectar con el servidor.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,11 +102,13 @@ export default function SignUpPage() {
         </View>
 
         {/* Sign Up Button */}
-        <Link href="/feed" asChild>
-          <Pressable style={styles.signupButton}>
+        <Pressable style={styles.signupButton} onPress={handleSignUp} disabled={isLoading}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
             <Text style={styles.buttonText}>Registrarse</Text>
-          </Pressable>
-        </Link>
+          )}
+        </Pressable>
 
         {/* Link to Login */}
         <View style={styles.signupContainer}>

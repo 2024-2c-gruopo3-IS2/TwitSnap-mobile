@@ -41,7 +41,7 @@ export default function LoginPage() {
 
         {/* Input Fields */}
         <TextInput
-          placeholder="Teléfono, correo electrónico o nombre"
+          placeholder="Correo electrónico"
           placeholderTextColor="#aaa"
           style={styles.input}
           onChangeText={setPhone}
@@ -64,7 +64,7 @@ export default function LoginPage() {
         )}
 
         {/* Login Button */}
-        <Link href="/feed" asChild>
+        <Link href="./feed" asChild>
           <Pressable style={styles.nextButton}>
             <Text style={styles.buttonText}>Siguiente</Text>
           </Pressable>
