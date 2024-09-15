@@ -1,73 +1,131 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Image, Pressable, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  ScrollView,
+  Alert,
+  Modal,
+  TextInput,
+} from 'react-native';
 import styles from '../styles/feed';
-import Footer from '../components/footer'; 
+import Footer from '../components/footer';
 
-// Datos simulados para el feed
-const feedData = [
+interface Post {
+  id: number;
+  username: string;
+  time: string;
+  content: string;
+  isPrivate: boolean;
+}
+
+const feedData: Post[] = [
   {
+    id: 1,
     username: 'Tincho',
     time: '1h ago',
-    content: 'Introducing our latest product, the Acme Prism T-Shirt! Crafted with a blend of 60% combed ringspun cotton and 40% polyester...',
+    content:
+      'Introducing our latest product, the Acme Prism T-Shirt! Crafted with a blend of 60% combed ringspun cotton and 40% polyester...',
+    isPrivate: false,
   },
   {
+    id: 2,
     username: 'Valen',
     time: '2h ago',
     content: 'We are excited to announce the launch of our new Acme Prism T-Shirt!',
+    isPrivate: true,
   },
   {
+    id: 3,
     username: 'Brandon',
     time: '3h ago',
     content: 'Get yours now and be the first to rock the latest Acme fashion!',
+    isPrivate: false,
   },
 ];
 
 export default function Feed() {
-  const [newPost, setNewPost] = useState(''); // Maneja el contenido del nuevo post
-  const [posts, setPosts] = useState(feedData); // Maneja el estado de los posts
+  const [posts, setPosts] = useState<Post[]>(feedData); // Maneja el estado de los posts
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null); // Para manejar la edición de publicaciones
+  const [editedContent, setEditedContent] = useState(''); // Contenido editado
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false); // Control de visibilidad de la modal de edición
 
-  const handlePost = () => {
-    if (newPost.trim() === '') {
+  // Función para agregar una nueva publicación desde la modal
+  const addNewPost = (newPost: Post) => {
+    setPosts([newPost, ...posts]);
+  };
+
+  // Función para editar una publicación
+  const handleEditPost = (post: Post) => {
+    setSelectedPost(post);
+    setEditedContent(post.content);
+    setIsEditModalVisible(true);
+  };
+
+  const saveEditedPost = () => {
+    if (editedContent.trim() === '') {
       Alert.alert('Error', 'El contenido no puede estar vacío');
       return;
     }
+    if (!selectedPost) {
+      Alert.alert('Error', 'No hay ninguna publicación seleccionada para editar');
+      return;
+    }
+    setPosts(
+      posts.map((post) =>
+        post.id === selectedPost.id ? { ...post, content: editedContent } : post
+      )
+    );
+    setIsEditModalVisible(false);
+    setSelectedPost(null);
+    setEditedContent('');
+  };
 
-    const newPostData = {
-      username: 'User', // Aquí puedes agregar el nombre de usuario dinámico
-      time: 'Just now',
-      content: newPost,
-    };
-
-    setPosts([newPostData, ...posts]); // Agregar el nuevo post al inicio del array
-    setNewPost(''); // Limpiar el campo de texto
+  // Función para eliminar una publicación
+  const handleDeletePost = (postId: number) => {
+    Alert.alert(
+      'Eliminar publicación',
+      '¿Estás seguro de que deseas eliminar esta publicación?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            setPosts(posts.filter((post) => post.id !== postId));
+          },
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
-      {/* Sección para publicar un nuevo mensaje */}
-      <View style={styles.newPostContainer}>
-        <TextInput
-          style={styles.newPostInput}
-          placeholder="Escribe algo..."
-          placeholderTextColor="#888"
-          value={newPost}
-          onChangeText={setNewPost} // Actualiza el estado del nuevo post
-        />
-        <Pressable style={styles.postButton} onPress={handlePost}>
-          <Text style={styles.postButtonText}>Postear</Text>
-        </Pressable>
-      </View>
-
       {/* Sección de los posts */}
       <ScrollView style={styles.feed}>
-        {posts.map((post, index) => (
-          <View key={index} style={styles.card}>
+        {posts.map((post) => (
+          <View key={post.id} style={styles.card}>
             <View style={styles.cardHeader}>
-              <Image source={require('../assets/images/placeholder-user.jpg')} style={styles.cardAvatar} />
+              <Image
+                source={require('../assets/images/placeholder-user.jpg')}
+                style={styles.cardAvatar}
+              />
               <View style={styles.userInfo}>
                 <Text style={styles.username}>{post.username}</Text>
                 <Text style={styles.time}>{post.time}</Text>
               </View>
+              {/* Botones de editar y eliminar si es tu publicación */}
+              {post.username === 'User' && (
+                <View style={styles.postActions}>
+                  <Pressable onPress={() => handleEditPost(post)}>
+                    <Text style={styles.actionButton}>Editar</Text>
+                  </Pressable>
+                  <Pressable onPress={() => handleDeletePost(post.id)}>
+                    <Text style={styles.actionButton}>Eliminar</Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
 
             <View style={styles.cardContent}>
@@ -89,8 +147,39 @@ export default function Feed() {
         ))}
       </ScrollView>
 
+      {/* Modal para editar publicación */}
+      <Modal
+        visible={isEditModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Editar Publicación</Text>
+            <TextInput
+              style={styles.textInput}
+              multiline
+              value={editedContent}
+              onChangeText={setEditedContent}
+            />
+            <View style={styles.buttonContainer}>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => setIsEditModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </Pressable>
+              <Pressable style={styles.saveButton} onPress={saveEditedPost}>
+                <Text style={styles.buttonText}>Guardar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Footer global con navegación */}
-      <Footer />
+      <Footer addNewPost={addNewPost} />
     </View>
   );
 }

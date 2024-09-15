@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { Link, usePathname } from 'expo-router';
-import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
+import CreatePostModal from './createPostModal';
 import styles from '../styles/footer';
 
-const Footer = () => {
+interface Post {
+  id: number;
+  username: string;
+  time: string;
+  content: string;
+  isPrivate: boolean;
+}
+
+interface FooterProps {
+  addNewPost?: (newPost: Post) => void; 
+}
+
+const Footer: React.FC<FooterProps> = ({ addNewPost }) => {
   const pathname = usePathname();
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   return (
     <View style={styles.footer}>
@@ -30,6 +44,23 @@ const Footer = () => {
           />
         </Pressable>
       </Link>
+
+      {/* Conditionally render "+" button and modal */}
+      {addNewPost && (
+        <>
+          {/* "+" Button to create a post */}
+          <Pressable onPress={() => setIsModalVisible(true)}>
+            <Entypo name="plus" size={30} color="#FFFFFF" />
+          </Pressable>
+
+          {/* Modal to create a post */}
+          <CreatePostModal
+            isVisible={isModalVisible}
+            onClose={() => setIsModalVisible(false)}
+            addNewPost={addNewPost}
+          />
+        </>
+      )}
 
       {/* Profile Icon */}
       <Link href="/profile" asChild>
