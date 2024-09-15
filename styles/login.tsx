@@ -112,6 +112,11 @@ const styles = StyleSheet.create({
   passwordVisibilityButton: {
     padding: 12,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 5,
+  },
 });
 
 export default styles;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, Text, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import styles from '../styles/signup';
@@ -10,44 +10,82 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter(); // Para manejar la navegación
+  const router = useRouter();
+
+  // State for validation errors
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
+
+  // Regular expressions for validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
   const handleSignUp = async () => {
-    // Validación de campos obligatorios (CA4)
-    let missingFields = [];
+    // Reset errors
+    setErrors({ email: '', password: '' });
+
+    // Validation checks
+    let hasError = false;
+    let newErrors = { email: '', password: '' };
+
+    // CA4: Validate email
     if (!email) {
-      missingFields.push('Correo electrónico');
+      newErrors.email = 'El correo electrónico es obligatorio.';
+      hasError = true;
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = 'El correo electrónico no es válido.';
+      hasError = true;
     }
+
+    // CA4: Validate password
     if (!password) {
-      missingFields.push('Contraseña');
+      newErrors.password = 'La contraseña es obligatoria.';
+      hasError = true;
+    } else if (!passwordRegex.test(password)) {
+      newErrors.password =
+        'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.';
+      hasError = true;
     }
-    if (missingFields.length > 0) {
-      alert(`Faltan los siguientes campos: ${missingFields.join(', ')}.`);
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
+
     setIsLoading(true);
 
     try {
-      // Simulación de una llamada al servidor para el registro
-      // const response = await fetch('https://api.ejemplo.com/signup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // });
-      const response = { ok: true }; // Simulación de respuesta exitosa
+      // Simulate a server call for registration
+      // Replace with actual API call in production
+      const response = await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          const isServiceError = false; // Set to true to simulate a service error
+          if (isServiceError) {
+            reject(new Error('Error del servicio. Por favor, inténtalo más tarde.'));
+          } else {
+            resolve({ ok: true });
+          }
+        }, 1000);
+      });
 
-      if (response.ok) {
-        // Registro exitoso, redirigir a la página de ubicación (CA2)
+      if ((response as { ok: boolean }).ok) {
+        // CA1: Successful registration
+        // CA2: Navigate to location screen to obtain default location
         router.push('./location');
       } else {
-        // Registro fallido
-        alert('Error al registrar el usuario. Inténtalo de nuevo.');
-        // const data = await response.json();
-        // alert(`Error del servicio: ${data.message || 'Ha ocurrido un error al registrar el usuario.'}`);
+        // CA5: Registration failed due to service error
+        Alert.alert('Error', 'Error al registrar el usuario. Inténtalo de nuevo.');
       }
     } catch (error) {
+      // CA5: Handle service error
       console.error(error);
-      alert('Error al conectar con el servidor.');
+      if (error instanceof Error) {
+        Alert.alert('Error', error.message || 'Error al conectar con el servidor.');
+      } else {
+        Alert.alert('Error', 'Error al conectar con el servidor.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +123,12 @@ export default function SignUpPage() {
             style={styles.input}
             onChangeText={setEmail}
             value={email}
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
+          {/* Display email validation error */}
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
           <View style={styles.passwordContainer}>
             <TextInput
               placeholder="Contraseña"
@@ -94,11 +137,17 @@ export default function SignUpPage() {
               secureTextEntry={!isPasswordVisible}
               onChangeText={setPassword}
               value={password}
+              autoCapitalize="none"
             />
-            <Pressable style={styles.passwordVisibilityButton} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+            <Pressable
+              style={styles.passwordVisibilityButton}
+              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+            >
               <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
             </Pressable>
           </View>
+          {/* Display password validation error */}
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
         </View>
 
         {/* Sign Up Button */}

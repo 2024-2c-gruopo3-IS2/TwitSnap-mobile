@@ -104,6 +104,12 @@ const styles = StyleSheet.create({
     color: 'white',
     marginHorizontal: 8,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 5,
+  },
+  
 });
 
 export default styles;
