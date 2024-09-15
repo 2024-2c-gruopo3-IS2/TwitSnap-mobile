@@ -19,7 +19,7 @@ const fetchUserProfile = async () => {
       } else {
         reject('No se pudo cargar el perfil del usuario.');
       }
-    }, 2000); // Simular un retraso en la respuesta del servidor
+    }, 0); // Simular un retraso en la respuesta del servidor
   });
 };
 

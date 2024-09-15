@@ -1,17 +1,21 @@
 import React from 'react';
-import { View, Pressable, Image } from 'react-native';
-import { Link } from 'expo-router';
-import styles from '../styles/footer'; // Asegúrate de tener el estilo en un archivo CSS adecuado
+import { View, Pressable } from 'react-native';
+import { Link, usePathname } from 'expo-router';
+import { MaterialIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
+import styles from '../styles/footer';
 
 const Footer = () => {
+  const pathname = usePathname();
+
   return (
     <View style={styles.footer}>
       {/* Home Icon */}
       <Link href="/feed" asChild>
         <Pressable>
-          <Image
-            source={{ uri: 'https://img.icons8.com/?size=100&id=O4uwtuMQi925&format=png&color=FFFFFF' }}
-            style={styles.footerIcon}
+          <MaterialIcons
+            name="home"
+            size={30}
+            color={pathname === '/feed' ? '#808080' : '#FFFFFF'}
           />
         </Pressable>
       </Link>
@@ -19,9 +23,10 @@ const Footer = () => {
       {/* Search Icon */}
       <Link href="/search" asChild>
         <Pressable>
-          <Image
-            source={{ uri: 'https://img.icons8.com/?size=100&id=2sWrwEXiaegS&format=png&color=FFFFFF' }}
-            style={styles.footerIcon}
+          <Ionicons
+            name="search"
+            size={30}
+            color={pathname === '/search' ? '#808080' : '#FFFFFF'}
           />
         </Pressable>
       </Link>
@@ -29,9 +34,10 @@ const Footer = () => {
       {/* Profile Icon */}
       <Link href="/profile" asChild>
         <Pressable>
-          <Image
-            source={{ uri: 'https://img.icons8.com/?size=100&id=59719&format=png&color=FFFFFF' }}
-            style={styles.footerIcon}
+          <FontAwesome
+            name="user"
+            size={30}
+            color={pathname.startsWith('/profile') ? '#808080' : '#FFFFFF'}
           />
         </Pressable>
       </Link>
