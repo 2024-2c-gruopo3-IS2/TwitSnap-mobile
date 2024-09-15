@@ -14,7 +14,7 @@ const fetchUserProfile = async () => {
           email: 'tincho@example.com',
           location: 'Argentina',
           bio: 'Desarrollador de software y entusiasta de la tecnología',
-          profilePicture: 'https://placekitten.com/200/200', // Imagen de perfil
+          profilePicture: 'https://tn.com.ar/resizer/v2/el-topo-gigio-que-juan-roman-riquelme-le-dedico-a-mauricio-macri-en-plena-bombonera-telam-QLNSCUL7PZIBGS27B4XQPOQ4EU.jpg?auth=37146e2df3e18468cfc46fb149722cff2a5ec4d5253a642e253ab63d7a143d30&width=767', // Imagen de perfil
         });
       } else {
         reject('No se pudo cargar el perfil del usuario.');

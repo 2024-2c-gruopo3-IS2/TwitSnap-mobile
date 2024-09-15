@@ -27,13 +27,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
   },
+  resultItem: {
+    backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  username: {
+    color: '#00aced',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  name: {
+    color: '#fff',
+    fontSize: 14,
+  },
   backButtonContainer: {
-    position: 'absolute',  
-    bottom: 0,             
+    position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: '#000000',  
+    backgroundColor: '#000000',
   },
   backButton: {
     backgroundColor: '#fff',
