@@ -16,7 +16,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, is_admin: false }),
     });
 
     const data = await response.json();
@@ -26,7 +26,9 @@ export async function loginUser(email: string, password: string): Promise<LoginR
       if (data.token && data.expiration) {
         await AsyncStorage.setItem('token', data.token);
         await AsyncStorage.setItem('expiration', JSON.stringify(Date.now() + data.expiration * 1000));
-      }
+        console.log('Token almacenado:', data.token);
+        console.log('Expiration almacenada:', data.expiration);
+    }
 
       return { success: true, token: data.token, expiration: data.expiration };
     } else if (data.status === 'blocked') {

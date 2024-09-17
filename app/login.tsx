@@ -55,7 +55,9 @@ export default function LoginPage() {
 
     try {
       const response = await loginUser(email, password);
-
+      
+      console.log('API Response:', response);
+      
       if (response.success) {
         router.replace('./feed'); // Navegar al feed si el login es exitoso (CA1)
       } else {
