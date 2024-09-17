@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 10,
-    textAlignVertical: 'top',
+    verticalAlign: 'top',
   },
   charCount: {
     color: '#888',

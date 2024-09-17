@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import styles from '../styles/login';
+import { loginUser } from '@/handlers/loginHandler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginPage() {
   const [email, setEmail] = useState(''); 
@@ -11,7 +13,26 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false); // Estado para el indicador de carga
   const [error, setError] = useState(''); // Estado para manejar mensajes de error
   const router = useRouter(); // Para manejar la navegación
+  
+  // Verificar si el token sigue siendo válido al cargar la página
+  useEffect(() => {
+    const checkSession = async () => {
+      const token = await AsyncStorage.getItem('token');
+      const expiration = await AsyncStorage.getItem('expiration');
 
+      if (token && expiration && Date.now() < parseInt(expiration)) {
+        router.replace('./feed'); // Si el token es válido, navegar a la página protegida
+      } else if (expiration && Date.now() >= parseInt(expiration)) {
+        Alert.alert('Sesión expirada', 'Por favor, inicie sesión nuevamente.'); // CA3: Sesión expirada
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('expiration');
+      }
+    };
+
+    checkSession();
+  }, []);
+  
+  
   // Expresiones regulares para validación
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,43 +54,15 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Simulación de llamada al servidor para el inicio de sesión
-      const response = await new Promise<{ ok: boolean; status?: string }>((resolve, reject) => {
-        setTimeout(() => {
-          const isServiceError = false; // Cambia a 'true' para simular un error de servicio
-          const isUserBlocked = false;  // Cambia a 'true' para simular un usuario bloqueado
-          const isCredentialsValid = email === 'usuario@example.com' && password === 'Password123!';
+      const response = await loginUser(email, password);
 
-          if (isServiceError) {
-            reject(new Error('Error del servicio. Por favor, inténtalo más tarde.'));
-          } else if (isUserBlocked) {
-            resolve({ ok: false, status: 'blocked' });
-          } else if (isCredentialsValid) {
-            resolve({ ok: true });
-          } else {
-            resolve({ ok: false, status: 'invalid_credentials' });
-          }
-        }, 1000); // Simular retraso de 1 segundo
-      });
-
-      if (response.ok) {
-        // CA1: Inicio de sesión exitoso
-        router.replace('./feed'); // Navegar a la página de inicio (feed)
+      if (response.success) {
+        router.replace('./feed'); // Navegar al feed si el login es exitoso (CA1)
       } else {
-        // Manejo de errores específicos
-        if (response.status === 'blocked') {
-          // CA4: Usuario bloqueado
-          Alert.alert('Cuenta bloqueada', 'Tu cuenta ha sido bloqueada. Por favor, contacta al soporte.');
-        } else if (response.status === 'invalid_credentials') {
-          // CA1: Credenciales inválidas
-          setError('Correo electrónico o contraseña incorrectos.');
-        }
+        setError(response.message || 'Error al iniciar sesión.');
       }
     } catch (error) {
-      // CA2: Error del servicio
-      console.error(error);
-      const errorMessage = error instanceof Error ? error.message : 'Error al conectar con el servidor.';
-      Alert.alert('Error', errorMessage);
+      setError('Error al conectar con el servidor.');
     } finally {
       setIsLoading(false);
     }

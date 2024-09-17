@@ -3,34 +3,34 @@ import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } fro
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import styles from '../styles/signup';
+import { registerUser } from '@/handlers/signUpHandler';
 
 export default function SignUpPage() {
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // State for validation errors
+  // Estado para manejar errores de validación
   const [errors, setErrors] = useState({
     email: '',
     password: '',
   });
 
-  // Regular expressions for validation
+  // Expresiones regulares para validación
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
   const handleSignUp = async () => {
-    // Reset errors
+    // Reiniciar errores
     setErrors({ email: '', password: '' });
 
-    // Validation checks
+    // Validaciones
     let hasError = false;
     let newErrors = { email: '', password: '' };
 
-    // CA4: Validate email
+    // Validar correo electrónico
     if (!email) {
       newErrors.email = 'El correo electrónico es obligatorio.';
       hasError = true;
@@ -39,7 +39,7 @@ export default function SignUpPage() {
       hasError = true;
     }
 
-    // CA4: Validate password
+    // Validar contraseña
     if (!password) {
       newErrors.password = 'La contraseña es obligatoria.';
       hasError = true;
@@ -57,35 +57,18 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      // Simulate a server call for registration
-      // Replace with actual API call in production
-      const response = await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          const isServiceError = false; // Set to true to simulate a service error
-          if (isServiceError) {
-            reject(new Error('Error del servicio. Por favor, inténtalo más tarde.'));
-          } else {
-            resolve({ ok: true });
-          }
-        }, 1000);
-      });
+      const result = await registerUser(email, password);
 
-      if ((response as { ok: boolean }).ok) {
-        // CA1: Successful registration
-        // CA2: Navigate to location screen to obtain default location
+      if (result.success) {
+        // Registro exitoso
         router.push('./location');
       } else {
-        // CA5: Registration failed due to service error
-        Alert.alert('Error', 'Error al registrar el usuario. Inténtalo de nuevo.');
+        // Mostrar mensaje de error
+        Alert.alert('Error', result.message || 'Error al registrar el usuario.');
       }
     } catch (error) {
-      // CA5: Handle service error
       console.error(error);
-      if (error instanceof Error) {
-        Alert.alert('Error', error.message || 'Error al conectar con el servidor.');
-      } else {
-        Alert.alert('Error', 'Error al conectar con el servidor.');
-      }
+      Alert.alert('Error', 'Error al conectar con el servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -93,29 +76,32 @@ export default function SignUpPage() {
 
   return (
     <View style={styles.container}>
-      {/* Logo Section */}
+      {/* Sección del Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
       </View>
 
-      {/* Title Section */}
+      {/* Sección del Título */}
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
 
-      {/* Google Sign-Up Button */}
+      {/* Botón de Registro con Google */}
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={handleSignUp}>
+        <Pressable
+          style={styles.googleButton}
+          onPress={() => Alert.alert('Registro con Google', 'Funcionalidad no implementada aún')}
+        >
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Registrarse con Google</Text>
         </Pressable>
 
-        {/* Divider */}
+        {/* Divisor */}
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
           <Text style={styles.orText}>o</Text>
           <View style={styles.divider} />
         </View>
 
-        {/* Email and Password Fields */}
+        {/* Campos de Correo y Contraseña */}
         <View style={styles.inputContainer}>
           <TextInput
             placeholder="Correo electrónico"
@@ -126,7 +112,7 @@ export default function SignUpPage() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          {/* Display email validation error */}
+          {/* Mostrar error de validación de correo */}
           {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
           <View style={styles.passwordContainer}>
@@ -146,11 +132,11 @@ export default function SignUpPage() {
               <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
             </Pressable>
           </View>
-          {/* Display password validation error */}
+          {/* Mostrar error de validación de contraseña */}
           {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
         </View>
 
-        {/* Sign Up Button */}
+        {/* Botón de Registro */}
         <Pressable style={styles.signupButton} onPress={handleSignUp} disabled={isLoading}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -159,7 +145,7 @@ export default function SignUpPage() {
           )}
         </Pressable>
 
-        {/* Link to Login */}
+        {/* Enlace a Iniciar Sesión */}
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>
             ¿Ya tienes una cuenta?{' '}

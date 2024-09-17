@@ -26,7 +26,7 @@ const modalStyles = StyleSheet.create({
       borderWidth: 1,
       borderRadius: 5,
       padding: 10,
-      textAlignVertical: 'top',
+      verticalAlign: 'top',
     },
     buttonContainer: {
       flexDirection: 'row',
