@@ -27,7 +27,7 @@ export default function InteresesPage() {
       Alert.alert('Error', 'Por favor, selecciona al menos dos intereses.');
     } else {
       // Navegar al feed tras confirmar los intereses
-      router.push('./feed');
+      router.push('./birthday');
     }
   };
 
@@ -56,7 +56,7 @@ export default function InteresesPage() {
 
       {/* Botón para confirmar intereses */}
       <Pressable style={styles.confirmButton} onPress={handleConfirmarIntereses}>
-        <Text style={styles.confirmButtonText}>Empecemos</Text>
+        <Text style={styles.confirmButtonText}>Siguiente</Text>
       </Pressable>
     </View>
   );
