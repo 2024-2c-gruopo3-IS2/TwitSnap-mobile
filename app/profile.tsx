@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Image, ActivityIndicator, Alert, Pressable } from 'react-native';
 import styles from '../styles/profile'; // Ajusta la ruta según sea necesario
 import Footer from '../components/footer'; // Importamos el Footer
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Importamos AsyncStorage
+import { useRouter } from 'expo-router'; // Importamos el router para manejar la navegación
 
 // Simulación de la obtención de los datos del perfil del usuario
 const fetchUserProfile = async () => {
@@ -26,6 +28,7 @@ const fetchUserProfile = async () => {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null); // Estado para almacenar el perfil del usuario
   const [loading, setLoading] = useState<boolean>(true); // Estado para manejar el indicador de carga
+  const router = useRouter(); // Para manejar la navegación
 
   useEffect(() => {
     // Simular la carga de datos del perfil al cargar la página
@@ -39,6 +42,19 @@ export default function ProfilePage() {
         Alert.alert('Error', error);
       });
   }, []);
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      // Eliminar el token de AsyncStorage
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('expiration');
+      // Redirigir al usuario a la página de login
+      router.replace('/login');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo cerrar la sesión.');
+    }
+  };
 
   if (loading) {
     return (
@@ -75,6 +91,11 @@ export default function ProfilePage() {
         <Text style={styles.label}>Biografía:</Text>
         <Text style={styles.text}>{profile.bio}</Text>
       </View>
+
+      {/* Botón para cerrar sesión */}
+      <Pressable style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Cerrar sesión</Text>
+      </Pressable>
 
       {/* Footer global */}
       <Footer />

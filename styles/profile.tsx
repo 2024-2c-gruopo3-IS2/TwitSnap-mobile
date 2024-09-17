@@ -57,6 +57,19 @@ const profileStyles = StyleSheet.create({
       fontSize: 14,
       color: '#888',
     },
+    logoutButton: {
+      backgroundColor: '#FF3B30', // Color de fondo del botón
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+      marginTop: 20,
+      alignItems: 'center',
+    },
+    logoutButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
   });
   
 export default profileStyles;
