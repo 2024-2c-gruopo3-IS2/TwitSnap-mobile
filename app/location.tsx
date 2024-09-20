@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import CountryPicker, { Country, CountryCode } from 'react-native-country-picker-modal';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import styles from '../styles/location';
 
 export default function UbicacionPage() {
@@ -16,11 +17,18 @@ export default function UbicacionPage() {
     setCountryCode(countryData.cca2 as CountryCode); // Asegurar que sea un código válido
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!country) {
-      alert('Por favor, selecciona tu país de residencia.');
+      Alert.alert('Error', 'Por favor, selecciona tu país de residencia.');
     } else {
-      router.push('./interests'); 
+      try {
+        //await AsyncStorage.setItem('selectedCountry', country);
+        await SecureStore.setItemAsync('country', country);
+        router.push('./interests');
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'No se pudo guardar la información del país.');
+      }
     }
   };
 

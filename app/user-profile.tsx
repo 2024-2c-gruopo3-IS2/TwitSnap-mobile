@@ -51,7 +51,7 @@ const fetchUserProfile = async (userId: number) => {
       } else {
         reject('Perfil de usuario no encontrado.');
       }
-    }, 1000); // Simulamos un retraso en la respuesta del servidor
+    }, 0); // Simulamos un retraso en la respuesta del servidor
   });
 };
 

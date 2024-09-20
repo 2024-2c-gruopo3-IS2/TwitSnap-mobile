@@ -10,23 +10,19 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  // Estado para manejar errores de validación
   const [errors, setErrors] = useState({
     email: '',
     password: '',
   });
+  const router = useRouter();
 
   // Expresiones regulares para validación
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
   const handleSignUp = async () => {
-    // Reiniciar errores
     setErrors({ email: '', password: '' });
 
-    // Validaciones
     let hasError = false;
     let newErrors = { email: '', password: '' };
 
@@ -60,6 +56,12 @@ export default function SignUpPage() {
       const result = await registerUser(email, password);
 
       if (result.success) {
+        // Guardar token y expiración en AsyncStorage
+        if (result.token && result.expiration) {
+          console.log('Token almacenado:', result.token);
+          console.log('Expiration almacenada:', result.expiration);
+        }
+
         // Registro exitoso
         router.push('./location');
       } else {
@@ -76,15 +78,12 @@ export default function SignUpPage() {
 
   return (
     <View style={styles.container}>
-      {/* Sección del Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
       </View>
 
-      {/* Sección del Título */}
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
 
-      {/* Botón de Registro con Google */}
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.googleButton}
@@ -94,14 +93,12 @@ export default function SignUpPage() {
           <Text style={styles.buttonText}>Registrarse con Google</Text>
         </Pressable>
 
-        {/* Divisor */}
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
           <Text style={styles.orText}>o</Text>
           <View style={styles.divider} />
         </View>
 
-        {/* Campos de Correo y Contraseña */}
         <View style={styles.inputContainer}>
           <TextInput
             placeholder="Correo electrónico"
@@ -112,7 +109,6 @@ export default function SignUpPage() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          {/* Mostrar error de validación de correo */}
           {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
           <View style={styles.passwordContainer}>
@@ -132,11 +128,9 @@ export default function SignUpPage() {
               <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
             </Pressable>
           </View>
-          {/* Mostrar error de validación de contraseña */}
           {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
         </View>
 
-        {/* Botón de Registro */}
         <Pressable style={styles.signupButton} onPress={handleSignUp} disabled={isLoading}>
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
@@ -145,7 +139,6 @@ export default function SignUpPage() {
           )}
         </Pressable>
 
-        {/* Enlace a Iniciar Sesión */}
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>
             ¿Ya tienes una cuenta?{' '}

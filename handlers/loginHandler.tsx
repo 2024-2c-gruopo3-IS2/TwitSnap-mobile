@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getToken, saveToken} from './authTokenHandler';
 
 export interface LoginResponse {
   success: boolean;
@@ -21,15 +21,15 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 
     const data = await response.json();
 
+    console.log('Data:', data);
+
     if (response.ok) {
       // Guardar token en AsyncStorage y manejar expiración
-      if (data.token && data.expiration) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('expiration', JSON.stringify(Date.now() + data.expiration * 1000));
+      if (data.token) {
+        await saveToken(data.token, data.expiration);
         console.log('Token almacenado:', data.token);
         console.log('Expiration almacenada:', data.expiration);
     }
-
       return { success: true, token: data.token, expiration: data.expiration };
     } else if (data.status === 'blocked') {
       return { success: false, message: 'Cuenta bloqueada. Contacte al soporte.' }; // CA4: Usuario bloqueado

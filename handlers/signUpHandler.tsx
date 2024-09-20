@@ -1,33 +1,69 @@
-export interface RegisterResponse {
-    success: boolean;
-    message?: string;
-  }
-  
-  export async function registerUser(email: string, password: string): Promise<RegisterResponse> {
-    const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/signup';
+import {getToken, saveToken} from './authTokenHandler';
 
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, is_admin: false }),
+export interface RegisterResponse {
+  success: boolean;
+  token?: string;
+  message?: string;
+  expiration?: number; 
+}
+
+export async function registerUser(email: string, password: string): Promise<RegisterResponse> {
+  const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/signup';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, is_admin: false }),
     });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        // Registro exitoso
-        return { success: true, ...data };
+
+    const data = await response.json();
+
+    console.log('Data:', data);
+
+    if (response.ok) {
+      if (data.token) {
+        await saveToken(data.token, 0);
+        return { success: true, token: data.token, expiration: 0 };
       } else {
-        // Error en el registro
-        return { success: false, message: data.message || 'Error al registrar el usuario.' };
+        return { success: false, message: data.message || 'Error al registrar el usuario' };
       }
-    } catch (error) {
-      // Error de red u otro error
-      console.error(error);
-      return { success: false, message: 'Error al conectar con el servidor.' };
-    }
+    } 
+    return { success: false, message: data.message || 'Error al registrar el usuario' };
+  } catch (error) {
+    console.error('Error al registrar el usuario:', error);
+    return { success: false, message: 'Error al conectar con el servidor.' }; // CA 2: Error del servicio
   }
-  
+}
+
+
+//   try {
+//     const response = await fetch(API_URL, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({ email, password, is_admin: false }),
+//     });
+
+//     const data = await response.json();
+
+//     if (response.ok) {
+//       // Guardar token en AsyncStorage y manejar expiración
+//       if (data.token && data.expiration) {
+//         await AsyncStorage.setItem('token', data.token);
+//         await AsyncStorage.setItem('expiration', JSON.stringify(Date.now() + data.expiration * 1000));
+//         console.log('Token almacenado:', data.token);
+//         console.log('Expiration almacenada:', data.expiration);
+
+//         return { success: true, token: data.token, expiration: data.expiration };
+//     } else {
+//       return { success: false, message: data.message || 'Error al registrar el usuario.' };
+//     }
+//   } catch (error) {
+//     console.error('Error al registrar usuario:', error);
+//     return { success: false, message: 'Error al conectar con el servidor.' };
+//   }
+// }
