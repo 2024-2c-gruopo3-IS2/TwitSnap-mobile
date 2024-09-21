@@ -4,8 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getProfile, updateProfile } from '@/handlers/profileHandler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import styles from '../styles/profile';
+import BackButton from '@/components/backButton'; // Asegúrate de que la ruta sea correcta
+import styles from '../styles/profileEdit';
 
 export default function ProfileEditPage() {
     const router = useRouter();
@@ -115,7 +115,11 @@ export default function ProfileEditPage() {
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.title}>Editar Perfil</Text>
+            {/* Header con BackButton y Título */}
+            <View style={styles.headerContainer}>
+                <BackButton />
+                <Text style={styles.title}>Editar Perfil</Text> 
+            </View>
 
             {/* Campos de perfil */}
             <Text style={styles.label}>Nombre</Text>

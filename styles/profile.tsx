@@ -72,4 +72,11 @@ export default StyleSheet.create({
         textAlign: 'center',
         marginTop: 20,
     },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between', // Asegura que los elementos estén distribuidos
+      paddingHorizontal: 10,
+      marginBottom: 20,
+      },  
 });

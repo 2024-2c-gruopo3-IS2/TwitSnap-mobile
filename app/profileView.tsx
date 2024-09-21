@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import BackButton from '@/components/backButton'; // Asegúrate de que la ruta sea correcta
 import { Alert } from 'react-native';
+import styles from '../styles/profileView';
 
 export default function ProfileView() {
     const router = useRouter();
@@ -53,6 +55,13 @@ export default function ProfileView() {
 
     return (
         <View style={styles.container}>
+            {/* Header con BackButton y Título */}
+            <View style={styles.headerContainer}>
+                <BackButton />
+                {/* Espacio vacío para balancear el layout */}
+                <View style={styles.rightSpace} />
+            </View>
+
             {/* Foto de Portada */}
             <Image 
                 source={{ uri: profile.cover_photo || 'https://via.placeholder.com/800x200' }} 
@@ -95,83 +104,3 @@ export default function ProfileView() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#000', // Fondo negro
-        alignItems: 'center',
-        paddingTop: 20,
-    },
-    coverPhoto: {
-        width: '100%',
-        height: 200,
-        resizeMode: 'cover',
-    },
-    profilePictureContainer: {
-        position: 'absolute',
-        top: 150,
-        left: '50%',
-        transform: [{ translateX: -50 }],
-        borderWidth: 3,
-        borderColor: '#fff',
-        borderRadius: 75,
-        overflow: 'hidden',
-    },
-    profilePicture: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
-    name: {
-        marginTop: 60,
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    username: {
-        fontSize: 18,
-        color: '#aaa',
-    },
-    followContainer: {
-        flexDirection: 'row',
-        marginTop: 20,
-    },
-    followSection: {
-        alignItems: 'center',
-        marginHorizontal: 20,
-    },
-    followNumber: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    followLabel: {
-        fontSize: 16,
-        color: '#aaa',
-    },
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1DA1F2',
-        padding: 10,
-        borderRadius: 5,
-        marginTop: 30,
-    },
-    editButtonText: {
-        color: '#fff',
-        marginLeft: 5,
-        fontSize: 16,
-    },
-    loaderContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
-    },
-    errorText: {
-        color: 'red',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-});
