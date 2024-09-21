@@ -1,76 +1,75 @@
+
 import { StyleSheet } from 'react-native';
 
-const profileStyles = StyleSheet.create({
+export default StyleSheet.create({
     container: {
-      flex: 1,
-      padding: 20,
-      backgroundColor: '#000', // Modo oscuro
-      justifyContent: 'space-between',
-    },
-    profileHeader: {
-      alignItems: 'center',
-      marginBottom: 20,
-    },
-    profileImage: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      marginBottom: 10,
-    },
-    username: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#fff',
-    },
-    userInfo: {
-      marginBottom: 20,
-    },
-    label: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: '#888',
-      marginBottom: 5,
-    },
-    text: {
-      fontSize: 16,
-      color: '#fff',
-      marginBottom: 5,
-    },
-    errorText: {
-      fontSize: 18,
-      color: '#f00',
-      textAlign: 'center',
-      marginTop: 20,
+        flex: 1,
+        backgroundColor: '#000', // Fondo negro
+        padding: 20,
     },
     loaderContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#000',
     },
-    footer: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#333', // Línea divisoria superior del footer para darle un poco de separación visual
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+        color: '#fff', // Título en blanco
     },
-    footerText: {
-      fontSize: 14,
-      color: '#888',
+    label: {
+        fontSize: 16,
+        color: '#fff', // Labels en blanco
+        marginBottom: 5,
     },
-    logoutButton: {
-      backgroundColor: '#FF3B30', // Color de fondo del botón
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 5,
-      marginTop: 20,
-      alignItems: 'center',
+    input: {
+        backgroundColor: '#333', // Cajas en gris oscuro
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginBottom: 15,
+        fontSize: 16,
+        color: '#fff', // Texto en blanco
     },
-    logoutButtonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
+    readOnlyInput: {
+        backgroundColor: '#555', // Cajas más claras en modo lectura
     },
-  });
-  
-export default profileStyles;
-  
+    multilineInput: {
+        height: 100, // Mayor altura para texto multiline
+        textAlignVertical: 'top',
+    },
+    submitButton: {
+        backgroundColor: '#1DA1F2',
+        padding: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    buttonText: {
+        color: '#fff', // Texto del botón en blanco
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1DA1F2',
+        padding: 10,
+        borderRadius: 5,
+        alignSelf: 'flex-end',
+        marginBottom: 20,
+    },
+    editButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        marginLeft: 5,
+    },
+    errorText: {
+        color: 'red',
+        textAlign: 'center',
+        marginTop: 20,
+    },
+});

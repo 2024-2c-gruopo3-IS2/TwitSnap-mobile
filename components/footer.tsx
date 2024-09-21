@@ -63,7 +63,7 @@ const Footer: React.FC<FooterProps> = ({ addNewPost }) => {
       )}
 
       {/* Profile Icon */}
-      <Link href="/profile" asChild>
+      <Link href="/profileView" asChild>
         <Pressable>
           <FontAwesome
             name="user"
