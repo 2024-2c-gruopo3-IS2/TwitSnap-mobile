@@ -24,6 +24,16 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginVertical: 20,
   },
+  picker: {
+    backgroundColor: '#333', // Fondo oscuro para el picker
+    color: '#fff', // Texto claro en el picker
+    width: '100%', // Ancho del picker
+    padding: 10, // Padding interno del picker
+    marginVertical: 10, // Espaciado vertical
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 10,
+  },
   countryButton: {
     backgroundColor: '#1DA1F2',
     borderRadius: 10,
@@ -50,3 +60,4 @@ export default StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+

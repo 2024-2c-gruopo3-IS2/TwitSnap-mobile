@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function InteresesPage() {
   // Lista de intereses disponibles
-  const { email, password, country } = useLocalSearchParams();
+  const { email, password, country, city} = useLocalSearchParams();
   const listaIntereses = ['Política', 'Deportes', 'Entretenimiento', 'Tecnología', 'Ciencia', 'Arte', 'Música', 'Viajes'];
   
   // Estado para almacenar los intereses seleccionados
@@ -29,7 +29,7 @@ export default function InteresesPage() {
     } else {
       router.push({
         pathname: './userRegisterData',
-        params: { email, password, country, interests: interesesSeleccionados.join(',') }
+        params: { email, password, country, city,interests: interesesSeleccionados.join(',') }
       });
     }
   };

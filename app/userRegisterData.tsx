@@ -7,7 +7,7 @@ import styles from '../styles/userRegisterData';
 
 export default function UserDataPage() {
   const router = useRouter();
-  const { email, password, country, interests } = useLocalSearchParams(); // Obtener datos previos
+  const { email, password, country, city,interests } = useLocalSearchParams(); // Obtener datos previos
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [username, setUsername] = useState('');
@@ -49,6 +49,7 @@ export default function UserDataPage() {
       console.log('email:', email);
       console.log('password:', password);
       console.log('country:', country);
+      console.log('city:', city);
       console.log('interests:', interests);
       console.log('name:', name);
       console.log('surname:', surname);
@@ -56,13 +57,14 @@ export default function UserDataPage() {
       console.log('dateOfBirth:', dateOfBirth);
       const formattedDate = new Date(dateOfBirth).toISOString().split('T')[0];
       const description = 'Hola, soy nuevo en la plataforma.';
+      const location = city ? `${city}, ${country}` : country;
 
       const profileData = {
         name,
         surname,
         username,
         description,
-        location: country as string,
+        location,
         date_of_birth: formattedDate,
         interests: typeof interests === 'string' ? interests.split(',') : [],
       };
