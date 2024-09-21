@@ -49,25 +49,22 @@ export default function SignUpPage() {
       setErrors(newErrors);
       return;
     }
-
     setIsLoading(true);
 
     try {
-      const result = await registerUser(email, password);
-
-      if (result.success) {
-        // Guardar token y expiración en AsyncStorage
-        if (result.token && result.expiration) {
-          console.log('Token almacenado:', result.token);
-          console.log('Expiration almacenada:', result.expiration);
-        }
-
-        // Registro exitoso
-        router.push('./location');
+      const response = await registerUser(email, password);
+      if (response.success) {
+        router.push({
+          pathname: './location',
+          params: { email, password }
+        });
       } else {
-        // Mostrar mensaje de error
-        Alert.alert('Error', result.message || 'Error al registrar el usuario.');
+        if (response.message === 'Email already in use') {
+          Alert.alert('Error', 'El correo electrónico ya está en uso.');
+        } else {
+          Alert.alert('Error', 'Error al registrar el usuario.');
       }
+    }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Error al conectar con el servidor.');

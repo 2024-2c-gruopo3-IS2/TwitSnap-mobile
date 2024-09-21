@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import CountryPicker, { Country, CountryCode } from 'react-native-country-picker-modal';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams  } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import styles from '../styles/location';
 
@@ -9,6 +9,7 @@ export default function UbicacionPage() {
   const [country, setCountry] = useState<string>(''); 
   const [countryCode, setCountryCode] = useState<CountryCode>('AR'); // Código de país predeterminado
   const router = useRouter();
+  const { email, password } = useLocalSearchParams(); // Obtener los parámetros de la URL
 
   const handleSelectCountry = (countryData: Country) => {
     if (typeof countryData.name === 'string') {
@@ -24,7 +25,10 @@ export default function UbicacionPage() {
       try {
         //await AsyncStorage.setItem('selectedCountry', country);
         await SecureStore.setItemAsync('country', country);
-        router.push('./interests');
+        router.push({
+          pathname: './interests',
+          params: { email, password, country }
+        });
       } catch (error) {
         console.error(error);
         Alert.alert('Error', 'No se pudo guardar la información del país.');

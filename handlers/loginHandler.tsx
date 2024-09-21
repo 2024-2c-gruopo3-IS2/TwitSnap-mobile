@@ -26,11 +26,10 @@ export async function loginUser(email: string, password: string): Promise<LoginR
     if (response.ok) {
       // Guardar token en AsyncStorage y manejar expiración
       if (data.token) {
-        await saveToken(data.token, data.expiration);
+        await saveToken(data.token);
         console.log('Token almacenado:', data.token);
-        console.log('Expiration almacenada:', data.expiration);
     }
-      return { success: true, token: data.token, expiration: data.expiration };
+      return { success: true, token: data.token };
     } else if (data.status === 'blocked') {
       return { success: false, message: 'Cuenta bloqueada. Contacte al soporte.' }; // CA4: Usuario bloqueado
     } else {

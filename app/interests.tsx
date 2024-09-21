@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import styles from '../styles/interests';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export default function InteresesPage() {
   // Lista de intereses disponibles
+  const { email, password, country } = useLocalSearchParams();
   const listaIntereses = ['Política', 'Deportes', 'Entretenimiento', 'Tecnología', 'Ciencia', 'Arte', 'Música', 'Viajes'];
   
   // Estado para almacenar los intereses seleccionados
@@ -26,8 +27,10 @@ export default function InteresesPage() {
     if (interesesSeleccionados.length < 2) {
       Alert.alert('Error', 'Por favor, selecciona al menos dos intereses.');
     } else {
-      // Navegar al feed tras confirmar los intereses
-      router.push('./birthday');
+      router.push({
+        pathname: './userRegisterData',
+        params: { email, password, country, interests: interesesSeleccionados.join(',') }
+      });
     }
   };
 
