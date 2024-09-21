@@ -1,5 +1,5 @@
 import React from 'react';
-import LoginPage from './login';
+import LoginPage from './location';
 
 export default function Index(){
   return <LoginPage />;

@@ -25,10 +25,22 @@ export default StyleSheet.create({
     marginVertical: 20,
   },
   picker: {
-    backgroundColor: '#333', // Fondo oscuro para el picker
-    color: '#fff', // Texto claro en el picker
-    width: '100%', // Ancho del picker
-    padding: 10, // Padding interno del picker
+    backgroundColor: '#ddd',
+    color: '#fff',
+    width: '75%', // Cambiar de '100%' a '80%'
+    height: '30%',
+    padding: 10,
+    marginVertical: 5,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 10,
+  },
+  input: {
+    backgroundColor: '#333', // Fondo oscuro para el input
+    color: '#fff', // Texto claro en el input
+    width: '100%', // Ancho del input
+    padding: 10, // Padding interno del input
     marginVertical: 10, // Espaciado vertical
     borderWidth: 1,
     borderColor: '#fff',
@@ -59,5 +71,9 @@ export default StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 10,
+  },
 });
-
