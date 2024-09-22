@@ -100,4 +100,41 @@ export default StyleSheet.create({
         textAlign: 'center',
         marginTop: 10,
     },
+    snapContainer: {
+        paddingVertical: 15, // Solo padding vertical para mantener la separación arriba y abajo
+        paddingHorizontal: 0, // Elimina el padding horizontal
+        borderBottomWidth: 1,
+        borderBottomColor: '#444',
+        width: '100%', // Asegura que el contenedor del snap ocupe todo el ancho
+    },
+    snapHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 5,
+    },
+    content: {
+        color: '#fff',
+        fontSize: 16,
+    },
+    time: {
+        color: '#aaa',
+        fontSize: 12,
+    },
+    flatListContent: {
+        flexGrow: 1, // Permite que FlatList ocupe el espacio restante
+        paddingHorizontal:0,
+        width:'100%',
+        alignSelf:'stretch',
+    },
+    noResultsContainer: {
+        flex: 1, // Ocupa el espacio restante
+        justifyContent: 'center', // Centra verticalmente
+        alignItems: 'center', // Centra horizontalmente
+    },
+    noResultsText: {
+        color: '#aaa',
+        textAlign: 'center',
+        marginTop: 20,
+        fontSize: 16,
+      },
 });

@@ -40,12 +40,12 @@ export default function Feed() {
       if (response.success && response.snaps && response.snaps.length > 0) {
         const snaps: Snap[] = response.snaps.map((snap: any) => ({
           id: snap._id,
-          username: snap.email, //va USERNAME
+          username: snap.username, 
           time: snap.time,
           message: snap.message,
           isPrivate: snap.isPrivate,
         }));
-        setSnaps(snaps); // Guardamos todos los snaps
+        setSnaps(snaps); 
       }
       setIsLoading(false);
     };
