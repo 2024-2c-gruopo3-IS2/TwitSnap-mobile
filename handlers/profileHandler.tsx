@@ -115,7 +115,7 @@ export async function getProfile(): Promise<{ success: boolean; profile?: any; m
  */
 export async function updateProfile(profileData: any): Promise<{ success: boolean; message?: string }> {
     const token = await getToken();
-    const update_profile_url = `${API_URL}/profiles/by-username?username=${encodeURIComponent(profileData.username)}`;
+    const update_profile_url = `${API_URL}/profiles?token=${token}`;
 
     try {
         const response = await fetch(update_profile_url, {
@@ -151,6 +151,7 @@ export async function updateProfile(profileData: any): Promise<{ success: boolea
 export async function getUserProfile(username: string): Promise<{ success: boolean; profile?: any; message?: string }> {
     const user_url = `${API_URL}/profiles/by-username?username=${encodeURIComponent(username)}`;
     const token = await getToken();
+    
 
     try {
         const response = await fetch(user_url, {
