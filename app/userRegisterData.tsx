@@ -58,9 +58,9 @@ export default function UserDataPage() {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
       return;
     }
-    
+
     if (!isValidDateOfBirth(dateOfBirth)) {
-      Alert.alert('Error', 'Fecha de nacimiento inválida. Debe estar en formato YYYY-MM-DD y ser mayor de 18 años.');
+    Alert.alert('Error', 'Fecha de nacimiento inválida. Debe estar en formato YYYY-MM-DD,\n Por ejemplo 2008-01-01');
       return;
     }
 

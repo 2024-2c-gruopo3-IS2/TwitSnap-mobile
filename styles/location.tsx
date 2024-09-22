@@ -20,16 +20,30 @@ export default StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  pickerContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
+  input: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#fff',
   },
-  countryButton: {
+  dropdownButton: {
     backgroundColor: '#1DA1F2',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 10,
+  },
+  countryButton: {
+    backgroundColor: '#333',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 5,
   },
   selectedCountry: {
     color: '#fff',
