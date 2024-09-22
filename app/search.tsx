@@ -1,4 +1,4 @@
-// search.tsx
+// app/search.tsx
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
@@ -8,9 +8,10 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  Pressable
+  Pressable,
+  Linking
 } from 'react-native';
-import { getAllUsers } from '@/handlers/usersSearchHandler';
+import { getAllUsers } from '@/handlers/profileHandler'; // Asegúrate de que la ruta sea correcta
 import BackButton from '../components/backButton';
 import { useRouter } from 'expo-router';
 
@@ -64,7 +65,11 @@ export default function SearchUsers() {
   const renderItem = ({ item }: { item: string }) => (
     <Pressable
       style={styles.userContainer}
-      onPress={() => router.push(`/profileView`)} // Hardcodeando el username propio
+      // Redirigir al perfil del usuario al hacer clic
+      onPress={() => router.push({
+        pathname: '/profileView', // Ruta al perfil
+        params: { username: item }, // Enviar el username como parámetro
+      })}
     >
       <Text style={styles.username}>@{item}</Text>
     </Pressable>

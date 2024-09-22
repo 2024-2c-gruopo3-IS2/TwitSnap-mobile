@@ -1,20 +1,21 @@
 // app/profile/view.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import BackButton from '@/components/backButton'; // Asegúrate de que la ruta sea correcta
-import { Alert } from 'react-native';
-import styles from '../styles/profileView';
+import Footer from '@/components/footer';
+import styles from '../styles/profileView'; // Asegúrate de que la ruta sea correcta
+import { createSnap } from '@/handlers/postHandler';
 
 export default function ProfileView() {
     const router = useRouter();
-    const { username: routeUsername } = useLocalSearchParams(); 
+    const { username } = useLocalSearchParams(); // Captura el parámetro username desde la URL
     const [profile, setProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const isOwnProfile = !routeUsername;
+    const isOwnProfile = !username;
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -23,7 +24,7 @@ export default function ProfileView() {
             if (isOwnProfile) {
                 response = await getProfile();
             } else {
-                response = await getUserProfile(routeUsername as string);
+                response = await getUserProfile(username as string);
             }
 
             if (response.success) {
@@ -35,7 +36,7 @@ export default function ProfileView() {
         };
 
         fetchProfile();
-    }, [routeUsername]);
+    }, [username]);
 
     if (isLoading) {
         return (
@@ -55,7 +56,7 @@ export default function ProfileView() {
 
     return (
         <View style={styles.container}>
-            {/* Header con BackButton y Título */}
+            {/* Header con BackButton */}
             <View style={styles.headerContainer}>
                 <BackButton />
                 {/* Espacio vacío para balancear el layout */}
@@ -85,11 +86,11 @@ export default function ProfileView() {
             {/* Seguidores y Seguidos (Placeholder) */}
             <View style={styles.followContainer}>
                 <View style={styles.followSection}>
-                    <Text style={styles.followNumber}>100</Text>
+                    <Text style={styles.followNumber}>{profile.following_count || 0}</Text>
                     <Text style={styles.followLabel}>Seguidos</Text>
                 </View>
                 <View style={styles.followSection}>
-                    <Text style={styles.followNumber}>200</Text>
+                    <Text style={styles.followNumber}>{profile.followers_count || 0}</Text>
                     <Text style={styles.followLabel}>Seguidores</Text>
                 </View>
             </View>
@@ -101,6 +102,9 @@ export default function ProfileView() {
                     <Text style={styles.editButtonText}>Editar Perfil</Text>
                 </Pressable>
             )}
+
+
         </View>
     );
 }
+

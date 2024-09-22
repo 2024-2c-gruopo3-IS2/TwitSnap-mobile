@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { checkUsernameAvailability, createProfile } from '@/handlers/profileHandler';
 import { registerUser } from '../handlers/signUpHandler';
 import styles from '../styles/userRegisterData';
+import { removeToken } from '@/handlers/authTokenHandler';
 
 export default function UserDataPage() {
   const router = useRouter();
@@ -16,17 +17,17 @@ export default function UserDataPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Function to check username availability
-  const handleUsernameBlur = async () => {
-    if (username) {
-      setIsCheckingUsername(true);
-      const isAvailable = await checkUsernameAvailability(username);
-      setIsCheckingUsername(false);
-      if (!isAvailable) {
-        Alert.alert('Error', 'El nombre de usuario ya está en uso. Por favor, elige otro.');
-        setUsername(''); // Reset username if it's taken
-      }
-    }
-  };
+  // const handleUsernameBlur = async () => {
+  //   if (username) {
+  //     setIsCheckingUsername(true);
+  //     const isAvailable = await checkUsernameAvailability(username);
+  //     setIsCheckingUsername(false);
+  //     if (!isAvailable) {
+  //       Alert.alert('Error', 'El nombre de usuario ya está en uso. Por favor, elige otro.');
+  //       setUsername(''); // Reset username if it's taken
+  //     }
+  //   }
+  // };
 
   // Function to submit data
   const handleSubmit = async () => {
@@ -38,14 +39,7 @@ export default function UserDataPage() {
     setIsSubmitting(true);
 
     try {
-      // // 1. Register the user with auth API
-      // const authResponse = await registerUser(email as string, password as string);
 
-      // if (!authResponse.success) {
-      //   Alert.alert('Error', String(authResponse.message) || 'Error al registrar el usuario.');
-      //   setIsSubmitting(false);
-      //   return;
-      // }
       console.log('email:', email);
       console.log('password:', password);
       console.log('country:', country);
@@ -74,15 +68,7 @@ export default function UserDataPage() {
         setIsSubmitting(false);
         return;
       }
-      // // 1. Register the user with auth API
-      // const authResponse = await registerUser(email as string, password as string);
 
-      // if (!authResponse.success) {
-      //   Alert.alert('Error', String(authResponse.message) || 'Error al registrar el usuario.');
-      //   setIsSubmitting(false);
-      //   return;
-      // }
-      // Registration completed successfully
       Alert.alert('Éxito', 'Registro completado exitosamente.');
       router.push('./feed'); 
     } catch (error) {
@@ -124,7 +110,7 @@ export default function UserDataPage() {
         placeholderTextColor="#aaa"
         style={styles.input}
         onChangeText={setUsername}
-        onBlur={handleUsernameBlur}
+        //onBlur={handleUsernameBlur}
         value={username}
         autoCapitalize="none"
       />
