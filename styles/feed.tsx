@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     backgroundColor: '#000',
     paddingTop: 20,
     paddingHorizontal: 10,
@@ -65,6 +66,15 @@ export default StyleSheet.create({
     width: 50, // Ajusta el tamaño del logo
     height: 50,
     resizeMode: 'contain',
+  },
+  flatListContent: {
+    flexGrow: 1, // Permite que FlatList ocupe el espacio restante
+    paddingHorizontal: 10,
+  },
+  noResultsContainer: {
+    flex: 1, // Ocupa el espacio restante
+    justifyContent: 'center', // Centra verticalmente
+    alignItems: 'center', // Centra horizontalmente
   },
 });
 

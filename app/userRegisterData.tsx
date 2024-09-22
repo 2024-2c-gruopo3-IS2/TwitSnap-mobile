@@ -28,6 +28,29 @@ export default function UserDataPage() {
   //     }
   //   }
   // };
+   // Función para validar la fecha de nacimiento
+   const isValidDateOfBirth = (dob: string) => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dob)) {
+      return false;
+    }
+
+    const [year, month, day] = dob.split('-').map(Number);
+    const currentDate = new Date();
+    const enteredDate = new Date(year, month - 1, day);
+
+    // Validar que la fecha exista
+    if (enteredDate.getFullYear() !== year || enteredDate.getMonth() + 1 !== month || enteredDate.getDate() !== day) {
+      return false;
+    }
+
+    // Validar que no sea una fecha futura
+    if (enteredDate > currentDate) {
+      return false;
+    }
+
+    return true;
+  };
 
   // Function to submit data
   const handleSubmit = async () => {
@@ -35,19 +58,15 @@ export default function UserDataPage() {
       Alert.alert('Error', 'Por favor, completa todos los campos.');
       return;
     }
+    
+    if (!isValidDateOfBirth(dateOfBirth)) {
+      Alert.alert('Error', 'Fecha de nacimiento inválida. Debe estar en formato YYYY-MM-DD y ser mayor de 18 años.');
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
-
-      console.log('email:', email);
-      console.log('password:', password);
-      console.log('country:', country);
-      console.log('interests:', interests);
-      console.log('name:', name);
-      console.log('surname:', surname);
-      console.log('username:', username);
-      console.log('dateOfBirth:', dateOfBirth);
       const formattedDate = new Date(dateOfBirth).toISOString().split('T')[0];
       const description = 'Hola, soy nuevo en la plataforma.';
 

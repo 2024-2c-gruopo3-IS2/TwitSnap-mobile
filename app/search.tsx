@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 
 // Importar debounce de lodash
 import debounce from 'lodash.debounce';
+import Footer from '@/components/footer';
 
 export default function SearchUsers() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,6 +112,7 @@ export default function SearchUsers() {
       ) : (
         <Text style={styles.noResultsText}>No se encontraron usuarios</Text>
       )}
+      <Footer />
     </View>
   );
 }

@@ -107,9 +107,13 @@ export default function Feed() {
           keyExtractor={(item) => item.id?.toString() || ''}  
           renderItem={renderItem}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.flatListContent}
         />
       ) : (
+        <View style={styles.noResultsContainer}>
         <Text style={styles.noResultsText}>No se encontraron snaps</Text>
+        </View>      
+      
       )}
 
       {/* Footer con botón + */}
