@@ -4,7 +4,6 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#000', // Fondo negro
-        alignItems: 'center',
         paddingTop: 20,
     },
     headerContainer: {
@@ -106,6 +105,7 @@ export default StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: '#444',
         width: '100%', // Asegura que el contenedor del snap ocupe todo el ancho
+        alignItems: 'baseline',
     },
     snapHeader: {
         flexDirection: 'row',
@@ -137,4 +137,26 @@ export default StyleSheet.create({
         marginTop: 20,
         fontSize: 16,
       },
+    tweetsTitle: {
+        paddingVertical: 15,
+        fontSize: 25,
+        color: '#fff',
+        fontWeight: 'bold',
+        marginVertical: 10,
+        textAlign: 'center',
+        width: '100%',
+    },
+    snapsList: {
+        flexGrow: 1,
+        width: '100%',
+    },
+    scrollViewContent: {
+        flexGrow: 1,
+        alignItems: 'center', // Aquí
+        justifyContent: 'flex-start', // Aquí
+        padding: 16,
+        flex: 1,
+        backgroundColor: '#000', // Fondo negro
+        paddingTop: 20,
+    },
 });

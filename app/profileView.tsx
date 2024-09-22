@@ -1,11 +1,9 @@
-// app/profile/view.tsx
-
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, ActivityIndicator, StyleSheet, Alert, FlatList } from 'react-native';
+import { View, Text, Image, Pressable, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
-import BackButton from '@/components/backButton'; // Asegúrate de que la ruta sea correcta
+import BackButton from '@/components/backButton';
 import Footer from '@/components/footer';
 import styles from '../styles/profileView'; // Asegúrate de que la ruta sea correcta
 import { createSnap, getAllSnaps } from '@/handlers/postHandler';
@@ -20,7 +18,7 @@ interface Snap {
 
 export default function ProfileView() {
     const router = useRouter();
-    const { username } = useLocalSearchParams(); // Captura el parámetro username desde la URL
+    const { username } = useLocalSearchParams(); 
     const [profile, setProfile] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [snaps, setSnaps] = useState<Snap[]>([]);
@@ -49,7 +47,7 @@ export default function ProfileView() {
                       isPrivate: snap.isPrivate,
                     }));
                     setSnaps(snaps); 
-                  }
+                }
             } else {
                 Alert.alert('Error', response.message || 'No se pudo obtener el perfil.');
             }
@@ -59,9 +57,8 @@ export default function ProfileView() {
         fetchProfile();
     }, [username]);
 
-    // Renderizar cada snap
-    const renderItem = ({ item }: { item: Snap }) => (
-        <View style={styles.snapContainer}>
+    const renderItem = (item: Snap) => (
+        <View key={item.id} style={styles.snapContainer}>
             <View style={styles.snapHeader}>
                 <Text style={styles.username}>@{item.username}</Text>
                 <Text style={styles.time}>{item.time}</Text>
@@ -69,7 +66,6 @@ export default function ProfileView() {
             <Text style={styles.content}>{item.message}</Text>
         </View>
     );
-    
 
     if (isLoading) {
         return (
@@ -88,11 +84,10 @@ export default function ProfileView() {
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             {/* Header con BackButton */}
             <View style={styles.headerContainer}>
                 <BackButton />
-                {/* Espacio vacío para balancear el layout */}
                 <View style={styles.rightSpace} />
             </View>
 
@@ -116,7 +111,7 @@ export default function ProfileView() {
             </Text>
             <Text style={styles.username}>@{profile.username}</Text>
 
-            {/* Seguidores y Seguidos (Placeholder) */}
+            {/* Seguidores y Seguidos */}
             <View style={styles.followContainer}>
                 <View style={styles.followSection}>
                     <Text style={styles.followNumber}>{profile.following_count || 0}</Text>
@@ -136,23 +131,20 @@ export default function ProfileView() {
                 </Pressable>
             )}
 
+            {/* Título "Mis tweets" */}
+            <Text style={styles.tweetsTitle}>Mis tweets</Text>
+
             {/* Lista de snaps */}
             {snaps.length > 0 ? (
-                <FlatList
-                data={snaps}
-                keyExtractor={(item) => item.id?.toString() || ''}  
-                renderItem={renderItem}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.flatListContent}
-                />
+                <View style={styles.snapsList}>
+                    {snaps.map(renderItem)}
+                </View>
             ) : (
                 <View style={styles.noResultsContainer}>
-                <Text style={styles.noResultsText}>No se encontraron snaps</Text>
+                    <Text style={styles.noResultsText}>No se encontraron snaps</Text>
                 </View>      
             )}
-
-
-        </View>
+            
+        </ScrollView>
     );
 }
-
