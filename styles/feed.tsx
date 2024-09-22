@@ -1,141 +1,70 @@
 import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    padding: 16,
+    paddingTop: 20,
+    paddingHorizontal: 10,
   },
-  newPostContainer: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#222',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  newPostInput: {
+  searchInput: {
     flex: 1,
-    color: '#fff',
-    marginLeft: 8,
-  },
-  postButton: {
-    backgroundColor: '#1c1c1c',
-    padding: 8,
-    borderRadius: 8,
-  },
-  postButtonText: {
-    color: '#fff',
-  },
-  feed: {
-    flex: 1,
-  },
-  card: {
     backgroundColor: '#333',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
+    color: '#fff',
+    padding: 10,
+    borderRadius: 5,
+    marginLeft: 10,
+    fontSize: 16,
   },
-  cardHeader: {
+  snapContainer: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
+  },
+  snapHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  userInfo: {
-    marginLeft: 8,
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
   username: {
-    color: '#fff',
+    color: '#1DA1F2',
     fontSize: 16,
     fontWeight: 'bold',
   },
   time: {
-    color: '#888',
+    color: '#aaa',
+    fontSize: 12,
   },
-  cardContent: {
-    marginBottom: 8,
-  },
-  contentText: {
+  content: {
     color: '#fff',
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  footerButton: {
-    color: '#1e90ff',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
-    backgroundColor: '#222',
-  },
-  footerIcon: {
-    width: 24,
-    height: 24,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semitransparente
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '90%',
-    backgroundColor: '#1c1c1c',
-    borderRadius: 10,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: '#FFFFFF',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  textInput: {
-    height: 100,
-    color: '#FFFFFF',
-    borderColor: '#333',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 10,
-    verticalAlign: 'top',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-  },
-  cancelButton: {
-    backgroundColor: '#888',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  saveButton: {
-    backgroundColor: '#1DA1F2',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#FFFFFF',
     fontSize: 16,
   },
-  postActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+  noResultsText: {
+    color: '#aaa',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
   },
-  actionButton: {
-    color: '#1e90ff',
-    marginLeft: 10,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  logoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logo: {
+    width: 50, // Ajusta el tamaño del logo
+    height: 50,
+    resizeMode: 'contain',
   },
 });
 
-export default styles;

@@ -13,10 +13,10 @@ import { BlurView } from 'expo-blur'; // Import BlurView
 import styles from '../styles/createPostModal'; // Ensure your styles are correctly imported
 
 interface Post {
-  id: number;
+  id?: string;  
   username: string;
   time: string;
-  content: string;
+  message: string;
   isPrivate: boolean;
 }
 
@@ -52,10 +52,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
     // Create the new post
     const newPost: Post = {
-      id: Date.now(), // Use timestamp as a simple unique ID
+      id: Date.now().toString(), // Use timestamp as a simple unique ID
       username: 'User', // Replace with actual logged-in user's username
       time: 'Just now',
-      content: postContent,
+      message: postContent,
       isPrivate: isPrivate,
     };
 

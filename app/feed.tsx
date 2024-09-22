@@ -1,51 +1,36 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
-  TextInput,
   Text,
   FlatList,
   ActivityIndicator,
   StyleSheet,
   Pressable,
+  Image,
 } from 'react-native';
 import { getAllSnaps, createSnap } from '@/handlers/postHandler';
-import BackButton from '../components/backButton';
 import Footer from '../components/footer';
 import { useRouter } from 'expo-router';
-
+import styles from '../styles/feed';
 
 interface Snap {
-  id: number;
+  id: string; 
   username: string;
   time: string;
-  content: string;
+  message: string;
   isPrivate: boolean;
 }
 
-type Post = {
-  content: string;
+interface Post {
+  id?: string;  
+  username: string;
+  time: string;
+  message: string;
   isPrivate: boolean;
-};
+}
 
 export default function Feed() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [snaps, setSnaps] = useState<Snap[]>([
-    {
-      id: 1,
-      username: 'user1',
-      time: 'Hace 2 horas',
-      content: 'Este es un TwitSnap de ejemplo.',
-      isPrivate: false,
-    },
-    {
-      id: 2,
-      username: 'user2',
-      time: 'Hace 3 horas',
-      content: '¡Hola a todos! Este es otro TwitSnap de ejemplo.',
-      isPrivate: false,
-    },
-  ]);
-  const [filteredSnaps, setFilteredSnaps] = useState<Snap[]>(snaps);
+  const [snaps, setSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
@@ -53,8 +38,14 @@ export default function Feed() {
     const fetchSnaps = async () => {
       const response = await getAllSnaps();
       if (response.success && response.snaps && response.snaps.length > 0) {
-        setSnaps(response.snaps); // Guardamos todos los snaps
-        setFilteredSnaps(response.snaps); // Inicialmente mostramos todos
+        const snaps: Snap[] = response.snaps.map((snap: any) => ({
+          id: snap._id,
+          username: snap.email, //va USERNAME
+          time: snap.time,
+          message: snap.message,
+          isPrivate: snap.isPrivate,
+        }));
+        setSnaps(snaps); // Guardamos todos los snaps
       }
       setIsLoading(false);
     };
@@ -64,12 +55,17 @@ export default function Feed() {
 
   // Función para añadir un nuevo snap al feed
   const addNewPost = async (newPost: Post): Promise<void> => {
-    const { content, isPrivate } = newPost;
-    const response = await createSnap(content, isPrivate);
+    const { message , isPrivate } = newPost;
+    const response = await createSnap(message, isPrivate);
     if (response.success && response.snap) {
-      const newSnap = response.snap;
+      const newSnap: Snap = {
+        id: response.snap.id.toString(),
+        username: response.snap.username,
+        time: response.snap.time,
+        message: response.snap.content,
+        isPrivate: response.snap.isPrivate,
+      };
       setSnaps([newSnap, ...snaps]); // Añadir al inicio
-      setFilteredSnaps([newSnap, ...filteredSnaps]); // Actualizar la lista filtrada
     }
   };
 
@@ -82,7 +78,7 @@ export default function Feed() {
         <Text style={styles.username}>@{item.username}</Text>
         <Text style={styles.time}>{item.time}</Text>
       </View>
-      <Text style={styles.content}>{item.content}</Text>
+      <Text style={styles.content}>{item.message}</Text>
     </Pressable>
   );
 
@@ -96,14 +92,19 @@ export default function Feed() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-
+      {/* Logo en el centro arriba */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('@/assets/images/twitsnap-logo.png')} 
+          style={styles.logo}
+        />
+      </View>
 
       {/* Lista de snaps */}
-      {filteredSnaps.length > 0 ? (
+      {snaps.length > 0 ? (
         <FlatList
-          data={filteredSnaps}
-          keyExtractor={(item) => item.id.toString()}
+          data={snaps}
+          keyExtractor={(item) => item.id?.toString() || ''}  
           renderItem={renderItem}
           keyboardShouldPersistTaps="handled"
         />
@@ -116,61 +117,3 @@ export default function Feed() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    paddingTop: 20,
-    paddingHorizontal: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#333',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  snapContainer: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#444',
-  },
-  snapHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  username: {
-    color: '#1DA1F2',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  time: {
-    color: '#aaa',
-    fontSize: 12,
-  },
-  content: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  noResultsText: {
-    color: '#aaa',
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-});

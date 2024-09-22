@@ -22,7 +22,7 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const snaps_url = `${API_URL}/snaps/`;
+    const snaps_url = `${API_URL}/snaps/?token=${token}`;
 
     try {
         const response = await fetch(snaps_url, {
@@ -63,7 +63,7 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const create_snap_url = `${API_URL}/snaps/`;
+    const create_snap_url = `${API_URL}/snaps/?token=${token}`;
 
     try {
         const response = await fetch(create_snap_url, {

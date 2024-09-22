@@ -6,15 +6,16 @@ import CreatePostModal from './createPostModal';
 import styles from '../styles/footer';
 
 interface Post {
-  id: number;
+  id?: string;  // Cambia el tipo a string y mantenlo opcional si es necesario
   username: string;
   time: string;
-  content: string;
+  message: string;
   isPrivate: boolean;
 }
 
+
 interface FooterProps {
-  addNewPost?: (newPost: Post) => void; 
+  addNewPost?: (newPost: Post) => Promise<void>; 
 }
 
 const Footer: React.FC<FooterProps> = ({ addNewPost }) => {

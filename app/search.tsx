@@ -85,18 +85,21 @@ export default function SearchUsers() {
 
   return (
     <View style={styles.container}>
+      <BackButton />
+      <View style={styles.backButtonContainer}>
+          </View>
       <View style={styles.header}>
-        <BackButton />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar usuarios..."
-          placeholderTextColor="#aaa"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      </View>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar usuarios..."
+            placeholderTextColor="#aaa"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+
 
       {filteredUsers.length > 0 ? (
         <FlatList
@@ -114,24 +117,29 @@ export default function SearchUsers() {
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1,
-      backgroundColor: '#000',
-      paddingTop: 20,
-      paddingHorizontal: 10,
+    flex: 1,
+    backgroundColor: '#000',
+    paddingTop: 20,
+    paddingHorizontal: 10,
   },
   header: {
-      flexDirection: 'row', // Poner BackButton y TextInput en una fila
-      alignItems: 'center', // Alinear verticalmente los elementos
-      marginBottom: 20, // Añadir espacio debajo del contenedor del encabezado
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', 
+    marginBottom: 20,
+    marginTop: 60,
+
+  },
+  backButtonContainer: {
+    marginRight: 10, // Espacio entre el botón de volver y el campo de búsqueda
   },
   searchInput: {
-      flex: 1, // Ocupa el resto del espacio disponible en el contenedor
-      backgroundColor: '#333',
-      color: '#fff',
-      padding: 10,
-      borderRadius: 5,
-      marginLeft: 10, // Añade espacio entre el botón y el input
-      fontSize: 16,
+    flex: 1, // Ocupa el resto del espacio disponible
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 5,
+    fontSize: 16,
   },
   userContainer: {
       padding: 15,
