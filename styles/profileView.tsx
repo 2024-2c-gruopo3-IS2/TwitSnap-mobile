@@ -53,14 +53,17 @@ export default StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: '#fff',
+        textAlign: 'center',
     },
     username: {
         fontSize: 18,
         color: '#aaa',
+        textAlign: 'center',
     },
     followContainer: {
         flexDirection: 'row',
         marginTop: 20,
+        justifyContent: 'center',
     },
     followSection: {
         alignItems: 'center',
@@ -79,6 +82,7 @@ export default StyleSheet.create({
         color: '#fff',
         marginLeft: 5,
         fontSize: 16,
+        justifyContent: 'center',
     },
     actionText: {
         color: '#fff',
@@ -173,6 +177,7 @@ export default StyleSheet.create({
         marginTop: 30,
         minWidth: 45,
         minHeight: 45,
+        maxWidth: 200,
         justifyContent: 'center', // Centra el contenido horizontalmente
     },
     
