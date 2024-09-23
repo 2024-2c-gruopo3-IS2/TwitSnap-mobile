@@ -1,3 +1,4 @@
+// profileView.ts (actualizado)
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
@@ -99,11 +100,17 @@ export default StyleSheet.create({
         marginTop: 10,
     },
     snapContainer: {
+        flexDirection: 'row', // Organiza contenido y botones en una fila
+        justifyContent: 'space-between', // Espacia el contenido y los botones
+        alignItems: 'flex-start', // Alinea los elementos al inicio verticalmente
         paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#444',
         width: '100%',
-        alignItems: 'baseline',
+    },
+    snapContent: {
+        flex: 1, // Toma el espacio restante
+        paddingRight: 10, // Espacio para los botones
     },
     snapHeader: {
         flexDirection: 'row',
@@ -158,10 +165,8 @@ export default StyleSheet.create({
         paddingTop: 20,
     },
     actionButtons: {
-        flexDirection: 'row',
-        justifyContent: 'center', // Centra los botones
-        alignItems: 'center', // Alinea verticalmente
-        marginTop: 10,
+        flexDirection: 'column', // Organiza botones en una columna
+        alignItems: 'flex-end', // Alinea los botones al final (derecha)
     },
     icon: {
         textAlign: 'center', // Centra el icono dentro del botón
@@ -174,23 +179,40 @@ export default StyleSheet.create({
         backgroundColor: '#1DA1F2', // Color del botón de editar
         padding: 10,
         borderRadius: 5,
-        marginTop: 30,
         minWidth: 45,
         minHeight: 45,
-        maxWidth: 200,
         justifyContent: 'center', // Centra el contenido horizontalmente
     },
-    
     deleteButton: {
         flexDirection: 'row',
         alignItems: 'center', // Alinea el icono verticalmente
         backgroundColor: '#d11a2a', 
         borderRadius: 5,
-        marginTop: 30,
         minWidth: 45,
         minHeight: 45,
         justifyContent: 'center', // Centra el contenido horizontalmente
-        marginHorizontal:20,
-    },    
-    
+    },
+    profileActionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#d11a2a', // Rojo para indicar peligro/acción destructiva
+        padding: 10,
+        borderRadius: 5,
+        marginLeft: 10, // Espacio entre el botón de editar y cerrar sesión
+        minWidth: 45,
+        minHeight: 45,
+        justifyContent: 'center',
+    },
+    logoutButtonText: {
+        color: '#fff',
+        marginLeft: 5,
+        fontSize: 16,
+        justifyContent: 'center',
+    },
 });

@@ -141,7 +141,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
  * @param isPrivate Indica si el TwitSnap es privado.
  * @returns Un mensaje de éxito o error.
  */
-export async function updateSnap(snapId: number, message: string, isPrivate: string): Promise<{ success: boolean; message?: string }> {
+export async function updateSnap(snapId: string, message: string, isPrivate: string): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
 
     const token = await getToken();
