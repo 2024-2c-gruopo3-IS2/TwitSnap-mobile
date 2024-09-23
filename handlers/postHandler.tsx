@@ -93,3 +93,89 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
         return { success: false, message: 'Error al conectar con el servidor.' };
     }
 }
+
+/**
+ * Elimina un TwitSnap existente para el usuario autenticado.
+ * @param snapId ID del TwitSnap a eliminar.
+ * @returns Un mensaje de éxito o error.
+ */
+export async function deleteSnap(snapId: number): Promise<{ success: boolean; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const delete_snap_url = `${API_URL}/snaps/${snapId}?token=${token}`;
+
+    try {
+        const response = await fetch(delete_snap_url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+        console.log('Data:', data);
+
+        if (response.ok) {
+            console.log('Snap eliminado exitosamente');
+            return { success: true, message: 'Snap eliminado exitosamente' };
+        } else {
+            console.log('Error al eliminar el snap:', data);
+            return { success: false, message: data.detail || 'Error al eliminar el snap.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+
+/**
+ * Actualiza un TwitSnap existente para el usuario autenticado.
+ * @param snapId ID del TwitSnap a editar.
+ * @param message Nuevo contenido del TwitSnap.
+ * @param isPrivate Indica si el TwitSnap es privado.
+ * @returns Un mensaje de éxito o error.
+ */
+export async function updateSnap(snapId: number, message: string, isPrivate: string): Promise<{ success: boolean; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const update_snap_url = `${API_URL}/snaps/${snapId}?token=${token}`;
+
+    try {
+        const response = await fetch(update_snap_url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                message,         // Cambiado de 'content' a 'message'
+                is_private: isPrivate, // Cambiado de 'isPrivate' a 'is_private'
+            }),
+        });
+
+        const data = await response.json();
+        console.log('Data:', data);
+
+        if (response.ok) {
+            console.log('Snap actualizado:', data.data);
+            return { success: true, message: 'Snap actualizado exitosamente' };
+        } else {
+            console.log('Error al actualizar el snap:', data);
+            return { success: false, message: data.detail || 'Error al actualizar el snap.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}

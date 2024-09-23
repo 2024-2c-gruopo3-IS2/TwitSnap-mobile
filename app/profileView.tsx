@@ -4,9 +4,9 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import BackButton from '@/components/backButton';
-import Footer from '@/components/footer';
-import styles from '../styles/profileView'; // Asegúrate de que la ruta sea correcta
-import { createSnap, getAllSnaps } from '@/handlers/postHandler';
+import styles from '../styles/profileView';
+import { getAllSnaps, deleteSnap, updateSnap} from '@/handlers/postHandler';
+
 
 interface Snap {
     id: string; 
@@ -23,6 +23,7 @@ export default function ProfileView() {
     const [isLoading, setIsLoading] = useState(true);
     const [snaps, setSnaps] = useState<Snap[]>([]);
     const isOwnProfile = !username;
+
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -44,7 +45,7 @@ export default function ProfileView() {
                       username: snap.username, 
                       time: snap.time,
                       message: snap.message,
-                      isPrivate: snap.isPrivate,
+                      isPrivate: snap.isPrivate === 'true',
                     }));
                     setSnaps(snaps); 
                 }
@@ -57,6 +58,30 @@ export default function ProfileView() {
         fetchProfile();
     }, [username]);
 
+    const handleDeleteSnap = (snapId: string) => {
+        Alert.alert(
+            "Eliminar Snap",
+            "¿Estás seguro de que quieres eliminar este snap?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { 
+                    text: "Eliminar", 
+                    onPress: async () => {
+                        const result = await deleteSnap(snapId as unknown as number);
+                        if (result.success) {
+                            // Actualizar la lista de snaps
+                            setSnaps(snaps.filter(snap => snap.id !== snapId));
+                            Alert.alert('Éxito', 'Snap eliminado exitosamente');
+                        } else {
+                            Alert.alert('Error', result.message);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    
     const renderItem = (item: Snap) => (
         <View key={item.id} style={styles.snapContainer}>
             <View style={styles.snapHeader}>
@@ -64,8 +89,25 @@ export default function ProfileView() {
                 <Text style={styles.time}>{item.time}</Text>
             </View>
             <Text style={styles.content}>{item.message}</Text>
+            {isOwnProfile && (
+                <View style={styles.actionButtons}>
+                    <Pressable
+                        onPress={() => Alert.alert("Funcionalidad no implementada")} // TO DO
+                        style={styles.editButton}
+                    >
+                    <Icon name="edit" size={24} color="#fff" style={styles.icon} />
+                    </Pressable>
+                    <Pressable
+                        onPress={() => handleDeleteSnap(item.id)}
+                        style={styles.deleteButton}
+                    >
+                        <Icon name="delete" size={24} color="#fff" style={styles.icon} />
+                    </Pressable>
+                </View>
+            )}
         </View>
     );
+    
 
     if (isLoading) {
         return (
@@ -85,19 +127,16 @@ export default function ProfileView() {
 
     return (
         <ScrollView style={styles.container}>
-            {/* Header con BackButton */}
             <View style={styles.headerContainer}>
                 <BackButton />
                 <View style={styles.rightSpace} />
             </View>
 
-            {/* Foto de Portada */}
             <Image 
                 source={{ uri: profile.cover_photo || 'https://via.placeholder.com/800x200' }} 
                 style={styles.coverPhoto}
             />
 
-            {/* Foto de Perfil */}
             <View style={styles.profilePictureContainer}>
                 <Image 
                     source={{ uri: profile.profile_picture || 'https://via.placeholder.com/150' }} 
@@ -105,13 +144,11 @@ export default function ProfileView() {
                 />
             </View>
 
-            {/* Nombre, Apellido y Username */}
             <Text style={styles.name}>
                 {profile.name} {profile.surname}
             </Text>
             <Text style={styles.username}>@{profile.username}</Text>
 
-            {/* Seguidores y Seguidos */}
             <View style={styles.followContainer}>
                 <View style={styles.followSection}>
                     <Text style={styles.followNumber}>{profile.following_count || 0}</Text>
@@ -123,7 +160,6 @@ export default function ProfileView() {
                 </View>
             </View>
 
-            {/* Botón de Editar Perfil */}
             {isOwnProfile && (
                 <Pressable style={styles.editButton} onPress={() => router.push('/profileEdit')}>
                     <Icon name="edit" size={24} color="#fff" />
@@ -131,10 +167,8 @@ export default function ProfileView() {
                 </Pressable>
             )}
 
-            {/* Título "Mis tweets" */}
             <Text style={styles.tweetsTitle}>Mis tweets</Text>
 
-            {/* Lista de snaps */}
             {snaps.length > 0 ? (
                 <View style={styles.snapsList}>
                     {snaps.map(renderItem)}
@@ -144,7 +178,6 @@ export default function ProfileView() {
                     <Text style={styles.noResultsText}>No se encontraron snaps</Text>
                 </View>      
             )}
-            
         </ScrollView>
     );
 }

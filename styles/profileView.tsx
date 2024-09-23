@@ -3,19 +3,19 @@ import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000', // Fondo negro
+        backgroundColor: '#000',
         paddingTop: 20,
     },
     headerContainer: {
         position: 'absolute',
-        top: 20, // Ajusta según tus necesidades
+        top: 20,
         left: 0,
         right: 0,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 10,
-        zIndex: 2, // Asegura que el header esté por encima de la foto de portada
+        zIndex: 2,
     },
     title: {
         fontSize: 24,
@@ -25,7 +25,7 @@ export default StyleSheet.create({
         flex: 1,
     },
     rightSpace: {
-        width: 40, // Igual al tamaño del BackButton para balancear
+        width: 40,
     },
     coverPhoto: {
         width: '100%',
@@ -41,7 +41,7 @@ export default StyleSheet.create({
         borderColor: '#fff',
         borderRadius: 75,
         overflow: 'hidden',
-        backgroundColor: '#000', // Para asegurar que el borde se vea bien
+        backgroundColor: '#000',
     },
     profilePicture: {
         width: 100,
@@ -75,18 +75,13 @@ export default StyleSheet.create({
         fontSize: 16,
         color: '#aaa',
     },
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1DA1F2',
-        padding: 10,
-        borderRadius: 5,
-        marginTop: 30,
-    },
     editButtonText: {
         color: '#fff',
         marginLeft: 5,
         fontSize: 16,
+    },
+    actionText: {
+        color: '#fff',
     },
     loaderContainer: {
         flex: 1,
@@ -100,11 +95,10 @@ export default StyleSheet.create({
         marginTop: 10,
     },
     snapContainer: {
-        paddingVertical: 15, // Solo padding vertical para mantener la separación arriba y abajo
-        paddingHorizontal: 0, // Elimina el padding horizontal
+        paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#444',
-        width: '100%', // Asegura que el contenedor del snap ocupe todo el ancho
+        width: '100%',
         alignItems: 'baseline',
     },
     snapHeader: {
@@ -121,22 +115,22 @@ export default StyleSheet.create({
         fontSize: 12,
     },
     flatListContent: {
-        flexGrow: 1, // Permite que FlatList ocupe el espacio restante
-        paddingHorizontal:0,
-        width:'100%',
-        alignSelf:'stretch',
+        flexGrow: 1,
+        paddingHorizontal: 0,
+        width: '100%',
+        alignSelf: 'stretch',
     },
     noResultsContainer: {
-        flex: 1, // Ocupa el espacio restante
-        justifyContent: 'center', // Centra verticalmente
-        alignItems: 'center', // Centra horizontalmente
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     noResultsText: {
         color: '#aaa',
         textAlign: 'center',
         marginTop: 20,
         fontSize: 16,
-      },
+    },
     tweetsTitle: {
         paddingVertical: 15,
         fontSize: 25,
@@ -152,11 +146,46 @@ export default StyleSheet.create({
     },
     scrollViewContent: {
         flexGrow: 1,
-        alignItems: 'center', // Aquí
-        justifyContent: 'flex-start', // Aquí
+        alignItems: 'center',
+        justifyContent: 'flex-start',
         padding: 16,
         flex: 1,
-        backgroundColor: '#000', // Fondo negro
+        backgroundColor: '#000',
         paddingTop: 20,
     },
+    actionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'center', // Centra los botones
+        alignItems: 'center', // Alinea verticalmente
+        marginTop: 10,
+    },
+    icon: {
+        textAlign: 'center', // Centra el icono dentro del botón
+        justifyContent: 'center',
+        alignSelf: 'center',
+    },
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1DA1F2', // Color del botón de editar
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 30,
+        minWidth: 45,
+        minHeight: 45,
+        justifyContent: 'center', // Centra el contenido horizontalmente
+    },
+    
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center', // Alinea el icono verticalmente
+        backgroundColor: '#d11a2a', 
+        borderRadius: 5,
+        marginTop: 30,
+        minWidth: 45,
+        minHeight: 45,
+        justifyContent: 'center', // Centra el contenido horizontalmente
+        marginHorizontal:20,
+    },    
+    
 });
