@@ -76,5 +76,16 @@ export default StyleSheet.create({
     justifyContent: 'center', // Centra verticalmente
     alignItems: 'center', // Centra horizontalmente
   },
+  likeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  likeButton: {
+    marginRight: 8,
+  },
+  likeCount: {
+    fontSize: 14,
+    color: 'gray',
+  },
 });
 

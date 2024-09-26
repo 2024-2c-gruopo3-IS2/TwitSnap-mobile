@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Pressable, ActivityIndicator, Alert, ScrollView, Platform } from 'react-native';
+import { View, Text, Image, Pressable, ActivityIndicator, Alert, ScrollView, Platform, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-// import { getProfile, getUserProfile } from '@/handlers/profileHandler';
+import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
-// import { getAllSnaps, deleteSnap, updateSnap } from '@/handlers/postHandler';
-// import { removeToken } from '@/handlers/authTokenHandler';
+import { getAllSnaps, deleteSnap, updateSnap } from '@/handlers/postHandler';
+import { removeToken } from '@/handlers/authTokenHandler';
 // import { followUser, unfollowUser, checkIfFollowing } from '@/handlers/followHandler';
 import EditSnapModal from '@/components/editSnapModal'; // Asegúrate de que la ruta sea correcta
+import SnapItem from '@/components/snapItem';  // Asegúrate de que la ruta sea correcta
 
 interface Snap {
     id: string;
@@ -16,6 +17,9 @@ interface Snap {
     time: string;
     message: string;
     isPrivate: boolean;
+    likes: number;
+    likedByUser: boolean;
+    canViewLikes: boolean;
 }
 
 export default function ProfileView() {
@@ -35,38 +39,12 @@ export default function ProfileView() {
     useEffect(() => {
         const fetchProfile = async () => {
             setIsLoading(true);
-            // Simulación de datos del perfil
             let response;
             if (isOwnProfile) {
-                // response = await getProfile();
-                response = {
-                    success: true,
-                    profile: {
-                        id: '1',
-                        username: 'mi_usuario',
-                        name: 'Mi',
-                        surname: 'Usuario',
-                        cover_photo: '',
-                        profile_picture: '',
-                        followers_count: 100,
-                        following_count: 150,
-                    },
-                };
+                response = await getProfile();
+
             } else {
-                // response = await getUserProfile(username as string);
-                response = {
-                    success: true,
-                    profile: {
-                        id: '2',
-                        username: username as string,
-                        name: 'Usuario',
-                        surname: 'Ejemplo',
-                        cover_photo: '',
-                        profile_picture: '',
-                        followers_count: 80,
-                        following_count: 120,
-                    },
-                };
+                response = await getUserProfile(username as string);
             }
 
             if (response.success) {
@@ -77,30 +55,14 @@ export default function ProfileView() {
                     // const followingStatus = await checkIfFollowing(response.profile.id);
                     // setIsFollowing(followingStatus.isFollowing);
                     // Simular si el usuario ya está siguiendo al perfil
+
                     setIsFollowing(false); // Cambia a 'true' si deseas simular que ya lo sigues
+                    setIsFollowedBy(true); // Cambia a 'false' para simular que no te siguen de vuelta
                 }
 
                 // Simulación de datos de snaps
-                // const snapResponse = await getAllSnaps();
-                const snapResponse = {
-                    success: true,
-                    snaps: [
-                        {
-                            _id: 'snap1',
-                            username: isOwnProfile ? 'mi_usuario' : username,
-                            time: 'Hace 2 horas',
-                            message: 'Este es mi primer snap!',
-                            isPrivate: 'false',
-                        },
-                        {
-                            _id: 'snap2',
-                            username: isOwnProfile ? 'mi_usuario' : username,
-                            time: 'Ayer',
-                            message: 'Otro día, otro snap.',
-                            isPrivate: 'true',
-                        },
-                    ],
-                };
+                const snapResponse = await getAllSnaps();
+
 
                 if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
                     const snaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
@@ -109,6 +71,9 @@ export default function ProfileView() {
                         time: snap.time,
                         message: snap.message,
                         isPrivate: snap.isPrivate === 'true',
+                        likes: snap.likes || 0, // HARDCODED o obtenido de la API
+                        likedByUser: snap.likedByUser || false, // HARDCODED o obtenido de la API
+                        canViewLikes: isFollowedBy || !snap.isPrivate, // Basado en la privacidad
                     }));
                     setSnaps(snaps);
                 }
@@ -184,9 +149,7 @@ export default function ProfileView() {
 
     const handleUpdateSnap = async (snapId: string, message: string, isPrivate: boolean) => {
         try {
-            // Simulación de actualización de snap
-            // const result = await updateSnap(snapId, message, isPrivate.toString());
-            const result = { success: true }; // Simular éxito
+            const result = await updateSnap(snapId, message, isPrivate.toString());
 
             if (result.success) {
                 // Actualizar el snap en la lista
@@ -217,7 +180,7 @@ export default function ProfileView() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            // await removeToken();
+                            await removeToken();
                             router.replace('/login');
                         } catch (error) {
                             Alert.alert('Error', 'No se pudo cerrar sesión. Inténtalo nuevamente.');
@@ -238,8 +201,7 @@ export default function ProfileView() {
                 {
                     text: 'Eliminar',
                     onPress: async () => {
-                        // const result = await deleteSnap(snapId as unknown as number);
-                        const result = { success: true }; // Simular éxito
+                        const result = await deleteSnap(snapId as unknown as number);
                         if (result.success) {
                             // Actualizar la lista de snaps
                             setSnaps(snaps.filter(snap => snap.id !== snapId));
@@ -253,33 +215,50 @@ export default function ProfileView() {
         );
     };
 
-    const renderItem = (item: Snap) => (
-        <View key={item.id} style={styles.snapContainer}>
-            <View style={styles.snapContent}>
-                <View style={styles.snapHeader}>
-                    <Text style={styles.username}>@{item.username}</Text>
-                    <Text style={styles.time}>{item.time}</Text>
-                </View>
-                <Text style={styles.content}>{item.message}</Text>
-            </View>
-            {isOwnProfile && (
-                <View style={styles.actionButtons}>
-                    <Pressable
-                        onPress={() => handleEditSnap(item)} // Abrir el modal de edición
-                        style={styles.editButton}
-                    >
-                        <Icon name="edit" size={24} color="#fff" style={styles.icon} />
-                    </Pressable>
-                    <Pressable
-                        onPress={() => handleDeleteSnap(item.id)}
-                        style={styles.deleteButton}
-                    >
-                        <Icon name="delete" size={24} color="#fff" style={styles.icon} />
-                    </Pressable>
-                </View>
-            )}
-        </View>
+    const handleLike = (snapId: string) => {
+        setSnaps(prevSnaps =>
+            prevSnaps.map(snap => {
+                if (snap.id === snapId) {
+                    const updatedLikeStatus = !snap.likedByUser;
+                    const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
+                    // Simulación de confirmación visual
+                    Alert.alert(
+                        updatedLikeStatus ? 'Me Gusta' : 'Me Gusta Cancelado',
+                        updatedLikeStatus
+                            ? 'Has dado "Me Gusta" al TwitSnap.'
+                            : 'Has cancelado tu "Me Gusta" al TwitSnap.'
+                    );
+                    return {
+                        ...snap,
+                        likedByUser: updatedLikeStatus,
+                        likes: updatedLikes,
+                    };
+                }
+                return snap;
+            })
+        );
+    };
+
+
+    const renderItem = ({ item }: { item: Snap }) => (
+        <SnapItem
+            snap={{
+                id: item.id,
+                username: item.username,
+                time: item.time,
+                message: item.message,
+                isPrivate: item.isPrivate,
+                likes: item.likes || 0,
+                likedByUser: item.likedByUser || false,
+                canViewLikes: item.canViewLikes || false,
+            }}
+            onLike={handleLike}
+            onEdit={isOwnProfile ? handleEditSnap : undefined}     // Solo si es propio perfil
+            onDelete={isOwnProfile ? handleDeleteSnap : undefined} // Solo si es propio perfil
+            isOwnProfile={isOwnProfile}                           // Indica si es el perfil propio
+        />
     );
+
 
     if (isLoading) {
         return (
@@ -351,9 +330,10 @@ export default function ProfileView() {
                 </Pressable>
             )}
 
+
             {isOwnProfile && (
                 <View style={styles.profileActionsContainer}>
-                    <Pressable style={styles.editButton} onPress={() => router.push('/profileEdit')}>
+                    <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
                         <Icon name="edit" size={24} color="#fff" />
                         <Text style={styles.editButtonText}>Editar Perfil</Text>
                     </Pressable>
@@ -364,15 +344,22 @@ export default function ProfileView() {
                 </View>
             )}
 
-            {/* <Text style={styles.tweetsTitle}>Mis snaps</Text> */}
+            <Text style={styles.snapTitle}>Snaps</Text>
 
+            {/* Lista de snaps */}
             {snaps.length > 0 ? (
-                <View style={styles.snapsList}>{snaps.map(renderItem)}</View>
+                <FlatList
+                    data={snaps}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    contentContainerStyle={styles.snapsList}
+                />
             ) : (
                 <View style={styles.noResultsContainer}>
                     <Text style={styles.noResultsText}>No se encontraron snaps</Text>
                 </View>
             )}
+
 
             {/* Modal de Edición de Snap */}
             <EditSnapModal
@@ -384,12 +371,12 @@ export default function ProfileView() {
                 snap={
                     selectedSnap
                         ? {
-                              id: selectedSnap.id,
-                              username: selectedSnap.username,
-                              time: selectedSnap.time,
-                              message: selectedSnap.message,
-                              isPrivate: selectedSnap.isPrivate,
-                          }
+                            id: selectedSnap.id,
+                            username: selectedSnap.username,
+                            time: selectedSnap.time,
+                            message: selectedSnap.message,
+                            isPrivate: selectedSnap.isPrivate,
+                        }
                         : null
                 }
                 onSubmit={handleUpdateSnap}

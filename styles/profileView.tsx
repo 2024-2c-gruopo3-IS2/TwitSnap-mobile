@@ -25,6 +25,14 @@ export default StyleSheet.create({
         textAlign: 'center',
         flex: 1,
     },
+    snapTitle:{
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center',
+        flex: 1,
+        marginTop: 20,
+    },
     rightSpace: {
         width: 40,
     },
@@ -173,25 +181,6 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignSelf: 'center',
     },
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#1DA1F2', // Color del botón de editar
-        padding: 10,
-        borderRadius: 5,
-        minWidth: 45,
-        minHeight: 45,
-        justifyContent: 'center', // Centra el contenido horizontalmente
-    },
-    deleteButton: {
-        flexDirection: 'row',
-        alignItems: 'center', // Alinea el icono verticalmente
-        backgroundColor: '#d11a2a', 
-        borderRadius: 5,
-        minWidth: 45,
-        minHeight: 45,
-        justifyContent: 'center', // Centra el contenido horizontalmente
-    },
     profileActionsContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -235,5 +224,20 @@ export default StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    editProfileButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#127fa4',
+        padding: 10,
+        borderRadius: 5,
+        marginLeft: 10,
+        minWidth: 45,
+        minHeight: 45,
+        justifyContent: 'center',
+    },
+    editProfileButtonText: {
+        color: '#fff',
+        fontSize: 16,
     },
 });
