@@ -215,4 +215,25 @@ export default StyleSheet.create({
         fontSize: 16,
         justifyContent: 'center',
     },
+    followButton: {
+        alignSelf: 'center',
+        marginVertical: 10,
+    },
+    followButtonStyle: {
+        backgroundColor: '#1DA1F2',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+    },
+    unfollowButton: {
+        backgroundColor: '#E0245E',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+    },
+    followButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });
