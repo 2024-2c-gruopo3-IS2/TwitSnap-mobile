@@ -13,7 +13,6 @@ interface Post {
   isPrivate: boolean;
 }
 
-
 interface FooterProps {
   addNewPost?: (newPost: Post) => Promise<void>; 
 }
@@ -42,6 +41,17 @@ const Footer: React.FC<FooterProps> = ({ addNewPost }) => {
             name="search"
             size={30}
             color={pathname === '/search' ? '#808080' : '#FFFFFF'}
+          />
+        </Pressable>
+      </Link>
+
+      {/* Notifications Icon */}
+      <Link href="/notifications" asChild>
+        <Pressable>
+          <Ionicons
+            name="notifications"
+            size={30}
+            color={pathname === '/notifications' ? '#808080' : '#FFFFFF'}
           />
         </Pressable>
       </Link>

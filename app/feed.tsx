@@ -44,7 +44,7 @@ export default function Feed() {
   useEffect(() => {
     const fetchSnaps = async () => {
       // Simulación de llamada a la API
-      // const response = await getAllSnaps();
+      //const response = await getAllSnaps();
       const response = {
         success: true,
         snaps: [
@@ -119,12 +119,12 @@ export default function Feed() {
           const updatedLikeStatus = !snap.likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
           // Simulación de confirmación visual
-          Alert.alert(
-            updatedLikeStatus ? 'Me Gusta' : 'Me Gusta Cancelado',
-            updatedLikeStatus 
-              ? 'Has dado "Me Gusta" al TwitSnap.'
-              : 'Has cancelado tu "Me Gusta" al TwitSnap.'
-          );
+          // Alert.alert(
+          //   updatedLikeStatus ? 'Me Gusta' : 'Me Gusta Cancelado',
+          //   updatedLikeStatus 
+          //     ? 'Has dado "Me Gusta" al TwitSnap.'
+          //     : 'Has cancelado tu "Me Gusta" al TwitSnap.'
+          // );
           return {
             ...snap,
             likedByUser: updatedLikeStatus,
