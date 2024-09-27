@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from 'react-native';
 import LoginPage from './login';
 import Feed from './feed'; 
 import { getToken } from '../handlers/authTokenHandler'; 
+import { getProfile } from '@/handlers/profileHandler';
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -13,7 +14,10 @@ export default function Index() {
     const checkAuth = async () => {
       try {
         const token = await getToken();
-        if (token) {
+        const profile_success = (await getProfile()).success;
+        console.log('Token:', token);
+        console.log('Profile success:', profile_success);
+        if (token && profile_success) {
           setIsAuthenticated(true);
         }
       } catch (error) {
