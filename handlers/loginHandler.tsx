@@ -1,10 +1,10 @@
-import {getToken, saveToken} from './authTokenHandler';
+import { getToken, saveToken } from './authTokenHandler';
 
 export interface LoginResponse {
   success: boolean;
   token?: string;
   message?: string;
-  expiration?: number; 
+  expiration?: number;
 }
 
 export async function loginUser(email: string, password: string): Promise<LoginResponse> {
@@ -23,17 +23,16 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 
     console.log('Data:', data);
 
-    if (response.ok) {
-      // Guardar token en AsyncStorage y manejar expiración
-      if (data.token) {
-        await saveToken(data.token);
-        console.log('Token almacenado:', data.token);
-    }
+    if (response.ok && data.token) {
+      await saveToken(data.token);
+      console.log('Token almacenado:', data.token);
       return { success: true, token: data.token };
     } else if (data.status === 'blocked') {
       return { success: false, message: 'Cuenta bloqueada. Contacte al soporte.' }; // CA4: Usuario bloqueado
+    } else if (data.error === 'invalid credentials') {
+      return { success: false, message: 'El correo o la contraseña son incorrectos.' }; // CA2: Credenciales inválidas
     } else {
-      return { success: false, message: data.message || 'Error al iniciar sesión.' }; // CA 1 y CA 2: Manejo de errores
+      return { success: false, message: data.message || 'Error al iniciar sesión.' }; // Error genérico
     }
   } catch (error) {
     console.error('Error al iniciar sesión:', error);

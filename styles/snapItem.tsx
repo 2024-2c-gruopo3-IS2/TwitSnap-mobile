@@ -19,6 +19,10 @@ export default StyleSheet.create({
     fontSize: 16,
     color: 'lightblue',
   },
+  email:{
+    color: 'white',
+    fontSize: 16,
+  },
   time: {
     color: 'gray',
     fontSize: 12,

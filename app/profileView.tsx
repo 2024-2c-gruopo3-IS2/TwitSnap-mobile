@@ -272,6 +272,13 @@ export default function ProfileView() {
       </Text>
       <Text style={styles.username}>@{profile.username}</Text>
 
+      {/* Descripción del usuario */}
+      {profile.description && (
+        <Text style={styles.description}>
+          {profile.description}
+        </Text>
+      )}
+
       <View style={styles.followContainer}>
         <Pressable onPress={() => router.push('./followers')} style={styles.followSection}>
           <Text style={styles.followNumber}>{profile.followers_count || 0}</Text>

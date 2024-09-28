@@ -10,11 +10,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Estado para el indicador de carga
-  const [error, setError] = useState(''); // Estado para manejar mensajes de error
-  const router = useRouter(); // Para manejar la navegación
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(''); 
+  const router = useRouter(); 
   
-  // Verificar si el token sigue siendo válido al cargar la página
   useEffect(() => {
     const checkSession = async () => {
       const token = await AsyncStorage.getItem('token');
@@ -59,9 +58,13 @@ export default function LoginPage() {
       console.log('API Response:', response);
       
       if (response.success) {
-        router.replace('./feed'); // Navegar al feed si el login es exitoso (CA1)
+        router.replace('./feed'); 
       } else {
-        setError(response.message || 'Error al iniciar sesión.');
+        if (response.message === 'invalid credentials') {
+          setError('El correo o la contraseña son incorrectos.'); 
+        } else {
+          setError(response.message || 'Error al iniciar sesión.');
+        }
       }
     } catch (error) {
       setError('Error al conectar con el servidor.');

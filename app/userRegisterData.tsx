@@ -15,12 +15,13 @@ export default function UserDataPage() {
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [description, setDescription] = useState('');
 
   // Función para validar que la fecha de nacimiento sea válida
   const isValidDateOfBirth = () => {
     const currentDate = new Date();
     const enteredDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-
+    
     if (!year || !month || !day) return false;
     if (enteredDate > currentDate) return false;
     if (enteredDate.getFullYear() !== parseInt(year) || enteredDate.getMonth() !== parseInt(month) - 1 || enteredDate.getDate() !== parseInt(day)) {
@@ -39,7 +40,6 @@ export default function UserDataPage() {
 
     try {
       const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      const description = 'Hola, soy nuevo en la plataforma.';
       
       const profileData = {
         name,
@@ -102,6 +102,16 @@ export default function UserDataPage() {
         onChangeText={setUsername}
         value={username}
         autoCapitalize="none"
+      />
+      {/* Descripción del Usuario */}
+      <Text style={styles.label}>Descripción</Text>
+      <TextInput
+        placeholder="Escribe algo sobre ti"
+        placeholderTextColor="#aaa"
+        style={styles.input}
+        onChangeText={setDescription}
+        value={description}
+        multiline // Permite múltiples líneas de texto
       />
 
       {/* Fecha de Nacimiento */}

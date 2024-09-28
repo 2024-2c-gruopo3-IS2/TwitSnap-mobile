@@ -35,7 +35,7 @@ export default StyleSheet.create({
   datePicker: {
     flex: 1,
     backgroundColor: '#333',
-    color: '#fff', // Texto blanco en los pickers
+    color: 'black', // Texto blanco en los pickers
     marginHorizontal: 5,
     borderRadius: 5,
     paddingVertical: 10,
@@ -63,7 +63,7 @@ export default StyleSheet.create({
   },
   picker: {
     backgroundColor: '#fff',
-    color: '#fff',
+    color: 'black',
     borderRadius: 5,
   },
   subLabel: {

@@ -240,4 +240,11 @@ export default StyleSheet.create({
         color: '#fff',
         fontSize: 16,
     },
+    description: {
+        fontSize: 16,
+        color: '#aaa', 
+        textAlign: 'center',
+        marginTop: 10, 
+        paddingHorizontal: 20, 
+      },
 });

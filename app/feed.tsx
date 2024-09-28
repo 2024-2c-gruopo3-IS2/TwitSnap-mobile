@@ -43,34 +43,9 @@ export default function Feed() {
 
   useEffect(() => {
     const fetchSnaps = async () => {
-      // Simulación de llamada a la API
-      //const response = await getAllSnaps();
-      const response = {
-        success: true,
-        snaps: [
-          {
-            _id: 'snap1',
-            username: 'usuario1',
-            time: 'Hace 2 horas',
-            message: 'Este es mi primer snap!',
-            isPrivate: false,
-            likes: 10,
-            likedByUser: false,
-            canViewLikes: true, // Simulación de privacidad
-          },
-          {
-            _id: 'snap2',
-            username: 'usuario2',
-            time: 'Ayer',
-            message: 'Otro día, otro snap.',
-            isPrivate: true,
-            likes: 5,
-            likedByUser: true,
-            canViewLikes: false, // Simulación de privacidad
-          },
-          // Agrega más snaps simulados si es necesario
-        ],
-      };
+      const response = await getAllSnaps();
+      console.log(response.snaps);
+      console.log("username: " + response.snaps?.[0]?.username);
 
       if (response.success && response.snaps && response.snaps.length > 0) {
         const snaps: Snap[] = response.snaps.map((snap: any) => ({
@@ -91,7 +66,6 @@ export default function Feed() {
     fetchSnaps();
   }, []);
 
-  // Función para añadir un nuevo snap al feed
   const addNewPost = async (newPost: Post): Promise<void> => {
     const { message , isPrivate } = newPost;
     const response = await createSnap(message, isPrivate);
@@ -118,13 +92,6 @@ export default function Feed() {
         if (snap.id === snapId) {
           const updatedLikeStatus = !snap.likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
-          // Simulación de confirmación visual
-          // Alert.alert(
-          //   updatedLikeStatus ? 'Me Gusta' : 'Me Gusta Cancelado',
-          //   updatedLikeStatus 
-          //     ? 'Has dado "Me Gusta" al TwitSnap.'
-          //     : 'Has cancelado tu "Me Gusta" al TwitSnap.'
-          // );
           return {
             ...snap,
             likedByUser: updatedLikeStatus,
