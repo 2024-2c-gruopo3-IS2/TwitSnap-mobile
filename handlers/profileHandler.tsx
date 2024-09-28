@@ -48,14 +48,15 @@ export async function checkUsernameAvailability(username: string): Promise<boole
  */
 export async function createProfile(profileData: any): Promise<{ success: boolean; message?: string }> {
     const token = await getToken();
-    const create_profile_url = `${API_URL}/profiles?token=${token}`;
+    const create_profile_url = `${API_URL}/profiles/`;
 
     try {
         const response = await fetch(create_profile_url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Enviar el token en el encabezado
+                'accept': 'application/json',
+                'token': `${token}`,
+                'Content-Type': 'application/json' 
             },
             body: JSON.stringify(profileData)
         });
@@ -82,13 +83,13 @@ export async function createProfile(profileData: any): Promise<{ success: boolea
  */
 export async function getProfile(): Promise<{ success: boolean; profile?: any; message?: string }> {
     const token = await getToken();
-    const users_url = `${API_URL}/profiles?token=${token}`
+    const users_url = `${API_URL}/profiles/`
     try {
         const response = await fetch(users_url, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'accept': 'application/json',
+                'token': `${token}`,
             },
         });
 
@@ -115,14 +116,15 @@ export async function getProfile(): Promise<{ success: boolean; profile?: any; m
  */
 export async function updateProfile(profileData: any): Promise<{ success: boolean; message?: string }> {
     const token = await getToken();
-    const update_profile_url = `${API_URL}/profiles?token=${token}`;
+    const update_profile_url = `${API_URL}/profiles/`;
 
     try {
         const response = await fetch(update_profile_url, {
             method: 'PUT',
             headers: {
+                'accept': 'application/json',
+                'token': `${token}`,
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(profileData)
         });
@@ -190,14 +192,13 @@ export async function getAllUsers(): Promise<{ success: boolean; users?: any[]; 
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const users_url = `${API_URL}/profiles/all-usernames?token=${token}`
+    const users_url = `${API_URL}/profiles/all-usernames/`
 
     try {
         const response = await fetch(users_url, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`, // Enviar token en el encabezado
+                'accept': 'application/json',
             },
         });
 
