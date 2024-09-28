@@ -4,62 +4,53 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-    padding: 16,
+    paddingTop: 20,
+    paddingHorizontal: 10,
+    justifyContent: 'space-between', // Asegura que el footer esté al final
   },
-  searchBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#222',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 16,
-  },
-  input: {
-    flex: 1,
-    color: '#fff',
-    marginLeft: 8,
-  },
-  resultsContainer: {
-    flex: 1,
-  },
-  resultText: {
-    color: '#fff',
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  resultItem: {
-    backgroundColor: '#333',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  username: {
-    color: '#00aced',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  name: {
-    color: '#fff',
-    fontSize: 14,
+    justifyContent: 'space-between', 
+    marginBottom: 20,
+    marginTop: 60,
+
   },
   backButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: '#000000',
+    marginRight: 10, // Espacio entre el botón de volver y el campo de búsqueda
   },
-  backButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+  searchInput: {
+    flex: 1, // Ocupa el resto del espacio disponible
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 5,
+    fontSize: 16,
   },
-  backButtonText: {
-    color: '#000',
-    fontSize: 18,
-    textAlign: 'center',
+  userContainer: {
+      padding: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: '#444',
+  },
+  username: {
+      color: '#1DA1F2',
+      fontSize: 16,
+  },
+  noResultsText: {
+      color: '#aaa',
+      textAlign: 'center',
+      marginTop: 20,
+      fontSize: 16,
+  },
+  loaderContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#000',
+  },
+  content: {
+    flex: 1, // Ocupa el espacio disponible entre el header y el footer
+    justifyContent: 'center', // Centra el contenido cuando no hay resultados
   },
 });
 

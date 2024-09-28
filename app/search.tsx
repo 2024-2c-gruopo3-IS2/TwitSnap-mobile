@@ -1,5 +1,5 @@
 // app/search.tsx
-
+import styles from '../styles/search';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -87,81 +87,33 @@ export default function SearchUsers() {
   return (
     <View style={styles.container}>
       <BackButton />
-      <View style={styles.backButtonContainer}>
-          </View>
+      <View style={styles.backButtonContainer}></View>
       <View style={styles.header}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar usuarios..."
-            placeholderTextColor="#aaa"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
-
-
-      {filteredUsers.length > 0 ? (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item, index) => `${item}-${index}`} // Combina el username con el índice como clave
-          renderItem={renderItem}
-          keyboardShouldPersistTaps="handled"
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar usuarios..."
+          placeholderTextColor="#aaa"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
-      ) : (
-        <Text style={styles.noResultsText}>No se encontraron usuarios</Text>
-      )}
+      </View>
+
+      <View style={styles.content}>
+        {filteredUsers.length > 0 ? (
+          <FlatList
+            data={filteredUsers}
+            keyExtractor={(item, index) => `${item}-${index}`} // Combina el username con el índice como clave
+            renderItem={renderItem}
+            keyboardShouldPersistTaps="handled"
+          />
+        ) : (
+          <Text style={styles.noResultsText}>No se encontraron usuarios</Text>
+        )}
+      </View>
+
       <Footer />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-    paddingTop: 20,
-    paddingHorizontal: 10,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between', 
-    marginBottom: 20,
-    marginTop: 60,
-
-  },
-  backButtonContainer: {
-    marginRight: 10, // Espacio entre el botón de volver y el campo de búsqueda
-  },
-  searchInput: {
-    flex: 1, // Ocupa el resto del espacio disponible
-    backgroundColor: '#333',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    fontSize: 16,
-  },
-  userContainer: {
-      padding: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: '#444',
-  },
-  username: {
-      color: '#1DA1F2',
-      fontSize: 16,
-  },
-  noResultsText: {
-      color: '#aaa',
-      textAlign: 'center',
-      marginTop: 20,
-      fontSize: 16,
-  },
-  loaderContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#000',
-  },
-});
