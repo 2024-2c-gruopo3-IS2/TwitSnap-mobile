@@ -1,5 +1,3 @@
-// styles/userData.tsx
-
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
@@ -29,8 +27,22 @@ export default StyleSheet.create({
     fontSize: 16,
     color: '#fff', // Texto dentro de los inputs en blanco
   },
+  datePickerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  datePicker: {
+    flex: 1,
+    backgroundColor: '#333',
+    color: '#fff', // Texto blanco en los pickers
+    marginHorizontal: 5,
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+  },
   submitButton: {
-    backgroundColor: '#1DA1F2',
+    backgroundColor: '#1DA1F2', // Botón azul
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
@@ -41,4 +53,35 @@ export default StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  loadingIndicator: {
+    marginTop: 10,
+  },
+  errorMessage: {
+    color: 'red',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  picker: {
+    backgroundColor: '#fff',
+    color: '#fff',
+    borderRadius: 5,
+  },
+  subLabel: {
+    color: '#fff',
+    marginBottom: 5,
+    textAlign: 'center', // Centra el texto horizontalmente
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dateColumn: {
+    flex: 1,
+    marginHorizontal: 5,
+    textAlign: 'center', // Asegura que el contenido dentro del picker esté centrado
+    textAlignVertical: 'center',
+  },
+
 });
