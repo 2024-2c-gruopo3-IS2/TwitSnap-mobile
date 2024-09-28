@@ -3,7 +3,7 @@ import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } fro
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import styles from '../styles/signup';
-import { registerUser } from '@/handlers/signUpHandler';
+import { googleSignUp, firebaseLogin } from '@/handlers/firebaseAuthHandler'; // Cambia la importación
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -16,7 +16,6 @@ export default function SignUpPage() {
   });
   const router = useRouter();
 
-  // Expresiones regulares para validación
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
@@ -26,7 +25,6 @@ export default function SignUpPage() {
     let hasError = false;
     let newErrors = { email: '', password: '' };
 
-    // Validar correo electrónico
     if (!email) {
       newErrors.email = 'El correo electrónico es obligatorio.';
       hasError = true;
@@ -35,7 +33,6 @@ export default function SignUpPage() {
       hasError = true;
     }
 
-    // Validar contraseña
     if (!password) {
       newErrors.password = 'La contraseña es obligatoria.';
       hasError = true;
@@ -52,19 +49,35 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      const response = await registerUser(email, password);
+      const response = await firebaseLogin(email, password); // Cambiar a firebaseLogin
       if (response.success) {
         router.push({
           pathname: './location',
           params: { email, password }
         });
       } else {
-        if (response.message === 'Email already in use') {
-          Alert.alert('Error', 'El correo electrónico ya está en uso.');
-        } else {
-          Alert.alert('Error', 'Error al registrar el usuario.');
+        Alert.alert('Error', response.message);
       }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Error al conectar con el servidor.');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setIsLoading(true);
+    try {
+      const response = await googleSignUp(email, password); // Cambiar a googleSignUp
+      if (response.success) {
+        router.push({
+          pathname: './location',
+          params: { email }
+        });
+      } else {
+        Alert.alert('Error', response.message);
+      }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Error al conectar con el servidor.');
@@ -84,7 +97,7 @@ export default function SignUpPage() {
       <View style={styles.buttonContainer}>
         <Pressable
           style={styles.googleButton}
-          onPress={() => Alert.alert('Registro con Google', 'Funcionalidad no implementada aún')}
+          onPress={handleGoogleSignUp}
         >
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Registrarse con Google</Text>

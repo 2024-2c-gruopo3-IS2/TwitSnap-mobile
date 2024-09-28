@@ -1,29 +1,29 @@
+// login.tsx
 import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import styles from '../styles/login';
-import { loginUser } from '@/handlers/loginHandler';
+import { firebaseLogin, googleLoginWithPopup } from '@/handlers/firebaseAuthHandler'; // Cambia la importación
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginPage() {
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Estado para el indicador de carga
-  const [error, setError] = useState(''); // Estado para manejar mensajes de error
-  const router = useRouter(); // Para manejar la navegación
-  
-  // Verificar si el token sigue siendo válido al cargar la página
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
+
   useEffect(() => {
     const checkSession = async () => {
       const token = await AsyncStorage.getItem('token');
       const expiration = await AsyncStorage.getItem('expiration');
 
       if (token && expiration && Date.now() < parseInt(expiration)) {
-        router.replace('./feed'); // Si el token es válido, navegar a la página protegida
+        router.replace('./feed');
       } else if (expiration && Date.now() >= parseInt(expiration)) {
-        Alert.alert('Sesión expirada', 'Por favor, inicie sesión nuevamente.'); // CA3: Sesión expirada
+        Alert.alert('Sesión expirada', 'Por favor, inicie sesión nuevamente.');
         await AsyncStorage.removeItem('token');
         await AsyncStorage.removeItem('expiration');
       }
@@ -31,16 +31,12 @@ export default function LoginPage() {
 
     checkSession();
   }, []);
-  
-  
-  // Expresiones regulares para validación
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleLogin = async () => {
-    // Reiniciar mensajes de error
     setError('');
 
-    // Validación de campos
     if (!email || !password) {
       setError('Por favor, ingresa tu correo electrónico y contraseña.');
       return;
@@ -54,12 +50,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await loginUser(email, password);
-      
-      console.log('API Response:', response);
+      const response = await firebaseLogin(email, password); // Cambiar a firebaseLogin
       
       if (response.success) {
-        router.replace('./feed'); // Navegar al feed si el login es exitoso (CA1)
+        if (response.token) {
+          await AsyncStorage.setItem('token', response.token);
+        } else {
+          throw new Error('Token is undefined');
+        }
+        await AsyncStorage.setItem('expiration', (Date.now() + 3600 * 1000).toString()); // Establecer la expiración en 1 hora
+        router.replace('./feed');
       } else {
         setError(response.message || 'Error al iniciar sesión.');
       }
@@ -82,7 +82,7 @@ export default function LoginPage() {
 
       {/* Sección de Botones */}
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={() => Alert.alert('Login', 'Iniciar sesión con Google')}>
+        <Pressable style={styles.googleButton} onPress={googleLoginWithPopup}>
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
         </Pressable>
