@@ -2,7 +2,6 @@
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'token';
-const EXPIRATION_KEY = 'token_expiration';
 
 /**
  * Guarda el token de autenticación y su expiración en el almacenamiento seguro.
@@ -35,16 +34,6 @@ export const getToken = async (): Promise<string | null> => {
         return null
     }
 
-    // if (token && expiration) {
-    //   const expirationTime = parseInt(expiration, 10);
-    //   if (Date.now() < expirationTime) {
-    //     return token;
-    //   } else {
-    //     // Token expirado
-    //     await removeToken();
-    //     return null;
-    //   }
-    // }
   } catch (error) {
     console.error('Error al obtener el token:', error);
     return null;

@@ -2,51 +2,73 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/login';
-import { loginUser } from '@/handlers/loginHandler';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveToken, getToken } from '@/handlers/authTokenHandler'; // Tu handler de autenticación
+import { loginUser } from '@/handlers/loginHandler'; // Tu handler de autenticación
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
-  const [email, setEmail] = useState(''); 
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(''); 
-  const router = useRouter(); 
-  
-  useEffect(() => {
-    const checkSession = async () => {
-      const token = await AsyncStorage.getItem('token');
-      const expiration = await AsyncStorage.getItem('expiration');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-      if (token && expiration && Date.now() < parseInt(expiration)) {
-        router.replace('./feed'); // Si el token es válido, navegar a la página protegida
-      } else if (expiration && Date.now() >= parseInt(expiration)) {
-        Alert.alert('Sesión expirada', 'Por favor, inicie sesión nuevamente.'); // CA3: Sesión expirada
-        await AsyncStorage.removeItem('token');
-        await AsyncStorage.removeItem('expiration');
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+
+    
+    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente Expo
+    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',    // ID de cliente para iOS
+    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente para Android
+    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',    // ID de cliente web
+  });
+
+  useEffect(() => {
+    // Verificar si ya hay una sesión activa
+    const checkSession = async () => {
+      const token = await getToken();
+      if (token) {
+        router.replace('./feed');
       }
     };
 
     checkSession();
   }, []);
-  
-  
-  // Expresiones regulares para validación
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  // Si la respuesta de Google incluye un token de acceso, lo guardamos
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      if (authentication?.accessToken) {
+        saveToken(authentication.accessToken);
+        router.replace('./feed');
+      }
+    }
+  }, [response]);
+
+  // Función para iniciar sesión con Google
+  const signInWithGoogle = async () => {
+    try {
+      setIsLoading(true);
+      await promptAsync();  // Inicia el flujo de autenticación de Google
+    } catch (error) {
+      setError('Error en el inicio de sesión con Google.');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Función para iniciar sesión con correo y contraseña
   const handleLogin = async () => {
-    // Reiniciar mensajes de error
     setError('');
-
-    // Validación de campos
     if (!email || !password) {
       setError('Por favor, ingresa tu correo electrónico y contraseña.');
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      setError('El correo electrónico no es válido.');
       return;
     }
 
@@ -54,17 +76,15 @@ export default function LoginPage() {
 
     try {
       const response = await loginUser(email, password);
-      
-      console.log('API Response:', response);
-      
       if (response.success) {
-        router.replace('./feed'); 
-      } else {
-        if (response.message === 'invalid credentials') {
-          setError('El correo o la contraseña son incorrectos.'); 
+        if (response.token) {
+          await saveToken(response.token);
+          router.replace('./feed');
         } else {
-          setError(response.message || 'Error al iniciar sesión.');
+          setError('No se recibió un token de autenticación.');
         }
+      } else {
+        setError(response.message || 'Error al iniciar sesión.');
       }
     } catch (error) {
       setError('Error al conectar con el servidor.');
@@ -75,29 +95,24 @@ export default function LoginPage() {
 
   return (
     <View style={styles.container}>
-      {/* Sección del Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
       </View>
 
-      {/* Sección del Título */}
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
-      {/* Sección de Botones */}
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={() => Alert.alert('Login', 'Iniciar sesión con Google')}>
+        <Pressable style={styles.googleButton} onPress={signInWithGoogle}>
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
         </Pressable>
 
-        {/* Divisor */}
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
           <Text style={styles.orText}>o</Text>
           <View style={styles.divider} />
         </View>
 
-        {/* Campos de Entrada */}
         <TextInput
           placeholder="Correo electrónico"
           placeholderTextColor="#aaa"
@@ -107,12 +122,8 @@ export default function LoginPage() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        {/* Mostrar mensaje de error de correo electrónico */}
-        {error && error.includes('correo electrónico') && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
+        {error.includes('correo electrónico') && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* Campo de Contraseña */}
         {email.length > 0 && (
           <>
             <View style={styles.passwordContainer}>
@@ -125,35 +136,22 @@ export default function LoginPage() {
                 value={password}
                 autoCapitalize="none"
               />
-              <Pressable
-                style={styles.passwordVisibilityButton}
-                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-              >
+              <Pressable style={styles.passwordVisibilityButton} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
                 <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
               </Pressable>
             </View>
-            {/* Mostrar mensaje de error de contraseña */}
-            {error && error.includes('contraseña') && (
-              <Text style={styles.errorText}>{error}</Text>
-            )}
+            {error.includes('contraseña') && <Text style={styles.errorText}>{error}</Text>}
           </>
         )}
 
-        {/* Mostrar otros mensajes de error */}
         {error && !error.includes('correo electrónico') && !error.includes('contraseña') && (
           <Text style={styles.errorText}>{error}</Text>
         )}
 
-        {/* Botón de Iniciar Sesión */}
         <Pressable style={styles.nextButton} onPress={handleLogin} disabled={isLoading}>
-          {isLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Iniciar sesión</Text>
-          )}
+          {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Iniciar sesión</Text>}
         </Pressable>
 
-        {/* Sección de Registro */}
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>
             ¿No tienes una cuenta?{' '}
