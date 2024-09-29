@@ -53,7 +53,7 @@ export default function Feed() {
       if (response.success && response.snaps && response.snaps.length > 0) {
         const snaps: Snap[] = response.snaps.map((snap: any) => ({
           id: snap._id,
-          username: snap.username, 
+          username: snap.email, 
           time: snap.time,
           message: snap.message,
           isPrivate: snap.isPrivate,
@@ -68,25 +68,6 @@ export default function Feed() {
 
     fetchSnaps();
   }, []);
-
-  // const addNewPost = async (newPost: Post): Promise<void> => {
-  //   const { message , isPrivate } = newPost;
-  //   const response = await createSnap(message, isPrivate);
-
-  //   if (response.success && response.snap) {
-  //     const newSnap: Snap = {
-  //       id: response.snap.id.toString(),
-  //       username: response.snap.username,
-  //       time: response.snap.time,
-  //       message: response.snap.content,
-  //       isPrivate: response.snap.isPrivate,
-  //       likes: response.snap.likes,
-  //       likedByUser: response.snap.likedByUser,
-  //       canViewLikes: response.snap.canViewLikes,
-  //     };
-  //     setSnaps([newSnap, ...snaps]); 
-  //   }
-  // };
 
   // Función para manejar el Like
   const handleLike = (snapId: string) => {
