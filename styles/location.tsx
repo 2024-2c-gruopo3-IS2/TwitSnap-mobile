@@ -13,6 +13,7 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
+    marginTop: 60,
   },
   label: {
     color: '#fff',

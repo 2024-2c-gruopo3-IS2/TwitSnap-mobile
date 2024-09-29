@@ -12,6 +12,7 @@ export default StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#fff', // Título en blanco
+    marginTop: 60,
   },
   label: {
     fontSize: 16,

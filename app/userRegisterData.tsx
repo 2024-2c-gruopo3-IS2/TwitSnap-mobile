@@ -1,3 +1,5 @@
+// UserDataPage.tsx
+
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -30,6 +32,11 @@ export default function UserDataPage() {
     return true;
   };
 
+  // Función para generar un PIN aleatorio de 6 dígitos
+  const generatePIN = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
   const handleSubmit = async () => {
     if (!name || !surname || !username || !isValidDateOfBirth()) {
       Alert.alert('Error', 'Por favor, completa todos los campos correctamente.');
@@ -59,8 +66,21 @@ export default function UserDataPage() {
         return;
       }
 
-      Alert.alert('Éxito', 'Registro completado exitosamente.');
-      router.push('./feed');
+      // Generar un PIN y almacenarlo temporalmente
+      const generatedPIN = generatePIN();
+      // Simular el envío del PIN por email (en producción, esto lo haría el backend)
+      Alert.alert(
+        'PIN de Confirmación',
+        `Se ha enviado un PIN de confirmación a tu correo electrónico (${email}).\n\nPIN Simulado: ${generatedPIN}`
+      );
+
+      // Navegar a la página de confirmación del PIN, pasando el PIN generado
+      router.push({
+        pathname: './confirmPin',
+        params: { email, password, country, interests, pin: generatedPIN },
+      });
+
+      // En una implementación real, almacenarías el PIN en el backend asociado al usuario
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'No se pudo completar el registro.');
