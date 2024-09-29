@@ -16,6 +16,8 @@ import { useRouter } from 'expo-router';
 import styles from '../styles/feed';
 import SnapItem from '../components/snapItem'; // Asegúrate de que la ruta sea correcta
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { usePostContext } from '../context/postContext'; 
+
 
 interface Snap {
   id: string; 
@@ -39,6 +41,7 @@ interface Post {
 export default function Feed() {
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { addNewPost } = usePostContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -66,24 +69,24 @@ export default function Feed() {
     fetchSnaps();
   }, []);
 
-  const addNewPost = async (newPost: Post): Promise<void> => {
-    const { message , isPrivate } = newPost;
-    const response = await createSnap(message, isPrivate);
+  // const addNewPost = async (newPost: Post): Promise<void> => {
+  //   const { message , isPrivate } = newPost;
+  //   const response = await createSnap(message, isPrivate);
 
-    if (response.success && response.snap) {
-      const newSnap: Snap = {
-        id: response.snap.id.toString(),
-        username: response.snap.username,
-        time: response.snap.time,
-        message: response.snap.content,
-        isPrivate: response.snap.isPrivate,
-        likes: response.snap.likes,
-        likedByUser: response.snap.likedByUser,
-        canViewLikes: response.snap.canViewLikes,
-      };
-      setSnaps([newSnap, ...snaps]); 
-    }
-  };
+  //   if (response.success && response.snap) {
+  //     const newSnap: Snap = {
+  //       id: response.snap.id.toString(),
+  //       username: response.snap.username,
+  //       time: response.snap.time,
+  //       message: response.snap.content,
+  //       isPrivate: response.snap.isPrivate,
+  //       likes: response.snap.likes,
+  //       likedByUser: response.snap.likedByUser,
+  //       canViewLikes: response.snap.canViewLikes,
+  //     };
+  //     setSnaps([newSnap, ...snaps]); 
+  //   }
+  // };
 
   // Función para manejar el Like
   const handleLike = (snapId: string) => {
@@ -141,7 +144,7 @@ export default function Feed() {
       )}
 
       {/* Footer con botón + */}
-      <Footer addNewPost={addNewPost} />
+      <Footer  />
     </View>
   );
 }

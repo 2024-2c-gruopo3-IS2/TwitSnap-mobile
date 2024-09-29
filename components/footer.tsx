@@ -4,22 +4,12 @@ import { Link, usePathname } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
 import CreatePostModal from './createPostModal';
 import styles from '../styles/footer';
+import { usePostContext } from '../context/postContext'; // Importa el contexto
 
-interface Post {
-  id?: string;  // Cambia el tipo a string y mantenlo opcional si es necesario
-  username: string;
-  time: string;
-  message: string;
-  isPrivate: boolean;
-}
-
-interface FooterProps {
-  addNewPost?: (newPost: Post) => Promise<void>; 
-}
-
-const Footer: React.FC<FooterProps> = ({ addNewPost }) => {
+const Footer: React.FC = () => {
   const pathname = usePathname();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const { addNewPost } = usePostContext(); // Obtén la función addNewPost del contexto
 
   return (
     <View style={styles.footer}>
@@ -56,22 +46,17 @@ const Footer: React.FC<FooterProps> = ({ addNewPost }) => {
         </Pressable>
       </Link>
 
-      {/* Conditionally render "+" button and modal */}
-      {addNewPost && (
-        <>
-          {/* "+" Button to create a post */}
-          <Pressable onPress={() => setIsModalVisible(true)}>
-            <Entypo name="plus" size={30} color="#FFFFFF" />
-          </Pressable>
+      {/* "+" Button to create a post */}
+      <Pressable onPress={() => setIsModalVisible(true)}>
+        <Entypo name="plus" size={30} color="#FFFFFF" />
+      </Pressable>
 
-          {/* Modal to create a post */}
-          <CreatePostModal
-            isVisible={isModalVisible}
-            onClose={() => setIsModalVisible(false)}
-            addNewPost={addNewPost}
-          />
-        </>
-      )}
+      {/* Modal to create a post */}
+      <CreatePostModal
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        addNewPost={addNewPost} // Llamar la función addNewPost desde el contexto
+      />
 
       {/* Profile Icon */}
       <Link href="/profileView" asChild>

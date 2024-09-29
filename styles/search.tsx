@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 
   },
   backButtonContainer: {
-    marginRight: 10, // Espacio entre el botón de volver y el campo de búsqueda
+    marginRight: 10,
   },
   searchInput: {
     flex: 1, // Ocupa el resto del espacio disponible

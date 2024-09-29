@@ -18,12 +18,14 @@ import { useRouter } from 'expo-router';
 // Importar debounce de lodash
 import debounce from 'lodash.debounce';
 import Footer from '@/components/footer';
+import { usePostContext } from '../context/postContext'; 
 
 export default function SearchUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<string[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { addNewPost } = usePostContext(); 
   const router = useRouter();
 
   useEffect(() => {

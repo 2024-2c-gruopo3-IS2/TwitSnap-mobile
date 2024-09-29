@@ -1,10 +1,11 @@
-// index.tsx
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import LoginPage from './login';
 import Feed from './feed'; 
 import { getToken } from '../handlers/authTokenHandler'; 
 import { getProfile } from '@/handlers/profileHandler';
+
+import { PostProvider } from '@/context/postContext'; 
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,8 +40,8 @@ export default function Index() {
   }
 
   return (
-    <>
+    <PostProvider>
       {isAuthenticated ? <Feed /> : <LoginPage />}
-    </>
+    </PostProvider>
   );
 }

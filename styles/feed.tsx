@@ -61,6 +61,7 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    marginTop: 20,
   },
   logo: {
     width: 50, // Ajusta el tamaño del logo
