@@ -1,4 +1,5 @@
-// app/search.tsx
+// search.tsx
+
 import styles from '../styles/search';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
@@ -9,13 +10,11 @@ import {
   ActivityIndicator,
   StyleSheet,
   Pressable,
-  Linking
 } from 'react-native';
-import { getAllUsers } from '@/handlers/profileHandler'; // Asegúrate de que la ruta sea correcta
+import { getAllUsers } from '@/handlers/profileHandler';
 import BackButton from '../components/backButton';
 import { useRouter } from 'expo-router';
 
-// Importar debounce de lodash
 import debounce from 'lodash.debounce';
 import Footer from '@/components/footer';
 import { usePostContext } from '../context/postContext'; 
@@ -45,7 +44,6 @@ export default function SearchUsers() {
     fetchUsers();
   }, []);
 
-  // Función de filtrado con debounce para optimizar
   const handleSearch = useCallback(
     debounce((query: string) => {
       if (query.trim() === '') {
@@ -53,7 +51,7 @@ export default function SearchUsers() {
       } else {
         const lowerCaseQuery = query.toLowerCase();
         const filtered = users.filter((username) =>
-          username.toLowerCase().startsWith(lowerCaseQuery) // Filtrar por prefijo
+          username.toLowerCase().startsWith(lowerCaseQuery)
         );
         setFilteredUsers(filtered);
       }
@@ -68,10 +66,9 @@ export default function SearchUsers() {
   const renderItem = ({ item }: { item: string }) => (
     <Pressable
       style={styles.userContainer}
-      // Redirigir al perfil del usuario al hacer clic
       onPress={() => router.push({
-        pathname: '/profileView', // Ruta al perfil
-        params: { username: item }, // Enviar el username como parámetro
+        pathname: '/profileView',
+        params: { username: item },
       })}
     >
       <Text style={styles.username}>@{item}</Text>
@@ -88,9 +85,8 @@ export default function SearchUsers() {
 
   return (
     <View style={styles.container}>
-      <BackButton />
-      <View style={styles.backButtonContainer}></View>
       <View style={styles.header}>
+        <BackButton style={styles.backButton} />
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar usuarios..."
@@ -106,7 +102,7 @@ export default function SearchUsers() {
         {filteredUsers.length > 0 ? (
           <FlatList
             data={filteredUsers}
-            keyExtractor={(item, index) => `${item}-${index}`} // Combina el username con el índice como clave
+            keyExtractor={(item, index) => `${item}-${index}`}
             renderItem={renderItem}
             keyboardShouldPersistTaps="handled"
           />

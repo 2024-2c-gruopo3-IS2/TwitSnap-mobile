@@ -13,6 +13,7 @@ export default StyleSheet.create({
         paddingVertical: 10,
         height: 60,
         marginBottom: 5,
+        marginTop: 30,
     },
     title: {
         fontSize: 24,
