@@ -72,7 +72,7 @@ export default function ProfileView() {
         if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
           const snaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
             id: snap._id,
-            username: snap.username,
+            username: snap.email,
             time: snap.time,
             message: snap.message,
             isPrivate: snap.isPrivate === 'true',

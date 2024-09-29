@@ -12,6 +12,7 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#fff', // Texto blanco
+    marginTop:50,
   },
   content: {
     flex: 1,
