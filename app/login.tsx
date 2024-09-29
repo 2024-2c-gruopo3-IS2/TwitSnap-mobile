@@ -21,7 +21,7 @@ export default function LoginPage() {
 
   const [request, response, promptAsync] = Google.useAuthRequest({
 
-    
+
     clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente Expo
     iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',    // ID de cliente para iOS
     androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente para Android
@@ -151,6 +151,12 @@ export default function LoginPage() {
         <Pressable style={styles.nextButton} onPress={handleLogin} disabled={isLoading}>
           {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Iniciar sesión</Text>}
         </Pressable>
+
+        <View style={styles.forgotPasswordContainer}>
+          <Link href="/forgotPassword">
+            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+          </Link>
+        </View>
 
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>

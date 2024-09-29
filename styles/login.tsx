@@ -117,6 +117,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
   },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  forgotPasswordText: {
+    color: 'lightblue',
+  },
 });
 
 export default styles;
