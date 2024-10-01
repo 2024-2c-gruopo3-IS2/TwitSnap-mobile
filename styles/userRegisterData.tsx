@@ -5,6 +5,7 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: '#000', // Fondo negro
     padding: 20,
+    color: '#000'
   },
   title: {
     fontSize: 24,
@@ -83,6 +84,11 @@ export default StyleSheet.create({
     marginHorizontal: 5,
     textAlign: 'center', // Asegura que el contenido dentro del picker esté centrado
     textAlignVertical: 'center',
+  },
+    scrollContainer: {
+    flexGrow: 1, // Permite que el contenido se expanda
+    backgroundColor: '#000', 
+    color: '#000',
   },
 
 });

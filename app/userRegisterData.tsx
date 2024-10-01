@@ -1,7 +1,7 @@
 // UserDataPage.tsx
 
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
@@ -90,104 +90,107 @@ export default function UserDataPage() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Completa tu perfil</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Completa tu perfil</Text>
 
-      {/* Nombre */}
-      <Text style={styles.label}>Nombre</Text>
-      <TextInput
-        placeholder="Ingresa tu nombre"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        onChangeText={setName}
-        value={name}
-      />
+        {/* Nombre */}
+        <Text style={styles.label}>Nombre</Text>
+        <TextInput
+          placeholder="Ingresa tu nombre"
+          placeholderTextColor="#aaa"
+          style={styles.input}
+          onChangeText={setName}
+          value={name}
+        />
 
-      {/* Apellido */}
-      <Text style={styles.label}>Apellido</Text>
-      <TextInput
-        placeholder="Ingresa tu apellido"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        onChangeText={setSurname}
-        value={surname}
-      />
+        {/* Apellido */}
+        <Text style={styles.label}>Apellido</Text>
+        <TextInput
+          placeholder="Ingresa tu apellido"
+          placeholderTextColor="#aaa"
+          style={styles.input}
+          onChangeText={setSurname}
+          value={surname}
+        />
 
-      {/* Nombre de Usuario */}
-      <Text style={styles.label}>Nombre de Usuario</Text>
-      <TextInput
-        placeholder="Ingresa tu nombre de usuario"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        onChangeText={setUsername}
-        value={username}
-        autoCapitalize="none"
-      />
-      {/* Descripción del Usuario */}
-      <Text style={styles.label}>Descripción</Text>
-      <TextInput
-        placeholder="Escribe algo sobre ti"
-        placeholderTextColor="#aaa"
-        style={styles.input}
-        onChangeText={setDescription}
-        value={description}
-        multiline // Permite múltiples líneas de texto
-      />
-
-      {/* Fecha de Nacimiento */}
-      <Text style={styles.label}>Fecha de Nacimiento</Text>
+        {/* Nombre de Usuario */}
+        <Text style={styles.label}>Nombre de Usuario</Text>
+        <TextInput
+          placeholder="Ingresa tu nombre de usuario"
+          placeholderTextColor="#aaa"
+          style={styles.input}
+          onChangeText={setUsername}
+          value={username}
+          autoCapitalize="none"
+        />
         
-      <View style={styles.dateRow}>
-        {/* Día */}
-        <View style={styles.dateColumn}>
-          <Text style={styles.subLabel}>Día</Text>
-          <Picker
-            selectedValue={day}
-            onValueChange={(itemValue) => setDay(itemValue)}
-            style={styles.picker}
-          >
-            {[...Array(31).keys()].map(i => (
-              <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
-            ))}
-          </Picker>
-        </View>
-          
-        {/* Mes */}
-        <View style={styles.dateColumn}>
-          <Text style={styles.subLabel}>Mes</Text>
-          <Picker
-            selectedValue={month}
-            onValueChange={(itemValue) => setMonth(itemValue)}
-            style={styles.picker}
-          >
-            {[...Array(12).keys()].map(i => (
-              <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
-            ))}
-          </Picker>
-        </View>
-          
-        {/* Año */}
-        <View style={styles.dateColumn}>
-          <Text style={styles.subLabel}>Año</Text>
-          <Picker
-            selectedValue={year}
-            onValueChange={(itemValue) => setYear(itemValue)}
-            style={styles.picker}
-          >
-            {Array.from({ length: 100 }, (_, i) => 2023 - i).map(year => (
-              <Picker.Item key={year} label={`${year}`} value={`${year}`} />
-            ))}
-          </Picker>
-        </View>
-      </View>
+        {/* Descripción del Usuario */}
+        <Text style={styles.label}>Descripción</Text>
+        <TextInput
+          placeholder="Escribe algo sobre ti"
+          placeholderTextColor="#aaa"
+          style={styles.input}
+          onChangeText={setDescription}
+          value={description}
+          multiline // Permite múltiples líneas de texto
+        />
 
-      <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
-        {isSubmitting ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Completar Registro</Text>
-        )}
-      </Pressable>
-    </View>
+        {/* Fecha de Nacimiento */}
+        <Text style={styles.label}>Fecha de Nacimiento</Text>
+          
+        <View style={styles.dateRow}>
+          {/* Día */}
+          <View style={styles.dateColumn}>
+            <Text style={styles.subLabel}>Día</Text>
+            <Picker
+              selectedValue={day}
+              onValueChange={(itemValue) => setDay(itemValue)}
+              style={styles.picker}
+            >
+              {[...Array(31).keys()].map(i => (
+                <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
+              ))}
+            </Picker>
+          </View>
+            
+          {/* Mes */}
+          <View style={styles.dateColumn}>
+            <Text style={styles.subLabel}>Mes</Text>
+            <Picker
+              selectedValue={month}
+              onValueChange={(itemValue) => setMonth(itemValue)}
+              style={styles.picker}
+            >
+              {[...Array(12).keys()].map(i => (
+                <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
+              ))}
+            </Picker>
+          </View>
+            
+          {/* Año */}
+          <View style={styles.dateColumn}>
+            <Text style={styles.subLabel}>Año</Text>
+            <Picker
+              selectedValue={year}
+              onValueChange={(itemValue) => setYear(itemValue)}
+              style={styles.picker}
+            >
+              {Array.from({ length: 100 }, (_, i) => 2023 - i).map(year => (
+                <Picker.Item key={year} label={`${year}`} value={`${year}`} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Completar Registro</Text>
+          )}
+        </Pressable>
+      </View>
+    </ScrollView>
   );
 }

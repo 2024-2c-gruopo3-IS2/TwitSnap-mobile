@@ -19,6 +19,7 @@ import { getAllSnaps, deleteSnap, updateSnap } from '@/handlers/postHandler';
 import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal'; // Asegúrate de que la ruta sea correcta
 import SnapItem from '@/components/snapItem'; // Asegúrate de que la ruta sea correcta
+import Footer from '../components/footer';
 
 interface Snap {
   id: string;
@@ -83,7 +84,7 @@ export default function ProfileView() {
           setSnaps(snaps);
         }
       } else {
-        Alert.alert('Error', response.message || 'No se pudo obtener el perfil.');
+        //Alert.alert('Error', response.message || 'No se pudo obtener el perfil.');
       }
       setIsLoading(false);
     };
@@ -350,7 +351,17 @@ export default function ProfileView() {
   if (!profile) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>No se encontró el perfil.</Text>
+        <View style={styles.content}>
+          <Text style={styles.errorTextLarge}>No se encontró el perfil.</Text>
+          <Text style={styles.errorTextLarge}>Intenta nuevamente o revisa tu conexión.</Text>
+          <Pressable style={styles.logoutButton} onPress={handleLogout}>
+            <Icon name="logout" size={24} color="#fff" />
+            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+          </Pressable>
+        </View>
+        <View >
+          <Footer />
+        </View>
       </View>
     );
   }

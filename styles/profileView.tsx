@@ -6,6 +6,7 @@ export default StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
         paddingTop: 20,
+        justifyContent: 'space-between',
     },
     headerContainer: {
         position: 'absolute',
@@ -128,6 +129,9 @@ export default StyleSheet.create({
     content: {
         color: '#fff',
         fontSize: 16,
+        flex: 1, // Deja que el contenido ocupe el espacio disponible
+        justifyContent: 'center', // Centra el texto en el contenido
+        alignItems: 'center',
     },
     time: {
         color: '#aaa',
@@ -246,5 +250,12 @@ export default StyleSheet.create({
         textAlign: 'center',
         marginTop: 10, 
         paddingHorizontal: 20, 
-      },
+    },
+    errorTextLarge: {
+        color: '#aaa',
+        textAlign: 'center',
+        marginTop: 20,
+        fontSize: 16,
+        marginBottom: 20,
+    },
 });

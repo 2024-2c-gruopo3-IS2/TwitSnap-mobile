@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
   },
   signupLink: {
-    color: 'blue',
+    color: 'lightblue',
   },
   googleIcon: {
     width: 24,
@@ -123,6 +123,20 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     color: 'lightblue',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    justifyContent: 'center',
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: '#fff',
+    marginRight: 10,
+  },
+  switch: {
+    tintColor: 'blue', // Cambia el color del switch
   },
 });
 

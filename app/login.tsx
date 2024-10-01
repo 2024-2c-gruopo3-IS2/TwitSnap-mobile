@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert, Switch } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
@@ -16,20 +16,17 @@ export default function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false); // Estado para el botón on/off
   const router = useRouter();
 
-
   const [request, response, promptAsync] = Google.useAuthRequest({
-
-
-    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente Expo
-    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',    // ID de cliente para iOS
-    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',  // ID de cliente para Android
-    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',    // ID de cliente web
+    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
   });
 
   useEffect(() => {
-    // Verificar si ya hay una sesión activa
     const checkSession = async () => {
       const token = await getToken();
       if (token) {
@@ -40,7 +37,6 @@ export default function LoginPage() {
     checkSession();
   }, []);
 
-  // Si la respuesta de Google incluye un token de acceso, lo guardamos
   useEffect(() => {
     if (response?.type === 'success') {
       const { authentication } = response;
@@ -51,11 +47,10 @@ export default function LoginPage() {
     }
   }, [response]);
 
-  // Función para iniciar sesión con Google
   const signInWithGoogle = async () => {
     try {
       setIsLoading(true);
-      await promptAsync();  // Inicia el flujo de autenticación de Google
+      await promptAsync();
     } catch (error) {
       setError('Error en el inicio de sesión con Google.');
       console.error(error);
@@ -64,7 +59,6 @@ export default function LoginPage() {
     }
   };
 
-  // Función para iniciar sesión con correo y contraseña
   const handleLogin = async () => {
     setError('');
     if (!email || !password) {
@@ -75,22 +69,22 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await loginUser(email, password);
-      if (response.success) {
-        if (response.token) {
-          await saveToken(response.token);
-          router.replace('./feed');
+        const response = await loginUser(email, password, isAdmin); 
+        if (response.success) {
+          if (response.token) {
+            await saveToken(response.token);
+            router.replace('./feed');
+          } else {
+            setError('No se recibió un token de autenticación.');
+          }
         } else {
-          setError('No se recibió un token de autenticación.');
+          setError(response.message || 'Error al iniciar sesión.');
         }
-      } else {
-        setError(response.message || 'Error al iniciar sesión.');
+      } catch (error) {
+        setError('Error al conectar con el servidor.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      setError('Error al conectar con el servidor.');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -147,6 +141,19 @@ export default function LoginPage() {
         {error && !error.includes('correo electrónico') && !error.includes('contraseña') && (
           <Text style={styles.errorText}>{error}</Text>
         )}
+
+        {/* Switch para seleccionar si es administrador o usuario */}
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchLabel}>
+            {isAdmin ? 'Ingresar como Administrador' : 'Ingresar como Usuario'}
+          </Text>
+          <Switch 
+            trackColor={{ false: "#767577", true: "lightblue" }} // Color del fondo del switch
+            thumbColor={isAdmin ? "#f4f3f4" : "#f4f3f4"} // Color del thumb (puedes cambiarlo si deseas)
+            value={isAdmin}
+            onValueChange={() => setIsAdmin(prevState => !prevState)} // Cambia el estado
+          />
+        </View>
 
         <Pressable style={styles.nextButton} onPress={handleLogin} disabled={isLoading}>
           {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Iniciar sesión</Text>}

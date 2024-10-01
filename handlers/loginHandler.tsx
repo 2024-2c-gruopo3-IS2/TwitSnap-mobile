@@ -19,7 +19,7 @@ export interface ResetPasswordResponse {
   message?: string;
 }
 
-export async function loginUser(email: string, password: string): Promise<LoginResponse> {
+export async function loginUser(email: string, password: string, isAdmin: boolean): Promise<LoginResponse> {
   const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/signin';
 
   try {
@@ -28,7 +28,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password, is_admin: false }),
+      body: JSON.stringify({ email, password, is_admin: isAdmin }),
     });
 
     const data = await response.json();
