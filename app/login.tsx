@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false); // Estado para el botón on/off
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -69,7 +68,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        const response = await loginUser(email, password, isAdmin); 
+        const response = await loginUser(email, password); 
         if (response.success) {
           if (response.token) {
             await saveToken(response.token);
@@ -141,19 +140,6 @@ export default function LoginPage() {
         {error && !error.includes('correo electrónico') && !error.includes('contraseña') && (
           <Text style={styles.errorText}>{error}</Text>
         )}
-
-        {/* Switch para seleccionar si es administrador o usuario */}
-        <View style={styles.switchContainer}>
-          <Text style={styles.switchLabel}>
-            {isAdmin ? 'Ingresar como Administrador' : 'Ingresar como Usuario'}
-          </Text>
-          <Switch 
-            trackColor={{ false: "#767577", true: "lightblue" }} // Color del fondo del switch
-            thumbColor={isAdmin ? "#f4f3f4" : "#f4f3f4"} // Color del thumb (puedes cambiarlo si deseas)
-            value={isAdmin}
-            onValueChange={() => setIsAdmin(prevState => !prevState)} // Cambia el estado
-          />
-        </View>
 
         <Pressable style={styles.nextButton} onPress={handleLogin} disabled={isLoading}>
           {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Iniciar sesión</Text>}
