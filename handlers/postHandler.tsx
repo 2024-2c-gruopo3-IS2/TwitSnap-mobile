@@ -22,7 +22,7 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const snaps_url = `${API_URL}/snaps/?token=${token}`;
+    const snaps_url = `${API_URL}/snaps/all-snaps`;
 
     try {
         const response = await fetch(snaps_url, {
@@ -56,6 +56,7 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
  * @returns El TwitSnap creado.
  */
 export async function createSnap(message: string, isPrivate: boolean): Promise<{ success: boolean; snap?: Snap; message?: string }> {
+    console.log('Creando snap:', message, isPrivate);
     const API_URL = 'https://post-microservice.onrender.com';
 
     const token = await getToken();
@@ -63,7 +64,10 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const create_snap_url = `${API_URL}/snaps/?token=${token}`;
+
+    console.log('Token:', token);
+
+    const create_snap_url = `${API_URL}/snaps/`;
 
     try {
         const response = await fetch(create_snap_url, {
@@ -73,13 +77,13 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
                 'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
-                message,         // Cambiado de 'content' a 'message'
-                is_private: isPrivate, // Cambiado de 'isPrivate' a 'is_private'
+                message,         // Usar 'message' para el contenido del Snap
+                is_private: isPrivate, // Asegurarse de usar 'is_private'
             }),
         });
 
         const data = await response.json();
-        console.log('Data:', data);
+        console.log('Data Crear Snap:', data);
 
         if (response.ok) {
             console.log('Snap creado:', data.data);
@@ -107,7 +111,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const delete_snap_url = `${API_URL}/snaps/${snapId}?token=${token}`;
+    const delete_snap_url = `${API_URL}/snaps/${snapId}`;
 
     try {
         const response = await fetch(delete_snap_url, {
@@ -133,7 +137,6 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
     }
 }
 
-
 /**
  * Actualiza un TwitSnap existente para el usuario autenticado.
  * @param snapId ID del TwitSnap a editar.
@@ -141,7 +144,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
  * @param isPrivate Indica si el TwitSnap es privado.
  * @returns Un mensaje de éxito o error.
  */
-export async function updateSnap(snapId: string, message: string, isPrivate: string): Promise<{ success: boolean; message?: string }> {
+export async function updateSnap(snapId: string, message: string, isPrivate: boolean): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
 
     const token = await getToken();
@@ -149,7 +152,7 @@ export async function updateSnap(snapId: string, message: string, isPrivate: str
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const update_snap_url = `${API_URL}/snaps/${snapId}?token=${token}`;
+    const update_snap_url = `${API_URL}/snaps/${snapId}`;
 
     try {
         const response = await fetch(update_snap_url, {
@@ -159,8 +162,8 @@ export async function updateSnap(snapId: string, message: string, isPrivate: str
                 'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
-                message,         // Cambiado de 'content' a 'message'
-                is_private: isPrivate, // Cambiado de 'isPrivate' a 'is_private'
+                message,         // Usar 'message' en lugar de 'content'
+                is_private: isPrivate, // Asegurarse de usar 'is_private'
             }),
         });
 

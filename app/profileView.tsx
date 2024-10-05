@@ -156,7 +156,7 @@ export default function ProfileView() {
       const result = await updateSnap(
         snapId, 
         message,
-        isPrivate.toString()
+        isPrivate
       );
 
       if (result.success) {
