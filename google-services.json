@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "856906798335",
+    "project_id": "twitsnap-d3c22",
+    "storage_bucket": "twitsnap-d3c22.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856906798335:android:9b6be3edd94e8d895be8ca",
+        "android_client_info": {
+          "package_name": "twit.snap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU74BqnGL0UAsq3J99mDH7_TxXPQ9CIMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

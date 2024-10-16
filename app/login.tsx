@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert, Switch } from 'react-native';
+import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/login';
-import { saveToken, getToken } from '@/handlers/authTokenHandler'; // Tu handler de autenticación
-import { loginUser } from '@/handlers/loginHandler'; // Tu handler de autenticación
+import { saveToken, getToken } from '@/handlers/authTokenHandler';
+import { loginUser } from '@/handlers/loginHandler';
+import { auth, provider } from '@/firebaseConfig'; // Importa tu configuración de Firebase
+import { signInWithCredential } from 'firebase/auth';
+import { GoogleAuthProvider } from 'firebase/auth';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,10 +22,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    clientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
     iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
     androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
     webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
   });
 
   useEffect(() => {
@@ -40,22 +44,23 @@ export default function LoginPage() {
     if (response?.type === 'success') {
       const { authentication } = response;
       if (authentication?.accessToken) {
-        saveToken(authentication.accessToken);
-        router.replace('./feed');
+        const credential = GoogleAuthProvider.credential(null, authentication.accessToken);
+        signInWithCredential(auth, credential)
+          .then(async (userCredential) => {
+            const token = await userCredential.user.getIdToken();
+            await saveToken(token);
+            router.replace('./feed');
+          })
+          .catch((error) => {
+            console.error('Error al iniciar sesión con Google:', error);
+            Alert.alert('Error', 'Error al iniciar sesión con Google.');
+          });
       }
     }
   }, [response]);
 
-  const signInWithGoogle = async () => {
-    try {
-      setIsLoading(true);
-      await promptAsync();
-    } catch (error) {
-      setError('Error en el inicio de sesión con Google.');
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const signInWithGoogle = () => {
+    promptAsync();
   };
 
   const handleLogin = async () => {
@@ -68,22 +73,22 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-        const response = await loginUser(email, password); 
-        if (response.success) {
-          if (response.token) {
-            await saveToken(response.token);
-            router.replace('./feed');
-          } else {
-            setError('No se recibió un token de autenticación.');
-          }
+      const response = await loginUser(email, password);
+      if (response.success) {
+        if (response.token) {
+          await saveToken(response.token);
+          router.replace('./feed');
         } else {
-          setError(response.message || 'Error al iniciar sesión.');
+          setError('No se recibió un token de autenticación.');
         }
-      } catch (error) {
-        setError('Error al conectar con el servidor.');
-      } finally {
-        setIsLoading(false);
+      } else {
+        setError(response.message || 'Error al iniciar sesión.');
       }
+    } catch (error) {
+      setError('Error al conectar con el servidor.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -129,7 +134,10 @@ export default function LoginPage() {
                 value={password}
                 autoCapitalize="none"
               />
-              <Pressable style={styles.passwordVisibilityButton} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+              <Pressable
+                style={styles.passwordVisibilityButton}
+                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+              >
                 <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
               </Pressable>
             </View>
@@ -142,7 +150,11 @@ export default function LoginPage() {
         )}
 
         <Pressable style={styles.nextButton} onPress={handleLogin} disabled={isLoading}>
-          {isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.buttonText}>Iniciar sesión</Text>}
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          )}
         </Pressable>
 
         <View style={styles.forgotPasswordContainer}>

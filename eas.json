@@ -1,0 +1,30 @@
+{
+    "cli": {
+      "version": ">= 0.48.0"
+    },
+    "build": {
+      "development": {
+        "distribution": "internal",
+        "android": {
+          "buildType": "apk",
+          "releaseChannel": "default"
+        },
+        "ios": {
+          "simulator": true
+        }
+      },
+      "preview": {
+        "distribution": "internal"
+      },
+      "production": {
+        "distribution": "store",
+        "android": {
+          "buildType": "app-bundle"
+        }
+      }
+    },
+    "submit": {
+      "production": {}
+    }
+  }
+  

@@ -11,6 +11,46 @@ interface Snap {
 }
 
 /**
+ * Obtiene todos los TwitSnaps de un usuario específico.
+ * 
+ */
+export async function getSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+    
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const snaps_url = `${API_URL}/snaps/`;
+    
+    try {
+        const response = await fetch(snaps_url, {
+        method: 'GET',
+        headers: {
+            'token': `${token}`,
+            'Authorization': `Bearer ${token}`,
+        },
+        });
+    
+        const data = await response.json();
+        console.log('Data:', data);
+    
+        if (response.ok) {
+        console.log('Snaps encontrados:', data.data);
+        return { success: true, snaps: data.data };
+        } else {
+        console.log('Error al obtener snaps:', data);
+        return { success: false, message: data.detail || 'Error al obtener snaps.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+    }
+
+
+/**
  * Obtiene todos los TwitSnaps del usuario autenticado, incluyendo los de los usuarios que sigue.
  * @returns Una lista de TwitSnaps.
  */
@@ -29,7 +69,7 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
             },
         });
 
@@ -74,7 +114,7 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
             },
             body: JSON.stringify({
                 message,         // Usar 'message' para el contenido del Snap
@@ -159,7 +199,7 @@ export async function updateSnap(snapId: string, message: string, isPrivate: boo
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
             },
             body: JSON.stringify({
                 message,         // Usar 'message' en lugar de 'content'

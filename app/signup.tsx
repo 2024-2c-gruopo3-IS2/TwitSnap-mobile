@@ -1,22 +1,32 @@
+//signup
 import React, { useState } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/signup';
+import { auth, GoogleAuthProvider, signInWithCredential } from '@/firebaseConfig';
+import { saveToken } from '@/handlers/authTokenHandler';
 import { registerUser } from '@/handlers/signUpHandler';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-  });
+  const [errors, setErrors] = useState({ email: '', password: '' });
   const router = useRouter();
 
-  // Expresiones regulares para validación
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+  });
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
@@ -26,7 +36,6 @@ export default function SignUpPage() {
     let hasError = false;
     let newErrors = { email: '', password: '' };
 
-    // Validar correo electrónico
     if (!email) {
       newErrors.email = 'El correo electrónico es obligatorio.';
       hasError = true;
@@ -35,13 +44,11 @@ export default function SignUpPage() {
       hasError = true;
     }
 
-    // Validar contraseña
     if (!password) {
       newErrors.password = 'La contraseña es obligatoria.';
       hasError = true;
     } else if (!passwordRegex.test(password)) {
-      newErrors.password =
-        'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.';
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, un número y un carácter especial.';
       hasError = true;
     }
 
@@ -49,6 +56,7 @@ export default function SignUpPage() {
       setErrors(newErrors);
       return;
     }
+
     setIsLoading(true);
 
     try {
@@ -56,18 +64,42 @@ export default function SignUpPage() {
       if (response.success) {
         router.push({
           pathname: './location',
-          params: { email, password }
+          params: { email, password },
         });
       } else {
         if (response.message === 'Email already in use') {
           Alert.alert('Error', 'El correo electrónico ya está en uso.');
         } else {
           Alert.alert('Error', 'Error al registrar el usuario.');
+        }
       }
-    }
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Error al conectar con el servidor.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUpWithGoogle = async () => {
+    try {
+      setIsLoading(true);
+      const result = await promptAsync();
+
+      if (result.type === 'success' && result.authentication?.idToken) {
+        const credential = GoogleAuthProvider.credential(result.authentication.idToken);
+        const userCredential = await signInWithCredential(auth, credential);
+
+        const token = await userCredential.user.getIdToken();
+        await saveToken(token);
+
+        router.replace('./location');
+      } else {
+        Alert.alert('Error', 'No se pudo completar el registro con Google.');
+      }
+    } catch (error) {
+      console.error('Google Sign-Up Error:', error);
+      Alert.alert('Error', 'Error en el registro con Google.');
     } finally {
       setIsLoading(false);
     }
@@ -82,10 +114,7 @@ export default function SignUpPage() {
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-        <Pressable
-          style={styles.googleButton}
-          onPress={() => Alert.alert('Registro con Google', 'Funcionalidad no implementada aún')}
-        >
+        <Pressable style={styles.googleButton} onPress={signUpWithGoogle}>
           <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Registrarse con Google</Text>
         </Pressable>
@@ -118,10 +147,7 @@ export default function SignUpPage() {
               value={password}
               autoCapitalize="none"
             />
-            <Pressable
-              style={styles.passwordVisibilityButton}
-              onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-            >
+            <Pressable onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
               <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="white" />
             </Pressable>
           </View>

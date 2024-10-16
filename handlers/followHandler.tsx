@@ -1,86 +1,167 @@
 // followHandler.ts
-import axios from 'axios';
-const API_BASE_URL = 'https://auth-microservice-vvr6.onrender.com';
+import { getToken } from './authTokenHandler';
 
-export const followUser = async (userId: string) => {
+const API_URL = 'https://profile-microservice.onrender.com/profiles';
+
+/**
+ * Sigue a un usuario.
+ * @param username Nombre de usuario a seguir.
+ */
+export async function followUser(username: string): Promise<{ success: boolean; message?: string }> {
+
+    const token = await getToken();
+    console.log('Token:', token);
+    const follow_url = `${API_URL}/follow?username=${encodeURIComponent(username)}`;
+    console.log('URL:', follow_url);
     try {
-        const response = await axios.post(`${API_BASE_URL}/follow`, { userId }, {
+        const response = await fetch(follow_url, {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`, // Implementa getAuthToken para obtener el token de autenticación
+                'token': `${token}`,
+                'Content-Type': 'application/json',
             },
         });
-        return response.data;
-    } catch (error) {
-        console.error('Error al seguir al usuario:', error);
-        return { success: false, message: 'No se pudo seguir al usuario.' };
-    }
-};
 
-export const unfollowUser = async (userId: string) => {
+        const data = await response.json();
+        console.log('Data:', data);
+
+        if (response.ok) {
+            console.log('Seguiste al usuario:', data);
+            return { success: true, message: 'Usuario seguido exitosamente.' };
+        } else {
+            console.log('Error al seguir al usuario:', data);
+            return { success: false, message: data.detail || 'Error al seguir al usuario.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+ * Deja de seguir a un usuario.
+ * @param username Nombre de usuario a dejar de seguir.
+ */
+export async function unfollowUser(username: string): Promise<{ success: boolean; message?: string }> {
+    const token = await getToken();
+    const unfollow_url = `${API_URL}/unfollow?username=${encodeURIComponent(username)}`;
+
     try {
-        const response = await axios.post(`${API_BASE_URL}/unfollow`, { userId }, {
+        const response = await fetch(unfollow_url, {
+            method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`,
+                'token': `${token}`,
+                'Content-Type': 'application/json',
             },
         });
-        return response.data;
-    } catch (error) {
-        console.error('Error al dejar de seguir al usuario:', error);
-        return { success: false, message: 'No se pudo dejar de seguir al usuario.' };
-    }
-};
 
-export const checkIfFollowing = async (userId: string) => {
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Dejaste de seguir al usuario:', data);
+            return { success: true, message: 'Has dejado de seguir al usuario.' };
+        } else {
+            console.log('Error al dejar de seguir al usuario:', data);
+            return { success: false, message: data.detail || 'Error al dejar de seguir al usuario.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+ * Obtiene los seguidores de un usuario.
+ * @param username Nombre del usuario cuyos seguidores se obtendrán.
+ */
+export async function getFollowers(username: string): Promise<{ success: boolean; followers?: any[]; message?: string }> {
+    const token = await getToken();
+    console.log('Token:', token);
+    const followers_url = `${API_URL}/followers?username=${encodeURIComponent(username)}`;
+    console.log('URL:', followers_url);
+    
     try {
-        const response = await axios.get(`${API_BASE_URL}/isFollowing/${userId}`, {
+        const response = await fetch(followers_url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`,
+                'token': `${token}`,
+                'Content-Type': 'application/json',
             },
         });
-        return response.data; // Suponiendo que devuelve { isFollowing: boolean }
-    } catch (error) {
-        console.error('Error al verificar si se está siguiendo al usuario:', error);
-        return { isFollowing: false };
-    }
-};
 
-// Dentro de getFollowers y getFollowing
-export const getFollowers = async (username: string) => {
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Seguidores encontrados:', data);
+            return { success: true, followers: data };
+        } else {
+            console.log('Error al obtener seguidores:', data);
+            return { success: false, message: data.detail || 'Error al obtener seguidores.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+ * Obtiene los usuarios seguidos por un usuario.
+ * @param username Nombre del usuario cuyos seguidos se obtendrán.
+ */
+export async function getFollowed(username: string): Promise<{ success: boolean; followed?: any[]; message?: string }> {
+    const token = await getToken();
+    const followed_url = `${API_URL}/followed?username=${encodeURIComponent(username)}`;
+
     try {
-        const response = await axios.get(`${API_BASE_URL}/users/${username}/followers`, {
+        const response = await fetch(followed_url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`,
+                'token': `${token}`,
+                'Content-Type': 'application/json',
             },
         });
-        // Verificar si el usuario actual está siendo seguido por los seguidores (mutual)
-        // Esto depende de cómo esté implementado tu backend
-        return response.data;
-    } catch (error) {
-        console.error('Error al obtener los seguidores:', error);
-        return { success: false, message: 'No se pudieron obtener los seguidores.' };
-    }
-};
 
-export const getFollowing = async (username: string) => {
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Usuarios seguidos encontrados:', data);
+            return { success: true, followed: data };
+        } else {
+            console.log('Error al obtener usuarios seguidos:', data);
+            return { success: false, message: data.detail || 'Error al obtener usuarios seguidos.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+ * Verifica el estado de seguimiento entre el usuario actual y otro usuario.
+ * @param targetUsername Nombre de usuario con el que se verificará el seguimiento.
+ */
+export async function getFollowStatus(targetUsername: string): Promise<{ success: boolean; isFollowing?: boolean; isFollowedBy?: boolean; message?: string }> {
+    const token = await getToken();
+
+    // Endpoint para obtener el estado de seguimiento
+    const status_url = `${API_URL}/follow-status?username=${encodeURIComponent(targetUsername)}`;
+
     try {
-        const response = await axios.get(`${API_BASE_URL}/users/${username}/following`, {
+        const response = await fetch(status_url, {
+            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${await getAuthToken()}`,
+                'token': `${token}`,
+                'Content-Type': 'application/json',
             },
         });
-        // Similarmente, manejar la lógica de privacidad
-        return response.data;
+
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Estado de seguimiento:', data);
+            return { success: true, isFollowing: data.isFollowing, isFollowedBy: data.isFollowedBy };
+        } else {
+            console.log('Error al obtener el estado de seguimiento:', data);
+            return { success: false, message: data.detail || 'Error al obtener el estado de seguimiento.' };
+        }
     } catch (error) {
-        console.error('Error al obtener los seguidos:', error);
-        return { success: false, message: 'No se pudieron obtener los seguidos.' };
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
     }
-};
-
-
-// Implementa getAuthToken según tu lógica de manejo de tokens
-const getAuthToken = async (): Promise<string> => {
-    // Implementa la lógica para obtener el token almacenado
-    // Por ejemplo, desde AsyncStorage:
-    // return await AsyncStorage.getItem('authToken') || '';
-    return ''; // Reemplaza esto con tu implementación real
-};
+}

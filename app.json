@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "tutorial",
+    "name": "twitsnap",
     "slug": "tutorial",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.franciscoduc4.tutorial"
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +32,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a7594217-538a-4552-9896-2f0fee48fd88"
+      }
+    },
+    "owner": "franciscoduc4"
   }
 }

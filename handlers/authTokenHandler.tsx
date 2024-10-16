@@ -25,7 +25,6 @@ export const saveToken = async (token: string): Promise<void> => {
 export const getToken = async (): Promise<string | null> => {
   try {
     const token = await SecureStore.getItemAsync(TOKEN_KEY);
-    //const expiration = await SecureStore.getItemAsync(EXPIRATION_KEY);
 
     if (token) {
       return token;

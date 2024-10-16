@@ -219,3 +219,32 @@ export async function getAllUsers(): Promise<{ success: boolean; users?: any[]; 
 }
 
 
+/**
+ * Elimina el perfil del usuario autenticado.
+ */
+export async function deleteProfile(): Promise<{ success: boolean; message?: string }> {
+    const token = await getToken();
+    const delete_profile_url = `${API_URL}/profiles/`;
+
+    try {
+        const response = await fetch(delete_profile_url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            console.log('Perfil eliminado:', data);
+            return { success: true, message: 'Perfil eliminado exitosamente.' };
+        } else {
+            console.log('Error al eliminar perfil:', data);
+            return { success: false, message: data.detail || 'Error al eliminar perfil.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}

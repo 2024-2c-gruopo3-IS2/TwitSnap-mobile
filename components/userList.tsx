@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, Image, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import styles from '../styles/followList';
+import styles from '../styles/userList';
 
 interface User {
     id: string;
@@ -19,26 +19,26 @@ interface UserListProps {
 const UserList: React.FC<UserListProps> = ({ users }) => {
     const router = useRouter();
 
-    const renderUser = (user: User) => (
-        <Pressable
-            key={user.id}
-            style={styles.userContainer}
-            onPress={() => router.push(`/profileView?username=${user.username}`)}
-        >
-            <Image
-                source={{ uri: user.profile_picture || 'https://via.placeholder.com/100' }}
-                style={styles.profilePicture}
-            />
-            <View style={styles.userInfo}>
-                <Text style={styles.name}>
-                    {user.name} {user.surname}
-                </Text>
-                <Text style={styles.username}>@{user.username}</Text>
-            </View>
-        </Pressable>
+    const handlePress = (username: string) => {
+        router.push(`/profileView?username=${encodeURIComponent(username)}`);
+    };
+
+    return (
+        <View style={styles.listContainer}>
+            {users.map((user) => (
+                <Pressable
+                    key={user.id} // Asignar una clave única aquí
+                    style={styles.userItem}
+                    onPress={() => handlePress(user.username)}
+                >
+                    <Image source={{ uri: user.profile_picture }} style={styles.avatar} />
+                    <View style={styles.userInfo}>
+                        <Text style={styles.name}>{user.name} {user.surname}</Text>
+                        <Text style={styles.username}>@{user.username}</Text>
+                    </View>
+                </Pressable>
+            ))}
+        </View>
     );
-
-    return <View>{users.map(renderUser)}</View>;
 };
-
 export default UserList;
