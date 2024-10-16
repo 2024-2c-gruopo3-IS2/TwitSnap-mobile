@@ -16,13 +16,26 @@ import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
-import { getAllSnaps, deleteSnap, updateSnap, getSnaps, getSnapsByUsername, getFavouriteSnaps, favouriteSnap } from '@/handlers/postHandler';
+import {
+  getAllSnaps,
+  deleteSnap,
+  updateSnap,
+  getSnaps,
+  getSnapsByUsername,
+  getFavouriteSnaps,
+  favouriteSnap,
+  unfavouriteSnap,
+  likeSnap,
+  unlikeSnap,
+  getLikedSnaps
+} from '@/handlers/postHandler';
 import { removeToken } from '@/handlers/authTokenHandler';
-import EditSnapModal from '@/components/editSnapModal'; 
-import SnapItem from '@/components/snapItem'; 
+import EditSnapModal from '@/components/editSnapModal';
+import SnapItem from '@/components/snapItem';
 import Footer from '../components/footer';
-import { useSegments } from 'expo-router'; 
+import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
+
 
 interface Snap {
   id: string;
@@ -104,6 +117,10 @@ export default function ProfileView() {
         }
 
         const snapResponse = await getSnapsByUsername(response.profile.username);
+        const likesResponse = await getLikedSnaps();
+        const favouriteResponse = await getFavouriteSnaps();
+        const likedSnapsIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
+        const favouriteSnapsIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
 
         if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
           const snaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
@@ -113,9 +130,9 @@ export default function ProfileView() {
             message: snap.message,
             isPrivate: snap.isPrivate === 'true',
             likes: snap.likes || 0,
-            likedByUser: snap.likedByUser || false,
-            canViewLikes: isFollowedBy || !snap.isPrivate,
-            favouritedByUser: snap.favouritedByUser || false,
+            likedByUser: likedSnapsIds.includes(snap._id),
+            canViewLikes: true,
+            favouritedByUser: favouriteSnapsIds.includes(snap._id),
           }));
           setSnaps(snaps);
         }
@@ -128,38 +145,6 @@ export default function ProfileView() {
     fetchProfile();
   }, [username, isOwnProfile, isFollowedBy]);
 
-
-  const fetchFavouriteSnaps = async () => {
-    setIsLoading(true);
-    try {
-      const response = await getFavouriteSnaps();
-      if (response.success && response.snaps && response.snaps.length > 0) {
-        const favouriteSnaps: Snap[] = response.snaps.map((snap: any) => ({
-          id: snap._id,
-          username: snap.email,
-          time: snap.time,
-          message: snap.message,
-          isPrivate: snap.isPrivate === 'true',
-          likes: snap.likes || 0,
-          likedByUser: snap.likedByUser || false,
-          canViewLikes: isFollowedBy || !snap.isPrivate,
-          favouritedByUser: snap.favouritedByUser || false,
-        }));
-        setSnaps(favouriteSnaps);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error al obtener los TwitSnaps favoritos',
-        });
-      }
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error al obtener los TwitSnaps favoritos',
-      });
-    }
-    setIsLoading(false);
-  }
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -298,19 +283,14 @@ export default function ProfileView() {
     );
   };
 
-  const handleLike = (snapId: string) => {
+
+  const handleLike = async (snapId: string) => {
+    // Optimizar la UI primero
     setSnaps(prevSnaps =>
       prevSnaps.map(snap => {
         if (snap.id === snapId) {
           const updatedLikeStatus = !snap.likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
-          // Simulación de confirmación visual
-          Alert.alert(
-            updatedLikeStatus ? 'Me Gusta' : 'Me Gusta Cancelado',
-            updatedLikeStatus
-              ? 'Has dado "Me Gusta" al TwitSnap.'
-              : 'Has cancelado tu "Me Gusta" al TwitSnap.'
-          );
           return {
             ...snap,
             likedByUser: updatedLikeStatus,
@@ -320,7 +300,106 @@ export default function ProfileView() {
         return snap;
       })
     );
+
+    // Llamada a la API
+    const snap = snaps.find(snap => snap.id === snapId);
+    if (!snap) return;
+
+    const apiResponse = snap.likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
+
+    if (apiResponse.success) {
+      Toast.show({
+        type: 'success',
+        text1: snap.likedByUser ? 'Has quitado el "me gusta"' : 'Has dado "me gusta" exitosamente',
+      });
+    } else {
+      // Revertir el cambio en caso de error
+      setSnaps(prevSnaps =>
+        prevSnaps.map(snap => {
+          if (snap.id === snapId) {
+            const revertedLikeStatus = snap.likedByUser;
+            const revertedLikes = revertedLikeStatus ? snap.likes + 1 : snap.likes - 1;
+            return {
+              ...snap,
+              likedByUser: revertedLikeStatus,
+              likes: revertedLikes,
+            };
+          }
+          return snap;
+        })
+      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
+      });
+    }
   };
+
+
+  const handleFavourite = async (snapId: string) => {
+    // Optimizar la UI primero
+    setSnaps(prevSnaps =>
+      prevSnaps.map(snap => {
+        if (snap.id === snapId) {
+          return {
+            ...snap,
+            favouritedByUser: !snap.favouritedByUser,
+          };
+        }
+        return snap;
+      })
+    );
+
+    // Llamada a la API
+    const snap = snaps.find(snap => snap.id === snapId);
+    if (!snap) return;
+
+    const apiResponse = snap.favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
+
+    if (apiResponse.success) {
+      Toast.show({
+        type: 'success',
+        text1: snap.favouritedByUser ? 'Has quitado el favorito' : 'Has marcado como favorito exitosamente',
+      });
+    } else {
+      // Revertir el cambio en caso de error
+      setSnaps(prevSnaps =>
+        prevSnaps.map(snap => {
+          if (snap.id === snapId) {
+            return {
+              ...snap,
+              favouritedByUser: snap.favouritedByUser,
+            };
+          }
+          return snap;
+        })
+      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
+      });
+    }
+  };
+
+  // const handleLike = (snapId: string) => {
+  //   setSnaps(prevSnaps =>
+  //     prevSnaps.map(snap => {
+  //       if (snap.id === snapId) {
+  //         const updatedLikeStatus = !snap.likedByUser;
+  //         const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
+
+  //         return {
+  //           ...snap,
+  //           likedByUser: updatedLikeStatus,
+  //           likes: updatedLikes,
+  //         };
+  //       }
+  //       return snap;
+  //     })
+  //   );
+  // };
 
   // Función para renderizar el encabezado de la lista
   const renderHeader = () => (
@@ -401,9 +480,14 @@ export default function ProfileView() {
             <Icon name="edit" size={24} color="#fff" />
             <Text style={styles.editButtonText}>Editar Perfil</Text>
           </Pressable>
+          {/* Nuevo Botón: Snaps Favoritos */}
+          <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
+            <Icon name="bookmark" size={24} color="#fff" />
+            <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
+          </Pressable>
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Icon name="logout" size={24} color="#fff" />
-            <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
+            <Text style={styles.logoutButtonText}>Logout</Text>
           </Pressable>
         </View>
       )}
@@ -417,7 +501,7 @@ export default function ProfileView() {
       <SnapItem
         snap={item}
         onLike={handleLike}
-        onFavourite={() => {}} 
+        onFavourite={handleFavourite}
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
         isOwnProfile={isOwnProfile}

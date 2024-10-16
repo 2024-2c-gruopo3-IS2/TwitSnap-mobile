@@ -94,6 +94,21 @@ export default StyleSheet.create({
         fontSize: 16,
         justifyContent: 'center',
     },
+    favouriteSnapsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFA500',
+        paddingVertical: 8,  // Reducir el tamaño del botón
+        paddingHorizontal: 15,  // Ajustar horizontalmente para mejor tamaño
+        borderRadius: 5,
+        marginHorizontal: 5,  // Espacio uniforme entre botones
+        justifyContent: 'center',
+        minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
+    },
+    favouriteSnapsButtonText: {
+        color: '#fff',
+        fontSize: 16,
+    },
     actionText: {
         color: '#fff',
     },
@@ -187,20 +202,20 @@ export default StyleSheet.create({
     },
     profileActionsContainer: {
         flexDirection: 'row',
-        justifyContent: 'center',
+        justifyContent: 'center', // Centrar los botones en la fila
         alignItems: 'center',
         marginTop: 20,
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#d11a2a', // Rojo para indicar peligro/acción destructiva
-        padding: 10,
+        backgroundColor: '#d11a2a',
+        paddingVertical: 8,  // Reducir el tamaño del botón
+        paddingHorizontal: 15,  // Ajustar horizontalmente para mejor tamaño
         borderRadius: 5,
-        marginLeft: 10, // Espacio entre el botón de editar y cerrar sesión
-        minWidth: 45,
-        minHeight: 45,
+        marginHorizontal: 5,  // Espacio uniforme entre botones
         justifyContent: 'center',
+        minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
     },
     logoutButtonText: {
         color: '#fff',
@@ -233,12 +248,12 @@ export default StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#127fa4',
-        padding: 10,
+        paddingVertical: 8,  // Reducir el tamaño del botón
+        paddingHorizontal: 15,  // Ajustar horizontalmente para mejor tamaño
         borderRadius: 5,
-        marginLeft: 10,
-        minWidth: 45,
-        minHeight: 45,
+        marginHorizontal: 5,  // Espacio uniforme entre botones
         justifyContent: 'center',
+        minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
     },
     editProfileButtonText: {
         color: '#fff',
