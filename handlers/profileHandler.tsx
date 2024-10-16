@@ -18,7 +18,7 @@ export async function checkUsernameAvailability(username: string): Promise<boole
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
             },
         });
 
@@ -160,7 +160,7 @@ export async function getUserProfile(username: string): Promise<{ success: boole
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
             },
         });
 
@@ -230,7 +230,7 @@ export async function deleteProfile(): Promise<{ success: boolean; message?: str
         const response = await fetch(delete_profile_url, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'token': `${token}`,
                 'Content-Type': 'application/json',
             },
         });

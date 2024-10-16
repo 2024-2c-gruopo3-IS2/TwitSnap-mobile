@@ -1,18 +1,13 @@
-// following.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import BackButton from '@/components/backButton';
 import styles from '../styles/followList';
 import { getFollowed } from '@/handlers/followHandler';
-import UserList from '@/components/userList'; // Asegúrate de que la ruta sea correcta
+import UserList from '@/components/userList';
 
 interface User {
-    id: string;
     username: string;
-    name: string;
-    surname: string;
-    profile_picture: string;
 }
 
 export default function Following() {
@@ -27,7 +22,11 @@ export default function Following() {
             try {
                 const response = await getFollowed(username as string);
                 if (response.success) {
-                    setFollowing(response.followed || []);
+                    // Asumimos que la API devuelve un array de nombres de usuario
+                    const followedUsers = (response.followed || []).map((username: string) => ({
+                        username,
+                    }));
+                    setFollowing(followedUsers);
                 } else {
                     Alert.alert('Error', response.message || 'No se pudieron obtener los seguidos.');
                 }
@@ -43,6 +42,10 @@ export default function Following() {
         }
     }, [username]);
 
+    const handleUserPress = (username: string) => {
+        router.push(`/profileView?username=${encodeURIComponent(username)}`);
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.headerContainer}>
@@ -53,7 +56,7 @@ export default function Following() {
             {isLoading ? (
                 <ActivityIndicator size="large" color="#1DA1F2" />
             ) : following.length > 0 ? (
-                <UserList users={following} />
+                <UserList users={following} onUserPress={handleUserPress} />
             ) : (
                 <View style={styles.noResultsContainer}>
                     <Text style={styles.noResultsText}>No sigues a nadie.</Text>
