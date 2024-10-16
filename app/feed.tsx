@@ -1,4 +1,5 @@
 // feed.tsx (Modificado)
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -8,16 +9,19 @@ import {
   StyleSheet,
   Pressable,
   Image,
-  Alert,
 } from 'react-native';
-import { getAllSnaps, createSnap } from '@/handlers/postHandler';
+import {
+  getAllSnaps,
+  likeSnap,
+  unlikeSnap,
+} from '@/handlers/postHandler'; // Asegúrate de importar likeSnap y unlikeSnap
 import Footer from '../components/footer';
 import { useRouter } from 'expo-router';
 import styles from '../styles/feed';
 import SnapItem from '../components/snapItem'; // Asegúrate de que la ruta sea correcta
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { usePostContext } from '../context/postContext'; 
-
+import Toast from 'react-native-toast-message'; // Importar Toast
 
 interface Snap {
   id: string; 
@@ -70,11 +74,12 @@ export default function Feed() {
   }, []);
 
   // Función para manejar el Like
-  const handleLike = (snapId: string) => {
+  const handleLike = async (snapId: string, likedByUser: boolean) => {
+    // Optimizar la UI primero
     setSnaps(prevSnaps =>
       prevSnaps.map(snap => {
         if (snap.id === snapId) {
-          const updatedLikeStatus = !snap.likedByUser;
+          const updatedLikeStatus = !likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
           return {
             ...snap,
@@ -85,10 +90,42 @@ export default function Feed() {
         return snap;
       })
     );
+
+    // Llamada a la API
+    const apiResponse = likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
+
+    if (apiResponse.success) {
+      // Usar Toast
+      Toast.show({
+        type: 'success',
+        text1: likedByUser ? 'Has quitado el "me gusta"' : 'Has dado "me gusta" exitosamente',
+      });
+    } else {
+      // Revertir el cambio en caso de error
+      setSnaps(prevSnaps =>
+        prevSnaps.map(snap => {
+          if (snap.id === snapId) {
+            const revertedLikeStatus = likedByUser;
+            const revertedLikes = revertedLikeStatus ? snap.likes + 1 : snap.likes - 1;
+            return {
+              ...snap,
+              likedByUser: revertedLikeStatus,
+              likes: revertedLikes,
+            };
+          }
+          return snap;
+        })
+      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
+      });
+    }
   };
 
   const renderItem = ({ item }: { item: Snap }) => (
-    <SnapItem snap={item} onLike={handleLike} />
+    <SnapItem snap={item} onLike={() => handleLike(item.id, item.likedByUser)} />
   );
 
   if (isLoading) {
@@ -126,6 +163,9 @@ export default function Feed() {
 
       {/* Footer con botón + */}
       <Footer  />
+
+      {/* Añadir Toast */}
+      <Toast />
     </View>
   );
 }

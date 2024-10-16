@@ -1,3 +1,5 @@
+// index.tsx
+
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import LoginPage from './login';
@@ -6,6 +8,9 @@ import { getToken } from '../handlers/authTokenHandler';
 import { getProfile } from '@/handlers/profileHandler';
 
 import { PostProvider } from '@/context/postContext'; 
+
+// Importar Toast
+import Toast from 'react-native-toast-message';
 
 export default function Index() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,6 +47,8 @@ export default function Index() {
   return (
     <PostProvider>
       {isAuthenticated ? <Feed /> : <LoginPage />}
+      {/* Añadir Toast al final del árbol de componentes */}
+      <Toast />
     </PostProvider>
   );
 }

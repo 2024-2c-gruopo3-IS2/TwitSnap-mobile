@@ -1,3 +1,5 @@
+// snapItem.tsx
+
 import React from 'react';
 import { View, Text, Pressable, Image, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';

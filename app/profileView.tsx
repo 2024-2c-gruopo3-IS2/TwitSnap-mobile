@@ -16,7 +16,7 @@ import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
-import { getAllSnaps, deleteSnap, updateSnap, getSnaps } from '@/handlers/postHandler';
+import { getAllSnaps, deleteSnap, updateSnap, getSnaps, getSnapsByUsername } from '@/handlers/postHandler';
 import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal'; // Asegúrate de que la ruta sea correcta
 import SnapItem from '@/components/snapItem'; // Asegúrate de que la ruta sea correcta
@@ -100,7 +100,7 @@ export default function ProfileView() {
           }
         }
 
-        const snapResponse = await getSnaps();
+        const snapResponse = await getSnapsByUsername(response.profile.username);
 
         if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
           const snaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
