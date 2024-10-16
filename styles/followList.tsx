@@ -4,30 +4,35 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#fff',
+        backgroundColor: '#000000', // Fondo completamente negro
     },
     headerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 16,
+        marginTop: 20,
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginLeft: 16,
+        marginLeft: 145,
+        color: '#FFFFFF', // Texto blanco
+        marginTop: 90,
     },
     userContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
+        borderBottomColor: '#444444', // Gris oscuro para bordes
     },
     profilePicture: {
         width: 50,
         height: 50,
         borderRadius: 25,
         marginRight: 16,
+        borderWidth: 1,
+        borderColor: '#444444', // Borde claro alrededor del avatar
     },
     userInfo: {
         flex: 1,
@@ -35,10 +40,11 @@ export default StyleSheet.create({
     name: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#FFFFFF', // Texto blanco
     },
     username: {
-        fontSize: 14,
-        color: '#555',
+        fontSize: 24,
+        color: 'blue', // Gris claro para username
     },
     noResultsContainer: {
         alignItems: 'center',
@@ -46,7 +52,7 @@ export default StyleSheet.create({
     },
     noResultsText: {
         fontSize: 16,
-        color: '#555',
+        color: '#CCCCCC', // Texto gris claro
     },
     noPermissionContainer: {
         alignItems: 'center',
@@ -54,6 +60,9 @@ export default StyleSheet.create({
     },
     noPermissionText: {
         fontSize: 16,
-        color: '#555',
+        color: '#CCCCCC', // Texto gris claro
+    },
+    rightSpace: {
+        flex: 1, // Para empujar el contenido a la izquierda
     },
 });

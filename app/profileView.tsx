@@ -21,6 +21,7 @@ import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal'; // Asegúrate de que la ruta sea correcta
 import SnapItem from '@/components/snapItem'; // Asegúrate de que la ruta sea correcta
 import Footer from '../components/footer';
+import { useSegments } from 'expo-router'; // Importa `useSegments`
 
 interface Snap {
   id: string;
@@ -35,6 +36,7 @@ interface Snap {
 
 export default function ProfileView() {
   const router = useRouter();
+  const segments = useSegments();
   const { username } = useLocalSearchParams();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +51,19 @@ export default function ProfileView() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
+
+  // Función para manejar la navegación al presionar el botón "Volver"
+  const handleBackPress = () => {
+    const previousPage = segments[segments.length - 2]; // Obtener la página anterior
+
+    // Si la página anterior es "followers" o "following", redirigir al feed
+    if (previousPage === 'followers' || previousPage === 'following') {
+      router.replace('/feed'); // Redirige al feed u otra ruta principal
+    } else {
+      router.back(); // Si no, vuelve a la página anterior normalmente
+    }
+  };
+
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -98,6 +113,19 @@ export default function ProfileView() {
     fetchProfile();
   }, [username, isOwnProfile, isFollowedBy]);
 
+  // Función para recargar el perfil
+  const reloadProfile = async () => {
+    try {
+      const response = await getUserProfile(profile.username);
+      if (response.success) {
+        setProfile(response.profile);
+      } else {
+        console.error('Error al recargar el perfil:', response.message);
+      }
+    } catch (error) {
+      console.error('Error al recargar el perfil:', error);
+    }
+  };
   const handleFollow = async () => {
     if (isFollowLoading) return;
 
@@ -108,11 +136,9 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(true);
         Alert.alert('Éxito', 'Has seguido al usuario exitosamente.');
-        // Actualizar el conteo de seguidores
-        setProfile((prev: any) => ({
-          ...prev,
-          followers_count: prev.followers_count + 1,
-        }));
+
+        // Volver a cargar el perfil para obtener los seguidores actualizados
+        await reloadProfile();
       } else {
         Alert.alert('Error', response.message || 'No se pudo seguir al usuario.');
       }
@@ -134,11 +160,9 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(false);
         Alert.alert('Éxito', 'Has dejado de seguir al usuario.');
-        // Actualizar el conteo de seguidores
-        setProfile((prev: any) => ({
-          ...prev,
-          followers_count: prev.followers_count - 1,
-        }));
+
+        // Volver a cargar el perfil para obtener los seguidores actualizados
+        await reloadProfile();
       } else {
         Alert.alert('Error', response.message || 'No se pudo dejar de seguir al usuario.');
       }
@@ -252,7 +276,7 @@ export default function ProfileView() {
   const renderHeader = () => (
     <View>
       <View style={styles.headerContainer}>
-        <BackButton />
+        <BackButton onPress={handleBackPress}/>
         <View style={styles.rightSpace} />
       </View>
 

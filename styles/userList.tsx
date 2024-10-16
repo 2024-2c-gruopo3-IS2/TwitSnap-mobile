@@ -24,10 +24,10 @@ export default StyleSheet.create({
     name: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#FFF', // Texto claro para contraste
+        color: 'white', // Texto claro para contraste
     },
     username: {
         fontSize: 14,
-        color: '#blue', // Texto más claro para nombres de usuario
+        color: 'white', // Texto más claro para nombres de usuario
     },
 });

@@ -4,11 +4,18 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
-const BackButton = () => {
+interface BackButtonProps {
+    onPress?: () => void; // Prop opcional para manejar el evento onPress
+}
+
+const BackButton: React.FC<BackButtonProps> = ({ onPress }) => {
     const router = useRouter();
 
+    // Usar la función onPress pasada como prop o router.back() por defecto
+    const handlePress = onPress || (() => router.back());
+
     return (
-        <Pressable style={styles.button} onPress={() => router.back()}>
+        <Pressable style={styles.button} onPress={handlePress}>
             <View style={styles.circle}>
                 <Icon name="arrow-back" size={24} color="#fff" />
             </View>
@@ -19,18 +26,18 @@ const BackButton = () => {
 const styles = StyleSheet.create({
     button: {
         position: 'absolute',
-        top: 20, // Ajusta según tus necesidades
-        left: 20, // Ajusta según tus necesidades
-        zIndex: 2, // Asegura que el botón esté por encima de otros elementos
+        top: 20,
+        left: 20,
+        zIndex: 2,
     },
     circle: {
-        backgroundColor: 'gray', // Fondo gris del botón
-        borderRadius: 25, // Hace que el botón sea redondo
-        width: 40, // Anchura y altura iguales para crear un círculo
+        backgroundColor: 'gray',
+        borderRadius: 25,
+        width: 40,
         height: 40,
-        justifyContent: 'center', // Centra el ícono dentro del círculo
+        justifyContent: 'center',
         alignItems: 'center',
-    }
+    },
 });
 
 export default BackButton;
