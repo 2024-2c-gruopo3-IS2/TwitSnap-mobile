@@ -16,12 +16,13 @@ import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
-import { getAllSnaps, deleteSnap, updateSnap, getSnaps, getSnapsByUsername } from '@/handlers/postHandler';
+import { getAllSnaps, deleteSnap, updateSnap, getSnaps, getSnapsByUsername, getFavouriteSnaps, favouriteSnap } from '@/handlers/postHandler';
 import { removeToken } from '@/handlers/authTokenHandler';
-import EditSnapModal from '@/components/editSnapModal'; // Asegúrate de que la ruta sea correcta
-import SnapItem from '@/components/snapItem'; // Asegúrate de que la ruta sea correcta
+import EditSnapModal from '@/components/editSnapModal'; 
+import SnapItem from '@/components/snapItem'; 
 import Footer from '../components/footer';
-import { useSegments } from 'expo-router'; // Importa `useSegments`
+import { useSegments } from 'expo-router'; 
+import Toast from 'react-native-toast-message';
 
 interface Snap {
   id: string;
@@ -32,6 +33,7 @@ interface Snap {
   likes: number;
   likedByUser: boolean;
   canViewLikes: boolean;
+  favouritedByUser: boolean;
 }
 
 export default function ProfileView() {
@@ -42,6 +44,7 @@ export default function ProfileView() {
   const [isLoading, setIsLoading] = useState(true);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const isOwnProfile = !username;
+  const [isFavouriteView, setIsFavouriteView] = useState(false);
 
   // Estados para el modal de edición
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -112,6 +115,7 @@ export default function ProfileView() {
             likes: snap.likes || 0,
             likedByUser: snap.likedByUser || false,
             canViewLikes: isFollowedBy || !snap.isPrivate,
+            favouritedByUser: snap.favouritedByUser || false,
           }));
           setSnaps(snaps);
         }
@@ -123,6 +127,39 @@ export default function ProfileView() {
 
     fetchProfile();
   }, [username, isOwnProfile, isFollowedBy]);
+
+
+  const fetchFavouriteSnaps = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getFavouriteSnaps();
+      if (response.success && response.snaps && response.snaps.length > 0) {
+        const favouriteSnaps: Snap[] = response.snaps.map((snap: any) => ({
+          id: snap._id,
+          username: snap.email,
+          time: snap.time,
+          message: snap.message,
+          isPrivate: snap.isPrivate === 'true',
+          likes: snap.likes || 0,
+          likedByUser: snap.likedByUser || false,
+          canViewLikes: isFollowedBy || !snap.isPrivate,
+          favouritedByUser: snap.favouritedByUser || false,
+        }));
+        setSnaps(favouriteSnaps);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error al obtener los TwitSnaps favoritos',
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error al obtener los TwitSnaps favoritos',
+      });
+    }
+    setIsLoading(false);
+  }
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -137,6 +174,8 @@ export default function ProfileView() {
       console.error('Error al recargar el perfil:', error);
     }
   };
+
+
   const handleFollow = async () => {
     if (isFollowLoading) return;
 
@@ -378,6 +417,7 @@ export default function ProfileView() {
       <SnapItem
         snap={item}
         onLike={handleLike}
+        onFavourite={() => {}} 
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
         isOwnProfile={isOwnProfile}

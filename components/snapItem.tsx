@@ -1,13 +1,13 @@
 // snapItem.tsx
 
 import React from 'react';
-import { View, Text, Pressable, Image, Alert } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
 
 interface Snap {
-  id: string; 
+  id: string;
   username: string;
   time: string;
   message: string;
@@ -15,17 +15,19 @@ interface Snap {
   likes: number;
   likedByUser: boolean;
   canViewLikes: boolean;
+  favouritedByUser: boolean;
 }
 
 interface SnapItemProps {
   snap: Snap;
   onLike: (id: string) => void;
+  onFavourite: (id: string) => void;
   onEdit?: (snap: Snap) => void;    // Función opcional para editar
   onDelete?: (id: string) => void;  // Función opcional para eliminar
   isOwnProfile?: boolean;           // Bandera para indicar si es el perfil propio
 }
 
-const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onEdit, onDelete, isOwnProfile }) => {
+const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, isOwnProfile }) => {
   const router = useRouter();
 
   return (
@@ -51,16 +53,30 @@ const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onEdit, onDelete, isO
         </View>
       )}
 
-      {/* Botón de "Me Gusta" y contador en la parte inferior derecha */}
-      <View style={styles.likeContainer}>
-        <Pressable onPress={() => onLike(snap.id)} style={styles.likeButton}>
-          <Icon
-            name={snap.likedByUser ? 'favorite' : 'favorite-border'}
-            size={24}
-            color={snap.likedByUser ? 'red' : 'gray'}
-          />
-        </Pressable>
-        {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
+      {/* Botones de "Favorito" y "Me Gusta" */}
+      <View style={styles.actionContainer}>
+        {/* Botón de "Favorito" centrado */}
+        <View style={styles.favouriteContainer}>
+          <Pressable onPress={() => onFavourite(snap.id)} style={styles.favouriteButton}>
+            <Icon
+              name={snap.favouritedByUser ? 'bookmark' : 'bookmark-border'}
+              size={24}
+              color={snap.favouritedByUser ? 'gold' : 'gray'}  // Dorado para favoritos
+            />
+          </Pressable>
+        </View>
+
+        {/* Botón de "Me Gusta" alineado a la derecha */}
+        <View style={styles.likeContainer}>
+          <Pressable onPress={() => onLike(snap.id)} style={styles.likeButton}>
+            <Icon
+              name={snap.likedByUser ? 'favorite' : 'favorite-border'}
+              size={24}
+              color={snap.likedByUser ? 'red' : 'gray'}
+            />
+          </Pressable>
+          {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
+        </View>
       </View>
     </View>
   );

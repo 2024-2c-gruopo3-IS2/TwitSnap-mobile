@@ -52,6 +52,45 @@ export async function getSnaps(): Promise<{ success: boolean; snaps?: Snap[]; me
 }
 
 
+/*
+* Obtiene los snaps de los usuarios que sigue el usuario autenticado.
+*/
+export async function getFollowedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const followed_snaps_url = `${API_URL}/snaps/snaps-followed/`;
+
+    try {
+        const response = await fetch(followed_snaps_url, {
+            method: 'GET',
+            headers: {
+                'token': `${token}`,
+            },
+        });
+
+        const data = await response.json();
+        console.log('Data:', data);
+
+        if (response.ok) {
+            console.log('Snaps encontrados:', data.data);
+            return { success: true, snaps: data.data };
+        } else {
+            console.log('Error al obtener snaps:', data);
+            return { success: false, message: data.detail || 'Error al obtener snaps.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+
+
 /**
  * Obtiene todos los TwitSnaps del usuario autenticado, incluyendo los de los usuarios que sigue.
  * @returns Una lista de TwitSnaps.
@@ -239,7 +278,7 @@ export async function getSnapsByUsername(username: string): Promise<{ success: b
     //     return { success: false, message: 'Token de autenticación no encontrado.' };
     // }
 
-    const snaps_url = `${API_URL}/snaps/${username}`;
+    const snaps_url = `${API_URL}/snaps/by-username/${username}`;
     console.log('snaps_url:', snaps_url);
 
     try {
@@ -311,6 +350,43 @@ export async function searchSnapsByHashtag(hashtag: string): Promise<{ success: 
 }
 
 
+/**
+ * Obtiene los Snaps que el usuario ha marcado como favoritos.
+ */
+export async function getLikedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+    
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const favourite_snaps_url = `${API_URL}/snaps/liked/`;
+    
+    try {
+        const response = await fetch(favourite_snaps_url, {
+            method: 'GET',
+            headers: {
+                'token': `${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+    
+        const data = await response.json();
+        console.log('Data:', data);
+    
+        if (response.ok) {
+            console.log('Snaps favoritos obtenidos:', data.data);
+            return { success: true, snaps: data.data };
+        } else {
+            console.log('Error al obtener snaps favoritos:', data);
+            return { success: false, message: data.detail || 'Error al obtener snaps favoritos.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
 
 
 /**

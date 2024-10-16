@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {
   getAllSnaps,
+  getFollowedSnaps,
   likeSnap,
   unlikeSnap,
 } from '@/handlers/postHandler'; // Asegúrate de importar likeSnap y unlikeSnap
@@ -22,6 +23,7 @@ import SnapItem from '../components/snapItem'; // Asegúrate de que la ruta sea 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { usePostContext } from '../context/postContext'; 
 import Toast from 'react-native-toast-message'; // Importar Toast
+import { getLikedSnaps, getFavouriteSnaps, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
 
 interface Snap {
   id: string; 
@@ -32,6 +34,7 @@ interface Snap {
   likes: number;
   likedByUser: boolean;
   canViewLikes: boolean;
+  favouritedByUser: boolean;
 }
 
 interface Post {
@@ -50,9 +53,11 @@ export default function Feed() {
 
   useEffect(() => {
     const fetchSnaps = async () => {
-      const response = await getAllSnaps();
-      console.log(response.snaps);
-      console.log("username: " + response.snaps?.[0]?.username);
+      const response = await getFollowedSnaps();
+      const favouriteResponse = await getFavouriteSnaps();
+      const likesResponse = await getFavouriteSnaps();
+      const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
+      const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
 
       if (response.success && response.snaps && response.snaps.length > 0) {
         const snaps: Snap[] = response.snaps.map((snap: any) => ({
@@ -62,8 +67,9 @@ export default function Feed() {
           message: snap.message,
           isPrivate: snap.isPrivate,
           likes: snap.likes || 0,
-          likedByUser: snap.likedByUser || false,
-          canViewLikes: snap.canViewLikes || false,
+          likedByUser: likedSnapIds.includes(snap._id), 
+          canViewLikes: true,
+          favouritedByUser: favouriteSnapIds.includes(snap._id), 
         }));
         setSnaps(snaps); 
       }
@@ -124,8 +130,47 @@ export default function Feed() {
     }
   };
 
+  const handleFavourite = async (snapId: string, favouritedByUser: boolean) => {
+    setSnaps(prevSnaps =>
+      prevSnaps.map(snap => {
+        if (snap.id === snapId) {
+          return {
+            ...snap,
+            favouritedByUser: !favouritedByUser,
+          };
+        }
+        return snap;
+      })
+    );
+    const apiResponse = favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
+
+    if (apiResponse.success) {
+      Toast.show({
+        type: 'success',
+        text1: favouritedByUser ? 'Has quitado el favorito' : 'Has marcado como favorito exitosamente',
+      });
+    } else {
+      setSnaps(prevSnaps =>
+        prevSnaps.map(snap => {
+          if (snap.id === snapId) {
+            return {
+              ...snap,
+              favouritedByUser: favouritedByUser,
+            };
+          }
+          return snap;
+        })
+      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
+      });
+    }
+  }
+
   const renderItem = ({ item }: { item: Snap }) => (
-    <SnapItem snap={item} onLike={() => handleLike(item.id, item.likedByUser)} />
+    <SnapItem snap={item} onLike={() => handleLike(item.id, item.likedByUser)} onFavourite={() => handleFavourite(item.id, item.favouritedByUser)} />
   );
 
   if (isLoading) {
