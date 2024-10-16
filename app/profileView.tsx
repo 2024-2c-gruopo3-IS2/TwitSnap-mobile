@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
-import { followUser, unfollowUser, getFollowers, getFollowed, getFollowStatus } from '@/handlers/followHandler';
+import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
 import { getAllSnaps, deleteSnap, updateSnap } from '@/handlers/postHandler';
@@ -78,16 +78,27 @@ export default function ProfileView() {
       if (response.success) {
         setProfile(response.profile);
 
-        // if (!isOwnProfile) {
-        //   // Obtener el estado de seguimiento utilizando el nuevo endpoint
-        //   const followStatusResponse = await getFollowStatus(username as string);
-        //   if (followStatusResponse.success) {
-        //     setIsFollowing(followStatusResponse.isFollowing || false);
-        //     setIsFollowedBy(followStatusResponse.isFollowedBy || false);
-        //   } else {
-        //     console.error(followStatusResponse.message);
-        //   }
-        // }
+        // Si no es nuestro propio perfil, verificamos si seguimos al usuario
+        if (!isOwnProfile) {
+          // Obtener el nombre de usuario actual
+          const currentUserResponse = await getProfile();
+          if (currentUserResponse.success) {
+            const currentUsername = currentUserResponse.profile.username;
+
+            // Obtener la lista de usuarios que seguimos
+            const followedResponse = await getFollowed(currentUsername);
+            if (followedResponse.success) {
+              const followedUsernames = followedResponse.followed || []; // Lista de nombres de usuario que seguimos
+
+              // Verificar si seguimos al usuario del perfil
+              setIsFollowing(followedUsernames.includes(response.profile.username));
+            } else {
+              console.error('Error al obtener los usuarios que sigues:', followedResponse.message);
+            }
+          } else {
+            console.error('Error al obtener el perfil del usuario actual:', currentUserResponse.message);
+          }
+        }
 
         const snapResponse = await getAllSnaps();
 
@@ -276,7 +287,7 @@ export default function ProfileView() {
   const renderHeader = () => (
     <View>
       <View style={styles.headerContainer}>
-        <BackButton onPress={handleBackPress}/>
+        <BackButton onPress={handleBackPress} />
         <View style={styles.rightSpace} />
       </View>
 

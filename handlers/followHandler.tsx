@@ -133,35 +133,3 @@ export async function getFollowed(username: string): Promise<{ success: boolean;
     }
 }
 
-/**
- * Verifica el estado de seguimiento entre el usuario actual y otro usuario.
- * @param targetUsername Nombre de usuario con el que se verificará el seguimiento.
- */
-export async function getFollowStatus(targetUsername: string): Promise<{ success: boolean; isFollowing?: boolean; isFollowedBy?: boolean; message?: string }> {
-    const token = await getToken();
-
-    // Endpoint para obtener el estado de seguimiento
-    const status_url = `${API_URL}/follow-status?username=${encodeURIComponent(targetUsername)}`;
-
-    try {
-        const response = await fetch(status_url, {
-            method: 'GET',
-            headers: {
-                'token': `${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            console.log('Estado de seguimiento:', data);
-            return { success: true, isFollowing: data.isFollowing, isFollowedBy: data.isFollowedBy };
-        } else {
-            console.log('Error al obtener el estado de seguimiento:', data);
-            return { success: false, message: data.detail || 'Error al obtener el estado de seguimiento.' };
-        }
-    } catch (error) {
-        console.error(error);
-        return { success: false, message: 'Error al conectar con el servidor.' };
-    }
-}
