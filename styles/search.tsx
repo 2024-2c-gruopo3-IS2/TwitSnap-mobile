@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,  // Ajusta para que haya un espacio desde la parte superior
+    marginTop: 40,  // Ajusta para que haya un espacio desde la parte superior
     marginBottom: 20,
   },
   backButton: {

@@ -18,9 +18,10 @@ import {
   unfavouriteSnap,
 } from '@/handlers/postHandler';
 import { useRouter } from 'expo-router';
-import styles from '../styles/favouriteSnapsView'; // Asegúrate de que la ruta es correcta
+import styles from '../styles/favouriteSnapsView';
 import SnapItem from '../components/snapItem';
 import Toast from 'react-native-toast-message';
+import BackButton from '@/components/backButton';
 
 interface Snap {
   id: string;
@@ -49,7 +50,7 @@ export default function FavoriteSnapsView() {
             console.log("Snap ID:", snap._id); // Log para verificar IDs
             return {
               id: snap._id,
-              username: snap.email,
+              username: snap.username,
               time: snap.time,
               message: snap.message,
               isPrivate: snap.isPrivate === 'true',
@@ -198,16 +199,16 @@ export default function FavoriteSnapsView() {
   }
 
   return (
+
     <View style={styles.container}>
-      {/* Logo en el centro arriba */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('@/assets/images/twitsnap-logo.png')}
-          style={styles.logo}
-        />
+
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>Snaps Favoritos</Text>
+        <BackButton />
       </View>
 
       {/* Lista de snaps favoritos */}
+
       {snaps.length > 0 ? (
         <FlatList
           data={snaps}
@@ -221,6 +222,7 @@ export default function FavoriteSnapsView() {
           <Text style={styles.noResultsText}>No tienes snaps favoritos</Text>
         </View>
       )}
+
 
       {/* Añadir Toast */}
       <Toast />

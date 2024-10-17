@@ -153,8 +153,6 @@ export async function updateProfile(profileData: any): Promise<{ success: boolea
 export async function getUserProfile(username: string): Promise<{ success: boolean; profile?: any; message?: string }> {
     const user_url = `${API_URL}/profiles/by-username?username=${encodeURIComponent(username)}`;
     const token = await getToken();
-    
-
     try {
         const response = await fetch(user_url, {
             method: 'GET',

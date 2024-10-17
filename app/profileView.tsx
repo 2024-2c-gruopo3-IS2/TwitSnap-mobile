@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  StyleSheet,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -17,10 +16,8 @@ import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
 import {
-  getAllSnaps,
   deleteSnap,
   updateSnap,
-  getSnaps,
   getSnapsByUsername,
   getFavouriteSnaps,
   favouriteSnap,
@@ -35,7 +32,6 @@ import SnapItem from '@/components/snapItem';
 import Footer from '../components/footer';
 import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
-
 
 interface Snap {
   id: string;
@@ -59,6 +55,10 @@ export default function ProfileView() {
   const isOwnProfile = !username;
   const [isFavouriteView, setIsFavouriteView] = useState(false);
 
+  // Nuevas variables de estado para los contadores
+  const [followersCount, setFollowersCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
+
   // Estados para el modal de edición
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedSnap, setSelectedSnap] = useState<Snap | null>(null);
@@ -80,71 +80,97 @@ export default function ProfileView() {
     }
   };
 
-
   useEffect(() => {
     const fetchProfile = async () => {
       setIsLoading(true);
-      let response;
-      if (isOwnProfile) {
-        response = await getProfile();
-      } else {
-        response = await getUserProfile(username as string);
-      }
+      try {
+        // 1. Obtener el perfil (propio o de otro usuario)
+        const profileResponse = isOwnProfile ? await getProfile() : await getUserProfile(username as string);
 
-      if (response.success) {
-        setProfile(response.profile);
+        if (profileResponse.success) {
+          setProfile(profileResponse.profile);
 
-        // Si no es nuestro propio perfil, verificamos si seguimos al usuario
-        if (!isOwnProfile) {
-          // Obtener el nombre de usuario actual
-          const currentUserResponse = await getProfile();
-          if (currentUserResponse.success) {
-            const currentUsername = currentUserResponse.profile.username;
-
-            // Obtener la lista de usuarios que seguimos
-            const followedResponse = await getFollowed(currentUsername);
-            if (followedResponse.success) {
-              const followedUsernames = followedResponse.followed || []; // Lista de nombres de usuario que seguimos
-
-              // Verificar si seguimos al usuario del perfil
-              setIsFollowing(followedUsernames.includes(response.profile.username));
-            } else {
-              console.error('Error al obtener los usuarios que sigues:', followedResponse.message);
-            }
-          } else {
-            console.error('Error al obtener el perfil del usuario actual:', currentUserResponse.message);
+          // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
+          let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
+          if (!isOwnProfile) {
+            isFollowingPromise = (async () => {
+              const currentProfile = await getProfile();
+              if (currentProfile.success) {
+                const followed = await getFollowed(currentProfile.profile.username);
+                if (followed.success) {
+                  return (followed.followed ?? []).includes(profileResponse.profile.username);
+                }
+              }
+              return false;
+            })();
           }
-        }
 
-        const snapResponse = await getSnapsByUsername(response.profile.username);
-        const likesResponse = await getLikedSnaps();
-        const favouriteResponse = await getFavouriteSnaps();
-        const likedSnapsIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
-        const favouriteSnapsIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
+          // 3. Obtener seguidores y seguidos del perfil actual
+          const followersPromise = getFollowers(profileResponse.profile.username);
+          const followingPromise = getFollowed(profileResponse.profile.username);
 
-        if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
-          const snaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
-            id: snap._id,
-            username: snap.email,
-            time: snap.time,
-            message: snap.message,
-            isPrivate: snap.isPrivate === 'true',
-            likes: snap.likes || 0,
-            likedByUser: likedSnapsIds.includes(snap._id),
-            canViewLikes: true,
-            favouritedByUser: favouriteSnapsIds.includes(snap._id),
-          }));
-          setSnaps(snaps);
+          // 4. Ejecutar todas las promesas en paralelo
+          const [isFollowingResult, followersResponse, followingResponse, snapResponse, likesResponse, favouriteResponse] = await Promise.all([
+            isFollowingPromise,
+            followersPromise,
+            followingPromise,
+            getSnapsByUsername(profileResponse.profile.username),
+            getLikedSnaps(),
+            getFavouriteSnaps(),
+          ]);
+
+          // 5. Actualizar estado de seguimiento
+          if (!isOwnProfile) {
+            setIsFollowing(isFollowingResult);
+          }
+
+          // 6. Actualizar contadores de seguidores y seguidos
+          if (followersResponse.success) {
+            setFollowersCount((followersResponse.followers ?? []).length);
+          } else {
+            console.error('Error al obtener los seguidores:', followersResponse.message);
+            setFollowersCount(0); // Valor por defecto en caso de error
+          }
+
+          if (followingResponse.success) {
+            setFollowingCount((followingResponse.followed ?? []).length);
+          } else {
+            console.error('Error al obtener los seguidos:', followingResponse.message);
+            setFollowingCount(0); // Valor por defecto en caso de error
+          }
+
+          // 7. Procesar snaps si existen
+          if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
+            const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
+            const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
+            const processedSnaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
+              id: snap._id,
+              username: snap.username,
+              time: snap.time,
+              message: snap.message,
+              isPrivate: snap.isPrivate === 'true',
+              likes: snap.likes || 0,
+              likedByUser: likedSnapsIds.includes(snap._id),
+              canViewLikes: true,
+              favouritedByUser: favouriteSnapsIds.includes(snap._id),
+            }));
+            setSnaps(processedSnaps);
+          } else {
+            setSnaps([]); // Manejar caso sin snaps
+          }
+        } else {
+          Alert.alert('Error', profileResponse.message || 'No se pudo obtener el perfil.');
         }
-      } else {
-        Alert.alert('Error', response.message || 'No se pudo obtener el perfil.');
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        Alert.alert('Error', 'Ocurrió un error al obtener el perfil.');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchProfile();
-  }, [username, isOwnProfile, isFollowedBy]);
-
+  }, [username, isOwnProfile]);
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -160,7 +186,6 @@ export default function ProfileView() {
     }
   };
 
-
   const handleFollow = async () => {
     if (isFollowLoading) return;
 
@@ -170,10 +195,9 @@ export default function ProfileView() {
 
       if (response.success) {
         setIsFollowing(true);
-        Alert.alert('Éxito', 'Has seguido al usuario exitosamente.');
-
-        // Volver a cargar el perfil para obtener los seguidores actualizados
-        await reloadProfile();
+        setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 0) + 1 }));
+        setFollowersCount(prev => prev + 1); // Actualizar contador local
+        Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
       } else {
         Alert.alert('Error', response.message || 'No se pudo seguir al usuario.');
       }
@@ -194,10 +218,9 @@ export default function ProfileView() {
 
       if (response.success) {
         setIsFollowing(false);
-        Alert.alert('Éxito', 'Has dejado de seguir al usuario.');
-
-        // Volver a cargar el perfil para obtener los seguidores actualizados
-        await reloadProfile();
+        setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 1) - 1 }));
+        setFollowersCount(prev => (prev > 0 ? prev - 1 : 0)); // Actualizar contador local con mínimo 0
+        Toast.show({ type: 'success', text1: 'Has dejado de seguir al usuario.' });
       } else {
         Alert.alert('Error', response.message || 'No se pudo dejar de seguir al usuario.');
       }
@@ -283,13 +306,13 @@ export default function ProfileView() {
     );
   };
 
-
-  const handleLike = async (snapId: string) => {
+  // Función para manejar el Like
+  const handleLike = async (snapId: string, likedByUser: boolean) => {
     // Optimizar la UI primero
     setSnaps(prevSnaps =>
       prevSnaps.map(snap => {
         if (snap.id === snapId) {
-          const updatedLikeStatus = !snap.likedByUser;
+          const updatedLikeStatus = !likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
           return {
             ...snap,
@@ -302,22 +325,20 @@ export default function ProfileView() {
     );
 
     // Llamada a la API
-    const snap = snaps.find(snap => snap.id === snapId);
-    if (!snap) return;
-
-    const apiResponse = snap.likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
+    const apiResponse = likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
 
     if (apiResponse.success) {
+      // Usar Toast
       Toast.show({
         type: 'success',
-        text1: snap.likedByUser ? 'Has quitado el "me gusta"' : 'Has dado "me gusta" exitosamente',
+        text1: likedByUser ? 'Has quitado el "me gusta"' : 'Has dado "me gusta" exitosamente',
       });
     } else {
       // Revertir el cambio en caso de error
       setSnaps(prevSnaps =>
         prevSnaps.map(snap => {
           if (snap.id === snapId) {
-            const revertedLikeStatus = snap.likedByUser;
+            const revertedLikeStatus = likedByUser;
             const revertedLikes = revertedLikeStatus ? snap.likes + 1 : snap.likes - 1;
             return {
               ...snap,
@@ -336,40 +357,32 @@ export default function ProfileView() {
     }
   };
 
-
-  const handleFavourite = async (snapId: string) => {
-    // Optimizar la UI primero
+  const handleFavourite = async (snapId: string, favouritedByUser: boolean) => {
     setSnaps(prevSnaps =>
       prevSnaps.map(snap => {
         if (snap.id === snapId) {
           return {
             ...snap,
-            favouritedByUser: !snap.favouritedByUser,
+            favouritedByUser: !favouritedByUser,
           };
         }
         return snap;
       })
     );
-
-    // Llamada a la API
-    const snap = snaps.find(snap => snap.id === snapId);
-    if (!snap) return;
-
-    const apiResponse = snap.favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
+    const apiResponse = favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
 
     if (apiResponse.success) {
       Toast.show({
         type: 'success',
-        text1: snap.favouritedByUser ? 'Has quitado el favorito' : 'Has marcado como favorito exitosamente',
+        text1: favouritedByUser ? 'Has quitado el favorito' : 'Has marcado como favorito exitosamente',
       });
     } else {
-      // Revertir el cambio en caso de error
       setSnaps(prevSnaps =>
         prevSnaps.map(snap => {
           if (snap.id === snapId) {
             return {
               ...snap,
-              favouritedByUser: snap.favouritedByUser,
+              favouritedByUser: favouritedByUser,
             };
           }
           return snap;
@@ -381,25 +394,7 @@ export default function ProfileView() {
         text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
       });
     }
-  };
-
-  // const handleLike = (snapId: string) => {
-  //   setSnaps(prevSnaps =>
-  //     prevSnaps.map(snap => {
-  //       if (snap.id === snapId) {
-  //         const updatedLikeStatus = !snap.likedByUser;
-  //         const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
-
-  //         return {
-  //           ...snap,
-  //           likedByUser: updatedLikeStatus,
-  //           likes: updatedLikes,
-  //         };
-  //       }
-  //       return snap;
-  //     })
-  //   );
-  // };
+  }
 
   // Función para renderizar el encabezado de la lista
   const renderHeader = () => (
@@ -440,7 +435,7 @@ export default function ProfileView() {
           }
           style={styles.followSection}
         >
-          <Text style={styles.followNumber}>{profile.followers_count || 0}</Text>
+          <Text style={styles.followNumber}>{followersCount}</Text>
           <Text style={styles.followLabel}>Seguidores</Text>
         </Pressable>
 
@@ -450,7 +445,7 @@ export default function ProfileView() {
           }
           style={styles.followSection}
         >
-          <Text style={styles.followNumber}>{profile.following_count || 0}</Text>
+          <Text style={styles.followNumber}>{followingCount}</Text>
           <Text style={styles.followLabel}>Seguidos</Text>
         </Pressable>
       </View>
@@ -500,8 +495,8 @@ export default function ProfileView() {
     ({ item }: { item: Snap }) => (
       <SnapItem
         snap={item}
-        onLike={handleLike}
-        onFavourite={handleFavourite}
+        onLike={() => handleLike(item.id, item.likedByUser)}
+        onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
         isOwnProfile={isOwnProfile}
@@ -556,12 +551,12 @@ export default function ProfileView() {
         snap={
           selectedSnap
             ? {
-              id: selectedSnap.id,
-              username: selectedSnap.username,
-              time: selectedSnap.time,
-              message: selectedSnap.message,
-              isPrivate: selectedSnap.isPrivate,
-            }
+                id: selectedSnap.id,
+                username: selectedSnap.username,
+                time: selectedSnap.time,
+                message: selectedSnap.message,
+                isPrivate: selectedSnap.isPrivate,
+              }
             : null
         }
         onSubmit={handleUpdateSnap}

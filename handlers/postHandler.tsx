@@ -55,7 +55,7 @@ export async function getSnaps(): Promise<{ success: boolean; snaps?: Snap[]; me
 /*
 * Obtiene los snaps de los usuarios que sigue el usuario autenticado.
 */
-export async function getFollowedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
+export async function getFeedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
 
     const token = await getToken();
@@ -63,7 +63,7 @@ export async function getFollowedSnaps(): Promise<{ success: boolean; snaps?: Sn
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
-    const followed_snaps_url = `${API_URL}/snaps/snaps-followed/`;
+    const followed_snaps_url = `${API_URL}/snaps/feed/`;
 
     try {
         const response = await fetch(followed_snaps_url, {

@@ -86,7 +86,7 @@ export default function SearchUsers() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <BackButton style={styles.backButton} />
+        <BackButton />
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar usuarios..."

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {
   getAllSnaps,
-  getFollowedSnaps,
+  getFeedSnaps,
   likeSnap,
   unlikeSnap,
 } from '@/handlers/postHandler'; // Asegúrate de importar likeSnap y unlikeSnap
@@ -53,7 +53,7 @@ export default function Feed() {
 
   useEffect(() => {
     const fetchSnaps = async () => {
-      const response = await getFollowedSnaps();
+      const response = await getFeedSnaps();
       const favouriteResponse = await getFavouriteSnaps();
       const likesResponse = await getFavouriteSnaps();
       const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
@@ -62,7 +62,7 @@ export default function Feed() {
       if (response.success && response.snaps && response.snaps.length > 0) {
         const snaps: Snap[] = response.snaps.map((snap: any) => ({
           id: snap._id,
-          username: snap.email, 
+          username: snap.username, 
           time: snap.time,
           message: snap.message,
           isPrivate: snap.isPrivate,
