@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 2,
   },
-  sectionHeaderPressable: { // Nuevo estilo para el Pressable del encabezado
+    sectionHeaderPressable: { // Nuevo estilo para el Pressable del encabezado
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -114,6 +114,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+  noHashtagsText: {
+    color: '#aaa', // Texto gris claro
+    textAlign: 'center',
+    marginTop: 10,
+    fontSize: 16,
+  },
+  
 });
 
 export default styles;

@@ -20,14 +20,15 @@ export default StyleSheet.create({
     },
     userInfo: {
         flex: 1,
+        
     },
     name: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: 'white', // Texto claro para contraste
+        color: '#1DA1F2', // Texto claro para contraste
     },
     username: {
         fontSize: 14,
-        color: 'white', // Texto más claro para nombres de usuario
+        color: '#1DA1F2', // Texto más claro para nombres de usuario
     },
 });

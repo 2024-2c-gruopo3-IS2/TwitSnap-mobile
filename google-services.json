@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "856906798335-7gmq64nn5upj2qfng38q858al4ngosu6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "twit.snap",
+            "certificate_hash": "619aa90c16be40b15c6085cbf29cd91496f20c6b"
+          }
+        },
+        {
           "client_id": "856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com",
           "client_type": 3
         }

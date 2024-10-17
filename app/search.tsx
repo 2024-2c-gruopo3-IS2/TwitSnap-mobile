@@ -88,6 +88,9 @@ export default function SearchUsersAndTwitSnaps() {
         twitSnap.message.toLowerCase().includes(`#${hashtag}`)
       );
       setFilteredHashtags(filteredH);
+
+      // LOG: Verificar los hashtags filtrados
+      console.log('Filtered Hashtags:', filteredH);
     } else {
       setFilteredHashtags([]);
     }
@@ -102,11 +105,17 @@ export default function SearchUsersAndTwitSnaps() {
       );
       setFilteredUsers(filteredU);
 
+      // LOG: Verificar los usuarios filtrados
+      console.log('Filtered Users:', filteredU);
+
       // Filtrar TwitSnaps
       const filteredT = twitSnaps.filter((twitSnap) =>
         twitSnap.message.toLowerCase().includes(trimmedQuery)
       );
       setFilteredTwitSnaps(filteredT);
+
+      // LOG: Verificar los TwitSnaps filtrados
+      console.log('Filtered TwitSnaps:', filteredT);
     }
   };
 
@@ -254,7 +263,6 @@ export default function SearchUsersAndTwitSnaps() {
   }
 
   const noResults = filteredUsers.length === 0 && filteredTwitSnaps.length === 0 && filteredHashtags.length === 0;
-
   // Funciones para alternar la expansión de las secciones
   const toggleUsersSection = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -290,6 +298,7 @@ export default function SearchUsersAndTwitSnaps() {
     />
   );
 
+  const isHashtagSearch = searchQuery.trim().toLowerCase().startsWith('#');
 
   return (
     <View style={styles.container}>
@@ -298,7 +307,7 @@ export default function SearchUsersAndTwitSnaps() {
           <BackButton />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar usuarios, snaps o hashtags"
+            placeholder="Ingrese un texto a buscar"
             placeholderTextColor="#aaa"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -384,40 +393,46 @@ export default function SearchUsersAndTwitSnaps() {
                   />
                 )}
               </View>
-            )}
-
-            {/* Sección de Hashtags */}
-            {filteredHashtags.length > 0 && (
-              <View style={styles.section}>
-                <Pressable
-                  style={styles.sectionHeaderPressable}
-                  onPress={toggleHashtagsSection}
-                >
-                  <View style={styles.sectionHeader}>
-                    <Icon
-                      name="local-offer" // Ícono adecuado para hashtags
-                      size={20}
-                      color="#1DA1F2"
-                      style={styles.sectionIcon}
-                    />
-                    <Text style={styles.sectionTitle}>Hashtags</Text>
-                  </View>
+            )}{/* Sección de Hashtags */}
+            <View style={styles.section}>
+              <Pressable
+                style={styles.sectionHeaderPressable}
+                onPress={toggleHashtagsSection}
+              >
+                <View style={styles.sectionHeader}>
                   <Icon
-                    name={isHashtagsExpanded ? 'expand-less' : 'expand-more'}
-                    size={24}
+                    name="local-offer" // Ícono adecuado para hashtags
+                    size={20}
                     color="#1DA1F2"
+                    style={styles.sectionIcon}
                   />
-                </Pressable>
-                {isHashtagsExpanded && (
-                  <FlatList
-                    data={filteredHashtags}
-                    keyExtractor={(item) => `hashtag-${item.id}`}
-                    renderItem={renderHashtagItem}
-                    keyboardShouldPersistTaps="handled"
-                  />
-                )}
-              </View>
-            )}
+                  <Text style={styles.sectionTitle}>Hashtags</Text>
+                </View>
+                <Icon
+                  name={isHashtagsExpanded ? 'expand-less' : 'expand-more'}
+                  size={24}
+                  color="#1DA1F2"
+                />
+              </Pressable>
+              {isHashtagsExpanded && (
+                filteredHashtags.length > 0 ? (
+                  <>
+                    {console.log('Rendering Hashtag List:', filteredHashtags)}
+                    <FlatList
+                      data={filteredHashtags}
+                      keyExtractor={(item) => `hashtag-${item.id}`}
+                      renderItem={renderHashtagItem}
+                      keyboardShouldPersistTaps="handled"
+                    />
+                  </>
+                ) : (
+                  <>
+                    {console.log('No Hashtags Available')}
+                    <Text style={styles.noHashtagsText}>No hay hashtags disponibles.</Text>
+                  </>
+                )
+              )}
+            </View>
           </>
         )}
       </View>

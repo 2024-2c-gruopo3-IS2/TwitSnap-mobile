@@ -44,7 +44,7 @@ export default StyleSheet.create({
     },
     username: {
         fontSize: 24,
-        color: 'blue', // Gris claro para username
+        color: '#1DA1F2', // Gris claro para username
     },
     noResultsContainer: {
         alignItems: 'center',
