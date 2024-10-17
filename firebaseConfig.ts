@@ -1,9 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, 
   initializeAuth, 
-  GoogleAuthProvider, 
-  browserLocalPersistence 
+  getReactNativePersistence, 
+  GoogleAuthProvider 
 } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,9 +17,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Inicializa Firebase Auth con persistencia usando AsyncStorage
+// Initialize Firebase Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
-  persistence: browserLocalPersistence,
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 
 const provider = new GoogleAuthProvider();

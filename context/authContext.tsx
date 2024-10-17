@@ -1,88 +1,92 @@
-// // src/context/AuthContext.tsx
-// import React, { createContext, useState, useEffect, ReactNode } from 'react';
-// import { fetchUserProfile } from '@/handlers/profileHandler'; 
-// import { getToken, removeToken, saveToken } from '@/handlers/authTokenHandler';
-// import { useRouter } from 'expo-router';
-// import { Alert } from 'react-native';
+// context/authContext.tsx
 
-// interface Profile {
-//   username: string;
-//   email: string;
-//   location: string;
-//   bio: string;
-//   profilePicture: string;
-// }
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { getToken, saveToken, removeToken } from '@/handlers/authTokenHandler';
+import axios from 'axios';
 
-// interface AuthContextProps {
-//   isAuthenticated: boolean;
-//   profile: Profile | null;
-//   login: (token: string, expiration: number) => Promise<void>;
-//   logout: () => Promise<void>;
-// }
+interface User {
+  username: string;
+  // Añade otros campos relevantes según tu modelo de usuario
+}
 
-// export const AuthContext = createContext<AuthContextProps>({
-//   isAuthenticated: false,
-//   profile: null,
-//   login: async () => {},
-//   logout: async () => {},
-// });
+interface AuthContextType {
+  user: User | null;
+  isLoading: boolean;
+  login: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
-// export const AuthProvider = ({ children }: { children: ReactNode }) => {
-//   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-//   const [profile, setProfile] = useState<Profile | null>(null);
-//   const router = useRouter();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-//   useEffect(() => {
-//     const initializeAuth = async () => {
-//       const token = await getToken();
-//       if (token) {
-//         const result = await fetchUserProfile();
-//         if (result.success && result.profile) {
-//           setProfile(result.profile);
-//           setIsAuthenticated(true);
-//         } else {
-//           Alert.alert('Error', result.message || 'Error al cargar el perfil.');
-//           await handleLogout();
-//         }
-//       }
-//     };
+export const useAuthContext = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuthContext debe ser usado dentro de un AuthProvider');
+  }
+  return context;
+};
 
-//     initializeAuth();
-//   }, []);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-//   const login = async (token: string, expiration: number) => {
-//     try {
-//       await saveToken(token, expiration);
-//       const result = await fetchUserProfile();
-//       if (result.success && result.profile) {
-//         setProfile(result.profile);
-//         setIsAuthenticated(true);
-//         router.replace('/feed');
-//       } else {
-//         Alert.alert('Error', result.message || 'Error al cargar el perfil.');
-//         await handleLogout();
-//       }
-//     } catch (error) {
-//       console.error('Error durante el login:', error);
-//       Alert.alert('Error', 'No se pudo completar el inicio de sesión.');
-//     }
-//   };
+  // Función para obtener el usuario actual desde el backend usando el token
+  const fetchCurrentUser = async (token: string) => {
+    try {
+      const response = await axios.get('/api/auth/me', { // Ajusta el endpoint según tu API
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.status === 200) {
+        setUser(response.data.user); // Asegúrate de que tu backend devuelve el usuario en 'data.user'
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error al obtener el usuario actual:', error);
+      setUser(null);
+    }
+  };
 
-//   const handleLogout = async () => {
-//     try {
-//       await removeToken();
-//       setIsAuthenticated(false);
-//       setProfile(null);
-//       router.replace('/login');
-//     } catch (error) {
-//       console.error('Error durante el logout:', error);
-//       Alert.alert('Error', 'No se pudo cerrar la sesión.');
-//     }
-//   };
+  // Inicializar el estado de autenticación al montar el proveedor
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = await getToken();
+      if (token) {
+        await fetchCurrentUser(token);
+      }
+      setIsLoading(false);
+    };
 
-//   return (
-//     <AuthContext.Provider value={{ isAuthenticated, profile, login, logout: handleLogout }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
+    initializeAuth();
+  }, []);
+
+  // Función para manejar el inicio de sesión
+  const login = async (token: string) => {
+    try {
+      await saveToken(token);
+      await fetchCurrentUser(token);
+    } catch (error) {
+      console.error('Error durante el inicio de sesión:', error);
+      throw new Error('No se pudo iniciar sesión.');
+    }
+  };
+
+  // Función para manejar el cierre de sesión
+  const logout = async () => {
+    try {
+      await removeToken();
+      setUser(null);
+    } catch (error) {
+      console.error('Error durante el cierre de sesión:', error);
+      throw new Error('No se pudo cerrar sesión.');
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};

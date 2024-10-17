@@ -46,7 +46,7 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
         id: response.snap.id.toString(),
         username: response.snap.username,
         time: response.snap.time,
-        message: response.snap.content,
+        message: response.snap.message,
         isPrivate: response.snap.isPrivate,
         likes: response.snap.likes,
         likedByUser: response.snap.likedByUser,

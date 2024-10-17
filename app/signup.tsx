@@ -6,7 +6,7 @@ import { Link, useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/signup';
-import { auth, GoogleAuthProvider, signInWithCredential } from '@/firebaseConfig';
+import { auth, provider, signInWithCredential } from '../firebaseConfig'; // Importing auth from firebaseConfig
 import { saveToken } from '@/handlers/authTokenHandler';
 import { registerUser } from '@/handlers/signUpHandler';
 
@@ -87,7 +87,7 @@ export default function SignUpPage() {
       const result = await promptAsync();
 
       if (result.type === 'success' && result.authentication?.idToken) {
-        const credential = GoogleAuthProvider.credential(result.authentication.idToken);
+        const credential = provider.credential(result.authentication.idToken);
         const userCredential = await signInWithCredential(auth, credential);
 
         const token = await userCredential.user.getIdToken();

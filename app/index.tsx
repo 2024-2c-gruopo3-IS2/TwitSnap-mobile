@@ -8,7 +8,6 @@ import { getToken } from '../handlers/authTokenHandler';
 import { getProfile } from '@/handlers/profileHandler';
 
 import { PostProvider } from '@/context/postContext'; 
-
 // Importar Toast
 import Toast from 'react-native-toast-message';
 
@@ -45,6 +44,7 @@ export default function Index() {
   }
 
   return (
+
     <PostProvider>
       {isAuthenticated ? <Feed /> : <LoginPage />}
       {/* Añadir Toast al final del árbol de componentes */}
