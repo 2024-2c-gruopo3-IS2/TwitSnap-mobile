@@ -25,6 +25,8 @@ interface SnapItemProps {
   onEdit?: (snap: Snap) => void;    // Función opcional para editar
   onDelete?: (id: string) => void;  // Función opcional para eliminar
   isOwnProfile?: boolean;           // Bandera para indicar si es el perfil propio
+  likeIconColor: string;
+  favouriteIconColor: string;
 }
 
 const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, isOwnProfile }) => {

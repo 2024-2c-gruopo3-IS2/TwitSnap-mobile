@@ -6,7 +6,6 @@ import axios from 'axios';
 
 interface User {
   username: string;
-  // Añade otros campos relevantes según tu modelo de usuario
 }
 
 interface AuthContextType {

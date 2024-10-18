@@ -7,7 +7,11 @@ import { getFollowed } from '@/handlers/followHandler';
 import UserList from '@/components/userList';
 
 interface User {
+    id: string;
     username: string;
+    name: string;
+    surname: string;
+    profile_picture: string;
 }
 
 export default function Following() {
@@ -22,9 +26,12 @@ export default function Following() {
             try {
                 const response = await getFollowed(username as string);
                 if (response.success) {
-                    // Asumimos que la API devuelve un array de nombres de usuario
-                    const followedUsers = (response.followed || []).map((username: string) => ({
-                        username,
+                    const followedUsers = (response.followed || []).map((user: any) => ({
+                        id: user.id,
+                        username: user.username,
+                        name: user.name,
+                        surname: user.surname,
+                        profile_picture: user.profile_picture,
                     }));
                     setFollowing(followedUsers);
                 } else {

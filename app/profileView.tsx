@@ -500,6 +500,9 @@ export default function ProfileView() {
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
         isOwnProfile={isOwnProfile}
+        likeIconColor={item.likedByUser ? 'red' : 'gray'}
+        favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
+
       />
     ),
     [isOwnProfile]

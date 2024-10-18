@@ -1,14 +1,16 @@
-//signup
-import React, { useState } from 'react';
+// app/signup.tsx
+import React, { useState, useEffect } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 import styles from '../styles/signup';
-import { auth, provider, signInWithCredential } from '../firebaseConfig'; // Importing auth from firebaseConfig
 import { saveToken } from '@/handlers/authTokenHandler';
 import { registerUser } from '@/handlers/signUpHandler';
+import { auth } from '../firebaseConfig'; // Importa la instancia de auth
+import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -20,11 +22,18 @@ export default function SignUpPage() {
   const [errors, setErrors] = useState({ email: '', password: '' });
   const router = useRouter();
 
+  // Configura el esquema de redirección
+  const redirectUri = makeRedirectUri({
+    // Reemplaza 'twitsnap' con el esquema que hayas definido en app.json
+    scheme: 'myapp',
+  });
+
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
     iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
     androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
     webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+    //redirectUri: makeRedirectUri({scheme: 'myapp',}),
   });
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,14 +95,19 @@ export default function SignUpPage() {
       setIsLoading(true);
       const result = await promptAsync();
 
-      if (result.type === 'success' && result.authentication?.idToken) {
-        const credential = provider.credential(result.authentication.idToken);
-        const userCredential = await signInWithCredential(auth, credential);
+      if (result.type === 'success') {
+        const { authentication } = result;
+        if (authentication?.idToken && authentication.accessToken) {
+          const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
+          const userCredential = await signInWithCredential(auth, credential);
 
-        const token = await userCredential.user.getIdToken();
-        await saveToken(token);
+          const token = await userCredential.user.getIdToken();
+          await saveToken(token);
 
-        router.replace('./location');
+          router.replace('./location');
+        } else {
+          Alert.alert('Error', 'No se pudo completar el registro con Google.');
+        }
       } else {
         Alert.alert('Error', 'No se pudo completar el registro con Google.');
       }
@@ -104,6 +118,27 @@ export default function SignUpPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      if (authentication?.idToken && authentication.accessToken) {
+        const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
+        signInWithCredential(auth, credential)
+          .then(async (userCredential) => {
+            const token = await userCredential.user.getIdToken();
+            await saveToken(token);
+            router.replace('./location');
+          })
+          .catch((error) => {
+            console.error('Google Sign-Up Error:', error);
+            Alert.alert('Error', 'Error en el registro con Google.');
+          });
+      } else {
+        Alert.alert('Error', 'No se pudo completar el registro con Google.');
+      }
+    }
+  }, [response]);
 
   return (
     <View style={styles.container}>

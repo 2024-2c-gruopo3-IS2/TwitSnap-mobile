@@ -1,21 +1,17 @@
-// FavoriteSnapsView.tsx
-
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
-  Pressable,
   Image,
 } from 'react-native';
 import {
   getFavouriteSnaps,
-  likeSnap,
-  unlikeSnap,
   favouriteSnap,
   unfavouriteSnap,
+  likeSnap,
+  unlikeSnap,
 } from '@/handlers/postHandler';
 import { useRouter } from 'expo-router';
 import styles from '../styles/favouriteSnapsView';
@@ -47,7 +43,6 @@ export default function FavoriteSnapsView() {
         const response = await getFavouriteSnaps();
         if (response.success && response.snaps && response.snaps.length > 0) {
           const favouriteSnaps: Snap[] = response.snaps.map((snap: any) => {
-            console.log("Snap ID:", snap._id); // Log para verificar IDs
             return {
               id: snap._id,
               username: snap.username,
@@ -56,7 +51,7 @@ export default function FavoriteSnapsView() {
               isPrivate: snap.isPrivate === 'true',
               likes: snap.likes || 0,
               likedByUser: snap.likedByUser || false,
-              canViewLikes: true, // Asumiendo que puedes ver likes en tus favoritos
+              canViewLikes: true,
               favouritedByUser: true, // Todos los snaps en esta vista ya están favoritos
             };
           });
@@ -88,7 +83,7 @@ export default function FavoriteSnapsView() {
     setSnaps(prevSnaps =>
       prevSnaps.map(snap => {
         if (snap.id === snapId) {
-          const updatedLikeStatus = !snap.likedByUser;
+          const updatedLikeStatus = !likedByUser;
           const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
           return {
             ...snap,
@@ -185,6 +180,8 @@ export default function FavoriteSnapsView() {
         snap={item}
         onLike={() => handleLike(item.id, item.likedByUser)}
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+        likeIconColor={item.likedByUser ? 'red' : 'gray'}
+        favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
       />
     ),
     [snaps]
@@ -199,7 +196,6 @@ export default function FavoriteSnapsView() {
   }
 
   return (
-
     <View style={styles.container}>
 
       <View style={styles.headerContainer}>
@@ -222,7 +218,6 @@ export default function FavoriteSnapsView() {
           <Text style={styles.noResultsText}>No tienes snaps favoritos</Text>
         </View>
       )}
-
 
       {/* Añadir Toast */}
       <Toast />

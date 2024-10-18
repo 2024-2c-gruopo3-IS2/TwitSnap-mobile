@@ -251,6 +251,8 @@ export default function SearchUsersAndTwitSnaps() {
       onLike={() => handleLike(item.id, item.likedByUser)}
       onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
       isOwnProfile={false}
+      likeIconColor={item.likedByUser ? 'red' : 'gray'}
+      favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
     />
   );
 
@@ -295,6 +297,8 @@ export default function SearchUsersAndTwitSnaps() {
       onLike={() => handleLike(item.id, item.likedByUser)}
       onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
       isOwnProfile={false}
+      likeIconColor={item.likedByUser ? 'red' : 'gray'}
+      favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
     />
   );
 

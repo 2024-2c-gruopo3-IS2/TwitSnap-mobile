@@ -27,7 +27,14 @@ export default function Followers() {
             try {
                 const response = await getFollowers(username as string);
                 if (response.success) {
-                    setFollowers(response.followers || []);
+                    const followersUsers = (response.followers || []).map((user: any) => ({
+                        id: user.id,
+                        username: user.username,
+                        name: user.name,
+                        surname: user.surname,
+                        profile_picture: user.profile_picture,
+                    }));
+                    setFollowers(followersUsers);
                 } else {
                     Alert.alert('Error', response.message || 'No se pudieron obtener los seguidores.');
                 }
@@ -43,6 +50,10 @@ export default function Followers() {
         }
     }, [username]);
 
+    const handleUserPress = (username: string) => {
+        router.push(`/profileView?username=${encodeURIComponent(username)}`);
+    };
+
     return (
         <ScrollView style={styles.container}>
             <View style={styles.headerContainer}>
@@ -53,7 +64,7 @@ export default function Followers() {
             {isLoading ? (
                 <ActivityIndicator size="large" color="#1DA1F2" />
             ) : followers.length > 0 ? (
-                <UserList users={followers} />
+                <UserList users={followers} onUserPress={handleUserPress} />
             ) : (
                 <View style={styles.noResultsContainer}>
                     <Text style={styles.noResultsText}>No tienes seguidores.</Text>

@@ -1,13 +1,9 @@
-// feed.tsx (Modificado)
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
-  Pressable,
   Image,
 } from 'react-native';
 import {
@@ -15,14 +11,14 @@ import {
   getFeedSnaps,
   likeSnap,
   unlikeSnap,
-} from '@/handlers/postHandler'; // Asegúrate de importar likeSnap y unlikeSnap
+} from '@/handlers/postHandler';
 import Footer from '../components/footer';
 import { useRouter } from 'expo-router';
 import styles from '../styles/feed';
-import SnapItem from '../components/snapItem'; // Asegúrate de que la ruta sea correcta
+import SnapItem from '../components/snapItem';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { usePostContext } from '../context/postContext'; 
-import Toast from 'react-native-toast-message'; // Importar Toast
+import Toast from 'react-native-toast-message';
 import { getLikedSnaps, getFavouriteSnaps, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
 
 interface Snap {
@@ -55,7 +51,7 @@ export default function Feed() {
     const fetchSnaps = async () => {
       const response = await getFeedSnaps();
       const favouriteResponse = await getFavouriteSnaps();
-      const likesResponse = await getFavouriteSnaps();
+      const likesResponse = await getLikedSnaps();
       const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
       const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
 
@@ -169,8 +165,17 @@ export default function Feed() {
     }
   }
 
-  const renderItem = ({ item }: { item: Snap }) => (
-    <SnapItem snap={item} onLike={() => handleLike(item.id, item.likedByUser)} onFavourite={() => handleFavourite(item.id, item.favouritedByUser)} />
+  const renderItem = useCallback(
+    ({ item }: { item: Snap }) => (
+      <SnapItem 
+        snap={item} 
+        onLike={() => handleLike(item.id, item.likedByUser)} 
+        onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+        likeIconColor={item.likedByUser ? 'red' : 'gray'}
+        favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
+      />
+    ),
+    []
   );
 
   if (isLoading) {
