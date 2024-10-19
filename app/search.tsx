@@ -391,7 +391,7 @@ export default function SearchUsersAndTwitSnaps() {
                 {isTwitSnapsExpanded && (
                   <FlatList
                     data={filteredTwitSnaps}
-                    keyExtractor={(item) => `twitSnap-${item.id}`}
+                    keyExtractor={(item, index) => `twitSnap-${item.id || index}`} // Asignar un índice si no hay id
                     renderItem={renderTwitSnapItem}
                     keyboardShouldPersistTaps="handled"
                   />
@@ -424,7 +424,7 @@ export default function SearchUsersAndTwitSnaps() {
                     {console.log('Rendering Hashtag List:', filteredHashtags)}
                     <FlatList
                       data={filteredHashtags}
-                      keyExtractor={(item) => `hashtag-${item.id}`}
+                      keyExtractor={(item, index) => `hashtag-${item.id || index}`} // Usar un índice si no hay id
                       renderItem={renderHashtagItem}
                       keyboardShouldPersistTaps="handled"
                     />

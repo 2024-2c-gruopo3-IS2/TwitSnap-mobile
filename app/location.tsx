@@ -3,6 +3,7 @@ import { View, Text, Pressable, Alert, TextInput, FlatList } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import styles from '../styles/location';
+import { saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 
 export default function UbicacionPage() {
   const [countries, setCountries] = useState<{ name: string; code: string }[]>([]); // Lista de países
@@ -36,11 +37,18 @@ export default function UbicacionPage() {
 
   // Filtrar países en base a la consulta de búsqueda
   useEffect(() => {
-    const filteredList = countries.filter((country) =>
-      country.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredCountries(filteredList);
-  }, [searchQuery, countries]);
+      const loadSavedState = async () => {
+          const savedState = await getRegistrationState();
+          if (savedState?.country) {
+              setSelectedCountry(savedState.country);
+        }
+        const filteredList = countries.filter((country) =>
+          country.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        };
+        setFilteredCountries(filteredList);
+        loadSavedState();
+      }, [searchQuery, countries]);
 
   // Manejar selección o deselección del país
   const handleCountrySelect = (country: string) => {
@@ -53,23 +61,32 @@ export default function UbicacionPage() {
     }
   };
 
-  const handleNext = async () => {
-    if (!selectedCountry) {
-      Alert.alert('Error', 'Por favor, selecciona tu país.');
-    } else {
-      try {
-        console.log(selectedCountry);
-        await SecureStore.setItemAsync('country', selectedCountry);
-        router.push({
-          pathname: './interests',
-          params: { email, password, country: selectedCountry },
-        });
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Error', 'No se pudo guardar la información.');
-      }
-    }
-  };
+    const handleNext = async () => {
+        if (!selectedCountry) {
+        Alert.alert('Error', 'Por favor, selecciona tu país.');
+        } else {
+        try {
+          console.log(selectedCountry);
+          await SecureStore.setItemAsync('country', selectedCountry);
+
+          const registrationState = {
+            email,
+            password,
+            country: selectedCountry,
+            currentStep: 'interests',
+          };
+          await saveRegistrationState(registrationState);
+
+          router.push({
+            pathname: './interests',
+            params: { email, password, country: selectedCountry },
+          });
+        } catch (error) {
+          console.error(error);
+          Alert.alert('Error', 'No se pudo guardar la información.');
+        }
+        }
+    };
 
   return (
     <View style={styles.container}>

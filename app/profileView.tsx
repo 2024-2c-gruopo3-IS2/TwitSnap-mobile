@@ -128,14 +128,22 @@ export default function ProfileView() {
           if (followersResponse.success) {
             setFollowersCount((followersResponse.followers ?? []).length);
           } else {
-            console.error('Error al obtener los seguidores:', followersResponse.message);
+            // console.error('Error al obtener los seguidores:', followersResponse.message);
+            // Alert.alert('El perfil es privado.');
             setFollowersCount(0); // Valor por defecto en caso de error
+            // Mostrar un Toast si los seguidores no son accesibles (perfil privado)
+            Toast.show({
+              type: 'info',
+              text1: 'Privacidad',
+              text2: 'Este perfil es privado.',
+              visibilityTime: 4000, // Tiempo de visualización (4 segundos)
+            });
           }
 
           if (followingResponse.success) {
             setFollowingCount((followingResponse.followed ?? []).length);
           } else {
-            console.error('Error al obtener los seguidos:', followingResponse.message);
+            // console.error('Error al obtener los seguidos:', followingResponse.message);
             setFollowingCount(0); // Valor por defecto en caso de error
           }
 

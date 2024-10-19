@@ -9,8 +9,9 @@ import { makeRedirectUri } from 'expo-auth-session';
 import styles from '../styles/signup';
 import { saveToken } from '@/handlers/authTokenHandler';
 import { registerUser } from '@/handlers/signUpHandler';
-import { auth } from '../firebaseConfig'; // Importa la instancia de auth
+import { auth } from '../firebaseConfig';
 import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { saveRegistrationState } from '@/helper/registrationStorage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -71,10 +72,18 @@ export default function SignUpPage() {
     try {
       const response = await registerUser(email, password);
       if (response.success) {
+        const registrationState = {
+          email,
+          password,
+          currentStep: 'location',
+        };
+        await saveRegistrationState(registrationState);
+
         router.push({
           pathname: './location',
           params: { email, password },
         });
+
       } else {
         if (response.message === 'Email already in use') {
           Alert.alert('Error', 'El correo electrónico ya está en uso.');

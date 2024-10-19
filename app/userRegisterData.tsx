@@ -1,11 +1,12 @@
 // UserDataPage.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
 import styles from '../styles/userRegisterData';
+import { clearRegistrationState, saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 
 export default function UserDataPage() {
   const router = useRouter();
@@ -18,6 +19,23 @@ export default function UserDataPage() {
   const [year, setYear] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [description, setDescription] = useState('');
+
+
+  useEffect(() => {
+      const loadSavedState = async () => {
+          const savedState = await getRegistrationState();
+          if (savedState) {
+              setName(savedState.name || '');
+              setSurname(savedState.surname || '');
+              setUsername(savedState.username || '');
+              setDescription(savedState.description || '');
+              setDay(savedState.day || '');
+              setMonth(savedState.month || '');
+              setYear(savedState.year || '');
+          }
+        }
+        loadSavedState();
+    }, []);
 
   // Función para validar que la fecha de nacimiento sea válida
   const isValidDateOfBirth = () => {
@@ -58,6 +76,8 @@ export default function UserDataPage() {
         interests: typeof interests === 'string' ? interests.split(',') : [],
       };
 
+      await saveRegistrationState({ ...profileData, email, password, country, interests, currentStep: 'userRegisterData' });
+
       const profileResponse = await createProfile(profileData);
 
       if (!profileResponse.success) {
@@ -73,6 +93,8 @@ export default function UserDataPage() {
         'PIN de Confirmación',
         `Se ha enviado un PIN de confirmación a tu correo electrónico (${email}).\n\nPIN Simulado: ${generatedPIN}`
       );
+
+      await clearRegistrationState();
 
       // Navegar a la página de confirmación del PIN, pasando el PIN generado
       router.push({

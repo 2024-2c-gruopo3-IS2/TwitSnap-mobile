@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import styles from '../styles/interests';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 
 export default function InteresesPage() {
   // Lista de intereses disponibles
@@ -11,6 +12,16 @@ export default function InteresesPage() {
   // Estado para almacenar los intereses seleccionados
   const [interesesSeleccionados, setInteresesSeleccionados] = useState<string[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+      const loadSavedState = async () => {
+          const savedState = await getRegistrationState();
+            if (savedState?.interests) {
+                setInteresesSeleccionados(savedState.interests.split(','));
+            }
+        };
+    loadSavedState();
+    }, []);
 
   // Manejar selección de intereses
   const handleSeleccionInteres = (interes: string) => {
@@ -22,17 +33,25 @@ export default function InteresesPage() {
     }
   };
 
-  const handleConfirmarIntereses = () => {
-    // Validación: al menos dos intereses seleccionados
-    if (interesesSeleccionados.length < 2) {
-      Alert.alert('Error', 'Por favor, selecciona al menos dos intereses.');
-    } else {
-      router.push({
-        pathname: './userRegisterData',
-        params: { email, password, country, interests: interesesSeleccionados.join(',') }
-      });
-    }
-  };
+    const handleConfirmarIntereses = async () => {
+      if (interesesSeleccionados.length < 2) {
+        Alert.alert('Error', 'Por favor, selecciona al menos dos intereses.');
+      } else {
+        const registrationState = {
+          email,
+          password,
+          country,
+          interests: interesesSeleccionados,
+          currentStep: 'userRegisterData',
+        };
+        await saveRegistrationState(registrationState);
+
+        router.push({
+          pathname: './userRegisterData',
+          params: { email, password, country, interests: interesesSeleccionados.join(',') }
+        });
+      }
+    };
 
   return (
     <View style={styles.container}>
