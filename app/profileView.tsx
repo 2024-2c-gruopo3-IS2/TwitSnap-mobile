@@ -292,6 +292,7 @@ export default function ProfileView() {
   };
 
   const handleDeleteSnap = (snapId: string) => {
+
     Alert.alert(
       'Eliminar Snap',
       '¿Estás seguro de que quieres eliminar este snap?',
@@ -300,9 +301,10 @@ export default function ProfileView() {
         {
           text: 'Eliminar',
           onPress: async () => {
+              console.log("Snap ID DELETE: " + snapId);
             const result = await deleteSnap(snapId as unknown as number);
+
             if (result.success) {
-              // Actualizar la lista de snaps
               setSnaps(snaps.filter(snap => snap.id !== snapId));
               Alert.alert('Éxito', 'Snap eliminado exitosamente');
             } else {

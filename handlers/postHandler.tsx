@@ -194,6 +194,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const delete_snap_url = `${API_URL}/snaps/${snapId}`;
+    console.log('delete_snap_url:', delete_snap_url);
 
     try {
         const response = await fetch(delete_snap_url, {
@@ -202,10 +203,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
                 'token': `${token}`,
             },
         });
-
-        const data = await response.json();
-        console.log('Data:', data);
-
+        console.log('Response DELETE:', response);
         if (response.ok) {
             console.log('Snap eliminado exitosamente');
             return { success: true, message: 'Snap eliminado exitosamente' };
