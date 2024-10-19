@@ -26,14 +26,16 @@ export default function Followers() {
             setIsLoading(true);
             try {
                 const response = await getFollowers(username as string);
+                console.log('Response follow:', response);
                 if (response.success) {
                     const followersUsers = (response.followers || []).map((user: any) => ({
-                        id: user.id,
-                        username: user.username,
-                        name: user.name,
-                        surname: user.surname,
-                        profile_picture: user.profile_picture,
+                        id: '',
+                        username: user,
+                        name: '',
+                        surname: '',
+                        profile_picture: '',
                     }));
+                    console.log('Followers:', followersUsers);
                     setFollowers(followersUsers);
                 } else {
                     Alert.alert('Error', response.message || 'No se pudieron obtener los seguidores.');

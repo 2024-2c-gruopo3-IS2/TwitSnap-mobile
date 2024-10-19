@@ -18,12 +18,12 @@ import { getAllUsers } from '@/handlers/profileHandler';
 import { getAllSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
 import BackButton from '../components/backButton';
 import { useRouter } from 'expo-router';
-
 import debounce from 'lodash.debounce';
 import Footer from '@/components/footer';
 import { usePostContext } from '../context/postContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SnapItem from '../components/snapItem'; // Asegúrate de la ruta correcta
+import { useLocalSearchParams } from 'expo-router';
 
 export default function SearchUsersAndTwitSnaps() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +38,8 @@ export default function SearchUsersAndTwitSnaps() {
   const [isTwitSnapsExpanded, setIsTwitSnapsExpanded] = useState(true);
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
-
+  const { currentUsername } = useLocalSearchParams();
+  console.log('Current Username:', currentUsername);
 
   if (
     Platform.OS === 'android' &&
@@ -54,18 +55,19 @@ export default function SearchUsersAndTwitSnaps() {
           getAllUsers(),
           getAllSnaps(),
         ]);
-
         if (usersResponse.success && usersResponse.users) {
-          setUsers(usersResponse.users);
-          setFilteredUsers(usersResponse.users);
+          const filteredUsers = usersResponse.users.filter((user) => user !== currentUsername);
+          //console.log('Filtered Users:', filteredUsers);
+          setUsers(filteredUsers);
+          setFilteredUsers(filteredUsers);
         } else {
           console.error('Error al obtener los usuarios:', usersResponse.message);
         }
-
         if (twitSnapsResponse.success && twitSnapsResponse.snaps) {
           setTwitSnaps(twitSnapsResponse.snaps);
           setFilteredTwitSnaps(twitSnapsResponse.snaps);
-        } else {
+        }
+        else {
           console.error('Error al obtener los TwitSnaps:', twitSnapsResponse.message);
         }
       } catch (error) {
@@ -84,37 +86,30 @@ export default function SearchUsersAndTwitSnaps() {
     if (trimmedQuery.startsWith('#')) {
       // Búsqueda por hashtag
       const hashtag = trimmedQuery.slice(1); // Eliminar el '#'
-      const filteredH = twitSnaps.filter((twitSnap) =>
+      const filteredT = twitSnaps.filter((twitSnap) =>
         twitSnap.message.toLowerCase().includes(`#${hashtag}`)
       );
-      setFilteredHashtags(filteredH);
+      setFilteredTwitSnaps(filteredT);
 
-      // LOG: Verificar los hashtags filtrados
-      console.log('Filtered Hashtags:', filteredH);
+      // LOG: Verificar los TwitSnaps filtrados por hashtag
+      console.log('Filtered TwitSnaps by Hashtag:', filteredT);
     } else {
-      setFilteredHashtags([]);
-    }
+      // Búsqueda sin hashtag: ignorar los TwitSnaps que contienen hashtags
+      const filteredT = twitSnaps.filter((twitSnap) => {
+        const messageWithoutHashtags = twitSnap.message.replace(/#[\w]+/g, '').toLowerCase();
+        return messageWithoutHashtags.includes(trimmedQuery);
+      });
 
-    if (trimmedQuery === '') {
-      setFilteredUsers(users);
-      setFilteredTwitSnaps(twitSnaps);
-    } else {
       // Filtrar usuarios
       const filteredU = users.filter((username) =>
         username.toLowerCase().includes(trimmedQuery)
       );
+
       setFilteredUsers(filteredU);
-
-      // LOG: Verificar los usuarios filtrados
-      console.log('Filtered Users:', filteredU);
-
-      // Filtrar TwitSnaps
-      const filteredT = twitSnaps.filter((twitSnap) =>
-        twitSnap.message.toLowerCase().includes(trimmedQuery)
-      );
       setFilteredTwitSnaps(filteredT);
 
-      // LOG: Verificar los TwitSnaps filtrados
+      // LOG: Verificar los resultados de búsqueda
+      console.log('Filtered Users:', filteredU);
       console.log('Filtered TwitSnaps:', filteredT);
     }
   };
@@ -367,73 +362,42 @@ export default function SearchUsersAndTwitSnaps() {
             )}
 
             {/* Sección de TwitSnaps */}
-            {filteredTwitSnaps.length > 0 && (
-              <View style={styles.section}>
-                <Pressable
-                  style={styles.sectionHeaderPressable}
-                  onPress={toggleTwitSnapsSection}
-                >
-                  <View style={styles.sectionHeader}>
-                    <Icon
-                      name="photo-camera"
-                      size={20}
-                      color="#1DA1F2"
-                      style={styles.sectionIcon}
-                    />
-                    <Text style={styles.sectionTitle}>TwitSnaps</Text>
-                  </View>
+
+            <View style={styles.section}>
+              {/* El encabezado de TwitSnaps siempre se mostrará */}
+              <Pressable
+                style={styles.sectionHeaderPressable}
+                onPress={toggleTwitSnapsSection}
+              >
+                <View style={styles.sectionHeader}>
                   <Icon
-                    name={isTwitSnapsExpanded ? 'expand-less' : 'expand-more'}
-                    size={24}
+                    name="photo-camera"
+                    size={20}
                     color="#1DA1F2"
+                    style={styles.sectionIcon}
                   />
-                </Pressable>
-                {isTwitSnapsExpanded && (
+                  <Text style={styles.sectionTitle}>TwitSnaps</Text>
+                </View>
+                <Icon
+                  name={isTwitSnapsExpanded ? 'expand-less' : 'expand-more'}
+                  size={24}
+                  color="#1DA1F2"
+                />
+              </Pressable>
+
+              {/* Mostrar la lista de TwitSnaps o el mensaje "No hay snaps disponibles" */}
+              {isTwitSnapsExpanded && (
+                filteredTwitSnaps.length > 0 ? (
                   <FlatList
                     data={filteredTwitSnaps}
                     keyExtractor={(item, index) => `twitSnap-${item.id || index}`} // Asignar un índice si no hay id
                     renderItem={renderTwitSnapItem}
                     keyboardShouldPersistTaps="handled"
                   />
-                )}
-              </View>
-            )}{/* Sección de Hashtags */}
-            <View style={styles.section}>
-              <Pressable
-                style={styles.sectionHeaderPressable}
-                onPress={toggleHashtagsSection}
-              >
-                <View style={styles.sectionHeader}>
-                  <Icon
-                    name="local-offer" // Ícono adecuado para hashtags
-                    size={20}
-                    color="#1DA1F2"
-                    style={styles.sectionIcon}
-                  />
-                  <Text style={styles.sectionTitle}>Hashtags</Text>
-                </View>
-                <Icon
-                  name={isHashtagsExpanded ? 'expand-less' : 'expand-more'}
-                  size={24}
-                  color="#1DA1F2"
-                />
-              </Pressable>
-              {isHashtagsExpanded && (
-                filteredHashtags.length > 0 ? (
-                  <>
-                    {console.log('Rendering Hashtag List:', filteredHashtags)}
-                    <FlatList
-                      data={filteredHashtags}
-                      keyExtractor={(item, index) => `hashtag-${item.id || index}`} // Usar un índice si no hay id
-                      renderItem={renderHashtagItem}
-                      keyboardShouldPersistTaps="handled"
-                    />
-                  </>
                 ) : (
-                  <>
-                    {console.log('No Hashtags Available')}
-                    <Text style={styles.noHashtagsText}>No hay hashtags disponibles.</Text>
-                  </>
+                  <View style={styles.noSnapsContainer}>
+                    <Text style={styles.noSnapsText}>No hay snaps disponibles</Text>
+                  </View>
                 )
               )}
             </View>

@@ -78,6 +78,15 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 20, // Espacio entre secciones
   },
+  noSnapsContainer: {
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noSnapsText: {
+    fontSize: 16,
+    color: '#888',
+  },
   sectionTitle: {
     color: 'white', 
     fontSize: 18,

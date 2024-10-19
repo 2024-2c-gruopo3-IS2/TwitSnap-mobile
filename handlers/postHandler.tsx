@@ -63,6 +63,7 @@ export async function getFeedSnaps(): Promise<{ success: boolean; snaps?: Snap[]
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
+    console.log('Token:', token);
     const followed_snaps_url = `${API_URL}/snaps/feed/`;
 
     try {
@@ -74,7 +75,7 @@ export async function getFeedSnaps(): Promise<{ success: boolean; snaps?: Snap[]
         });
 
         const data = await response.json();
-        console.log('Data:', data);
+        console.log('Data FEED SNAPS:', data);
 
         if (response.ok) {
             console.log('Snaps encontrados:', data.data);
@@ -115,7 +116,7 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
         });
 
         const data = await response.json();
-        console.log('Data:', data);
+        console.log('Data ALL SNAPS:', data);
 
         if (response.ok) {
             console.log('Snaps encontrados:', data.data);

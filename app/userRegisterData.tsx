@@ -83,7 +83,7 @@ export default function UserDataPage() {
       if (!profileResponse.success) {
         Alert.alert('Error', String(profileResponse.message) || 'Error al crear el perfil.');
         setIsSubmitting(false);
-        return;
+        router.push('./login')
       }
 
       // Generar un PIN y almacenarlo temporalmente

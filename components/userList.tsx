@@ -1,9 +1,9 @@
-// UserList.tsx
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import styles from '../styles/userList';
 
 interface SimpleUser {
+    id: string;
     username: string;
 }
 
@@ -17,7 +17,7 @@ const UserList: React.FC<UserListProps> = ({ users, onUserPress }) => {
         <View style={styles.listContainer}>
             {users.map((user) => (
                 <Pressable
-                    key={user.username}
+                    key={user.id} // Usar `id` como clave única
                     style={styles.userItem}
                     onPress={() => onUserPress(user.username)}
                 >

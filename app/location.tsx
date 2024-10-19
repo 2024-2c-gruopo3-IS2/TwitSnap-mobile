@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, Alert, TextInput, FlatList } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import styles from '../styles/location';
 import { saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
+import { removeToken } from '@/handlers/authTokenHandler';
 
 export default function UbicacionPage() {
   const [countries, setCountries] = useState<{ name: string; code: string }[]>([]); // Lista de países
@@ -35,6 +36,13 @@ export default function UbicacionPage() {
     fetchCountries();
   }, []);
 
+   // Memoizar el filtrado de países
+   const filteredList = useMemo(() => {
+      return countries.filter((country) =>
+        country.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }, [countries, searchQuery]);
+
   // Filtrar países en base a la consulta de búsqueda
   useEffect(() => {
       const loadSavedState = async () => {
@@ -42,9 +50,6 @@ export default function UbicacionPage() {
           if (savedState?.country) {
               setSelectedCountry(savedState.country);
         }
-        const filteredList = countries.filter((country) =>
-          country.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
         };
         setFilteredCountries(filteredList);
         loadSavedState();

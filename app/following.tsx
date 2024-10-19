@@ -28,7 +28,7 @@ export default function Following() {
                 if (response.success) {
                     const followedUsers = (response.followed || []).map((user: any) => ({
                         id: user.id,
-                        username: user.username,
+                        username: user,
                         name: user.name,
                         surname: user.surname,
                         profile_picture: user.profile_picture,

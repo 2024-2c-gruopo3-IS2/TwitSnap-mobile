@@ -90,7 +90,6 @@ export default function Index() {
   return (
     <PostProvider>
       {isAuthenticated ? <Feed /> : <LoginPage />}
-      <Toast /> {/* Añadir Toast al final del árbol de componentes */}
     </PostProvider>
   );
 }

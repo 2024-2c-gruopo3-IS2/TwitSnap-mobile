@@ -44,7 +44,7 @@ export default function FavoriteSnapsView() {
         if (response.success && response.snaps && response.snaps.length > 0) {
           const favouriteSnaps: Snap[] = response.snaps.map((snap: any) => {
             return {
-              id: snap._id,
+              id: snap.id,
               username: snap.username,
               time: snap.time,
               message: snap.message,
@@ -140,7 +140,6 @@ export default function FavoriteSnapsView() {
         return snap;
       })
     );
-
     // Llamada a la API
     const apiResponse = favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
 
@@ -204,7 +203,6 @@ export default function FavoriteSnapsView() {
       </View>
 
       {/* Lista de snaps favoritos */}
-
       {snaps.length > 0 ? (
         <FlatList
           data={snaps}
