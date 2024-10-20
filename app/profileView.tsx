@@ -34,7 +34,6 @@ import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import {AuthContext} from '@/context/authContext';
 
-
 interface Snap {
   id: string;
   username: string;
@@ -61,17 +60,14 @@ export default function ProfileView() {
   // Nuevas variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
-
   // Estados para el modal de edición
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedSnap, setSelectedSnap] = useState<Snap | null>(null);
-
   // Estados relacionados con el seguimiento
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
   const { user } = React.useContext(AuthContext);
-  console.log("[PROFILEVIEW] User:", user);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
@@ -419,10 +415,14 @@ export default function ProfileView() {
         <View style={styles.rightSpace} />
       </View>
 
-      <Image
-        source={{ uri: profile.cover_photo || 'https://via.placeholder.com/800x200' }}
-        style={styles.coverPhoto}
-      />
+      {profile.cover_photo ? (
+        <Image
+          source={{ uri: profile.cover_photo }}
+          style={styles.coverPhoto}
+        />
+      ) : (
+        <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
+      )}
 
       <View style={styles.profilePictureContainer}>
         <Image

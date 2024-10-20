@@ -41,7 +41,6 @@ export default function SearchUsersAndTwitSnaps() {
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
   const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext)
-  console.log('[SEARCH] User:', user);
 
   if (
     Platform.OS === 'android' &&
@@ -104,10 +103,9 @@ export default function SearchUsersAndTwitSnaps() {
         return messageWithoutHashtags.includes(trimmedQuery);
       });
 
-      const filteredU = users.filter((username) =>
-        username.toLowerCase().includes(trimmedQuery)
-      );
-
+      const filteredU = users
+        .filter((username) => username.toLowerCase().includes(trimmedQuery))
+         .filter((username) => username !== user?.username);
       setFilteredUsers(filteredU);
       setFilteredTwitSnaps(filteredT);
 

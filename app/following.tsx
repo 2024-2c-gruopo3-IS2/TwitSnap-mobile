@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import BackButton from '@/components/backButton';
 import styles from '../styles/followList';
 import { getFollowed } from '@/handlers/followHandler';
 import UserList from '@/components/userList';
+import {AuthContext} from '@/context/authContext';
 
 interface User {
     id: string;
@@ -19,6 +20,9 @@ export default function Following() {
     const { username } = useLocalSearchParams();
     const [following, setFollowing] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useContext(AuthContext);
+
+    const displayUsername = user?.username === username ? user.username : username;
 
     useEffect(() => {
         const fetchFollowing = async () => {
@@ -57,9 +61,10 @@ export default function Following() {
         <ScrollView style={styles.container}>
             <View style={styles.headerContainer}>
                 <BackButton />
-                <Text style={styles.headerTitle}>Siguiendo</Text>
+                <Text style={styles.headerTitle}>
+                    @{displayUsername} <Text style={styles.subtitle}>Siguiendo a</Text>
+                </Text>
             </View>
-
             {isLoading ? (
                 <ActivityIndicator size="large" color="#1DA1F2" />
             ) : following.length > 0 ? (

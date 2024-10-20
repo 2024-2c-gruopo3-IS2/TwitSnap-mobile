@@ -1,12 +1,12 @@
 // followers.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import BackButton from '@/components/backButton';
 import styles from '../styles/followList';
 import { getFollowers } from '@/handlers/followHandler';
 import UserList from '@/components/userList'; // Asegúrate de que la ruta sea correcta
-
+import {AuthContext} from '@/context/authContext';
 interface User {
     id: string;
     username: string;
@@ -20,6 +20,9 @@ export default function Followers() {
     const { username } = useLocalSearchParams();
     const [followers, setFollowers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useContext(AuthContext);
+
+    const displayUsername = user?.username === username ? user.username : username;
 
     useEffect(() => {
         const fetchFollowers = async () => {
@@ -60,7 +63,9 @@ export default function Followers() {
         <ScrollView style={styles.container}>
             <View style={styles.headerContainer}>
                 <BackButton />
-                <Text style={styles.headerTitle}>Seguidores</Text>
+                <Text style={styles.headerTitle}>
+                   <Text style={styles.subtitle}>Seguidores de</Text> @{displayUsername}
+                </Text>
             </View>
 
             {isLoading ? (

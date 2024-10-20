@@ -12,7 +12,7 @@ export default StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 10,
         height: 60,
-        marginBottom: 5,
+        marginBottom: 10,
         marginTop: 30,
     },
     title: {
@@ -29,13 +29,14 @@ export default StyleSheet.create({
         fontSize: 16,
         color: '#fff',
         alignSelf: 'flex-start',
+        fontWeight: 'bold',
         marginBottom: 5,
     },
     input: {
         backgroundColor: '#333',
         paddingHorizontal: 15,
         paddingVertical: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         marginBottom: 15,
         fontSize: 16,
         color: '#fff',
@@ -48,7 +49,7 @@ export default StyleSheet.create({
     submitButton: {
         backgroundColor: '#1DA1F2',
         padding: 15,
-        borderRadius: 5,
+        borderRadius: 10,
         alignItems: 'center',
         marginTop: 10,
         width: '100%',

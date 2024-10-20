@@ -15,10 +15,17 @@ export default StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginLeft: 145,
-        color: '#FFFFFF', // Texto blanco
+        marginLeft: 90,
+        color: '#B0E0E6', // Texto blanco
         marginTop: 90,
     },
+    subtitle: {
+                fontSize: 20,
+                fontWeight: 'bold',
+                marginLeft: 145,
+                color: '#FFFFFF', // Texto blanco
+                marginTop: 90,
+        },
     userContainer: {
         flexDirection: 'row',
         alignItems: 'center',

@@ -5,12 +5,12 @@ export default StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#000',
-        paddingTop: 0,
+        paddingTop: -10,
         justifyContent: 'space-between',
     },
     headerContainer: {
         position: 'absolute',
-        top: 20,
+        top: 40,
         left: 0,
         right: 0,
         flexDirection: 'row',
@@ -32,7 +32,7 @@ export default StyleSheet.create({
         color: '#fff',
         textAlign: 'center',
         flex: 1,
-        marginTop: 20,
+        marginTop: 10,
     },
     rightSpace: {
         width: 40,
@@ -44,7 +44,7 @@ export default StyleSheet.create({
     },
     profilePictureContainer: {
         position: 'absolute',
-        top: 150,
+        top: 100,
         left: '50%',
         transform: [{ translateX: -50 }],
         borderWidth: 3,
@@ -59,7 +59,7 @@ export default StyleSheet.create({
         borderRadius: 50,
     },
     name: {
-        marginTop: 60,
+        marginTop: 20,
         fontSize: 24,
         fontWeight: 'bold',
         color: '#fff',
@@ -189,7 +189,7 @@ export default StyleSheet.create({
         padding: 16,
         flex: 1,
         backgroundColor: '#000',
-        paddingTop: 20,
+        paddingTop: 10,
     },
     actionButtons: {
         flexDirection: 'column', // Organiza botones en una columna

@@ -49,7 +49,6 @@ export default function Feed() {
   const { addNewPost } = usePostContext();
   const router = useRouter();
     const { user } = useContext(AuthContext);
-    console.log("[FEED] Username:", user);
 
   useEffect(() => {
     const fetchSnaps = async () => {

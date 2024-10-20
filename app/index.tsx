@@ -23,7 +23,6 @@ const MainApp = () => {
     const checkRegistration = async () => {
       try {
         const registrationState = await getRegistrationState();
-        console.log('Estado de registro:', registrationState);
 
         if (registrationState && registrationState.currentStep) {
           const { currentStep, email, password, country, interests } = registrationState;
