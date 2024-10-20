@@ -62,7 +62,6 @@ export async function createProfile(profileData: any): Promise<{ success: boolea
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Perfil creado:', data);
@@ -94,7 +93,6 @@ export async function getProfile(): Promise<{ success: boolean; profile?: any; m
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Perfil encontrado:', data);
@@ -130,7 +128,6 @@ export async function updateProfile(profileData: any): Promise<{ success: boolea
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Perfil actualizado:', data);
@@ -163,7 +160,6 @@ export async function getUserProfile(username: string): Promise<{ success: boole
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Usuario encontrado:', data);
@@ -201,7 +197,6 @@ export async function getAllUsers(): Promise<{ success: boolean; users?: any[]; 
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Usuarios encontrados:', data);

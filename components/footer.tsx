@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Pressable } from 'react-native';
 import { Link, usePathname } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
 import CreatePostModal from './createPostModal';
 import styles from '../styles/footer';
 import { usePostContext } from '../context/postContext'; // Importa el contexto
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Footer: React.FC = () => {
   const pathname = usePathname();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { addNewPost } = usePostContext(); // Obtén la función addNewPost del contexto
+  const [currentUsername, setCurrentUsername] = useState('');
 
   return (
     <View style={styles.footer}>

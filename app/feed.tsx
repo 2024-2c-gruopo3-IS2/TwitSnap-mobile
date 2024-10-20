@@ -20,6 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { usePostContext } from '../context/postContext'; 
 import Toast from 'react-native-toast-message';
 import { getLikedSnaps, getFavouriteSnaps, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Snap {
   id: string; 
@@ -74,6 +75,7 @@ export default function Feed() {
 
     fetchSnaps();
   }, []);
+
 
   // Función para manejar el Like
   const handleLike = async (snapId: string, likedByUser: boolean) => {

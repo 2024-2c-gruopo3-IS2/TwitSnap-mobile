@@ -7,6 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
 import styles from '../styles/userRegisterData';
 import { clearRegistrationState, saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function UserDataPage() {
   const router = useRouter();
@@ -106,6 +107,7 @@ export default function UserDataPage() {
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'No se pudo completar el registro.');
+      await AsyncStorage.removeItem('currentUsername');
     } finally {
       setIsSubmitting(false);
     }

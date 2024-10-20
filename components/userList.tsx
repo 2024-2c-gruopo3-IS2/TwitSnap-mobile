@@ -17,7 +17,7 @@ const UserList: React.FC<UserListProps> = ({ users, onUserPress }) => {
         <View style={styles.listContainer}>
             {users.map((user) => (
                 <Pressable
-                    key={user.id} // Usar `id` como clave única
+                    key={user.username} // Usar `id` como clave única
                     style={styles.userItem}
                     onPress={() => onUserPress(user.username)}
                 >

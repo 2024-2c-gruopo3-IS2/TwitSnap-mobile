@@ -33,7 +33,6 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 
     const data = await response.json();
 
-    console.log('Data:', data);
 
     if (response.ok && data.token) {
       await saveToken(data.token);

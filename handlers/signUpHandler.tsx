@@ -21,7 +21,6 @@ export async function registerUser(email: string, password: string): Promise<Reg
 
     const data = await response.json();
 
-    console.log('Data:', data);
 
     if (response.ok) {
       if (data.token) {

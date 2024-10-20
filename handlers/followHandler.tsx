@@ -23,7 +23,6 @@ export async function followUser(username: string): Promise<{ success: boolean; 
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Seguiste al usuario:', data);

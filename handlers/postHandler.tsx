@@ -15,7 +15,7 @@ interface Snap {
 
 /**
  * Obtiene todos los TwitSnaps de un usuario específico.
- * 
+ *
  */
 export async function getSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
@@ -36,13 +36,10 @@ export async function getSnaps(): Promise<{ success: boolean; snaps?: Snap[]; me
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
-            console.log('Snaps encontrados:', data.data);
             return { success: true, snaps: data.data };
         } else {
-            console.log('Error al obtener snaps:', data);
             return { success: false, message: data.detail || 'Error al obtener snaps.' };
         }
     } catch (error) {
@@ -75,13 +72,10 @@ export async function getFeedSnaps(): Promise<{ success: boolean; snaps?: Snap[]
         });
 
         const data = await response.json();
-        console.log('Data FEED SNAPS:', data);
 
         if (response.ok) {
-            console.log('Snaps encontrados:', data.data);
             return { success: true, snaps: data.data };
         } else {
-            console.log('Error al obtener snaps:', data);
             return { success: false, message: data.detail || 'Error al obtener snaps.' };
         }
     } catch (error) {
@@ -116,13 +110,10 @@ export async function getAllSnaps(): Promise<{ success: boolean; snaps?: Snap[];
         });
 
         const data = await response.json();
-        console.log('Data ALL SNAPS:', data);
 
         if (response.ok) {
-            console.log('Snaps encontrados:', data.data);
             return { success: true, snaps: data.data };
         } else {
-            console.log('Error al obtener snaps:', data);
             return { success: false, message: data.detail || 'Error al obtener snaps.' };
         }
     } catch (error) {
@@ -165,7 +156,6 @@ export async function createSnap(message: string, isPrivate: boolean): Promise<{
         });
 
         const data = await response.json();
-        console.log('Data Crear Snap:', data);
 
         if (response.ok) {
             console.log('Snap creado:', data.data);
@@ -248,7 +238,6 @@ export async function updateSnap(snapId: string, message: string, isPrivate: boo
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
             console.log('Snap actualizado:', data.data);
@@ -264,9 +253,9 @@ export async function updateSnap(snapId: string, message: string, isPrivate: boo
 }
 
 
-/** 
+/**
  * Obtiene los snaps por username
- * 
+ *
  */
 export async function getSnapsByUsername(username: string): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
@@ -289,13 +278,10 @@ export async function getSnapsByUsername(username: string): Promise<{ success: b
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
-            console.log('Snaps encontrados:', data.data);
             return { success: true, snaps: data.data };
         } else {
-            console.log('Error al obtener snaps:', data);
             return { success: false, message: data.detail || 'Error al obtener snaps.' };
         }
     } catch (error) {
@@ -333,13 +319,10 @@ export async function searchSnapsByHashtag(hashtag: string): Promise<{ success: 
         });
 
         const data = await response.json();
-        console.log('Data:', data);
 
         if (response.ok) {
-            console.log(`Snaps encontrados con el hashtag #${hashtag}:`, data.data);
             return { success: true, snaps: data.data };
         } else {
-            console.log(`Error al buscar snaps con el hashtag #${hashtag}:`, data);
             return { success: false, message: data.detail || `Error al buscar snaps con el hashtag #${hashtag}.` };
         }
     } catch (error) {
@@ -354,14 +337,14 @@ export async function searchSnapsByHashtag(hashtag: string): Promise<{ success: 
  */
 export async function getLikedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const favourite_snaps_url = `${API_URL}/snaps/liked/`;
-    
+
     try {
         const response = await fetch(favourite_snaps_url, {
             method: 'GET',
@@ -370,10 +353,9 @@ export async function getLikedSnaps(): Promise<{ success: boolean; snaps?: Snap[
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snaps favoritos obtenidos:', data.data);
             return { success: true, snaps: data.data };
@@ -394,14 +376,14 @@ export async function getLikedSnaps(): Promise<{ success: boolean; snaps?: Snap[
  */
 export async function likeSnap(snapId: string): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const like_url = `${API_URL}/snaps/like?snap_id=${encodeURIComponent(snapId)}`;
-    
+
     try {
         const response = await fetch(like_url, {
             method: 'POST',
@@ -410,10 +392,9 @@ export async function likeSnap(snapId: string): Promise<{ success: boolean; mess
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snap dado like exitosamente');
             return { success: true, message: 'Snap dado like exitosamente' };
@@ -433,14 +414,14 @@ export async function likeSnap(snapId: string): Promise<{ success: boolean; mess
  */
 export async function unlikeSnap(snapId: string): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const unlike_url = `${API_URL}/snaps/unlike?snap_id=${encodeURIComponent(snapId)}`;
-    
+
     try {
         const response = await fetch(unlike_url, {
             method: 'POST',
@@ -449,10 +430,9 @@ export async function unlikeSnap(snapId: string): Promise<{ success: boolean; me
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snap quitado de like exitosamente');
             return { success: true, message: 'Snap quitado de like exitosamente' };
@@ -472,14 +452,14 @@ export async function unlikeSnap(snapId: string): Promise<{ success: boolean; me
  */
 export async function favouriteSnap(snapId: string): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const favourite_url = `${API_URL}/snaps/favourite?snap_id=${encodeURIComponent(snapId)}`;
-    
+
     try {
         const response = await fetch(favourite_url, {
             method: 'POST',
@@ -488,10 +468,9 @@ export async function favouriteSnap(snapId: string): Promise<{ success: boolean;
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snap marcado como favorito exitosamente');
             return { success: true, message: 'Snap marcado como favorito exitosamente' };
@@ -511,14 +490,14 @@ export async function favouriteSnap(snapId: string): Promise<{ success: boolean;
  */
 export async function unfavouriteSnap(snapId: string): Promise<{ success: boolean; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const unfavourite_url = `${API_URL}/snaps/unfavourite?snap_id=${encodeURIComponent(snapId)}`;
-    
+
     try {
         const response = await fetch(unfavourite_url, {
             method: 'POST',
@@ -527,10 +506,9 @@ export async function unfavouriteSnap(snapId: string): Promise<{ success: boolea
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snap quitado de favoritos exitosamente');
             return { success: true, message: 'Snap quitado de favoritos exitosamente' };
@@ -549,14 +527,14 @@ export async function unfavouriteSnap(snapId: string): Promise<{ success: boolea
  */
 export async function getFavouriteSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const favourite_snaps_url = `${API_URL}/snaps/favourites/`;
-    
+
     try {
         const response = await fetch(favourite_snaps_url, {
             method: 'GET',
@@ -565,10 +543,9 @@ export async function getFavouriteSnaps(): Promise<{ success: boolean; snaps?: S
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snaps favoritos obtenidos:', data.data);
             return { success: true, snaps: data.data };
@@ -588,14 +565,14 @@ export async function getFavouriteSnaps(): Promise<{ success: boolean; snaps?: S
  */
 export async function getSnapById(snapId: string): Promise<{ success: boolean; snap?: Snap; message?: string }> {
     const API_URL = 'https://post-microservice.onrender.com';
-    
+
     const token = await getToken();
     if (!token) {
         console.error('Token de autenticación no encontrado.');
         return { success: false, message: 'Token de autenticación no encontrado.' };
     }
     const get_snap_url = `${API_URL}/snaps/${encodeURIComponent(snapId)}`;
-    
+
     try {
         const response = await fetch(get_snap_url, {
             method: 'GET',
@@ -604,10 +581,9 @@ export async function getSnapById(snapId: string): Promise<{ success: boolean; s
                 'Content-Type': 'application/json',
             },
         });
-    
+
         const data = await response.json();
-        console.log('Data:', data);
-    
+
         if (response.ok) {
             console.log('Snap obtenido:', data.data);
             return { success: true, snap: data.data };

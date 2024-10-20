@@ -1,7 +1,7 @@
 // search.tsx
 
 import styles from '../styles/search';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
   TextInput,
@@ -22,8 +22,10 @@ import debounce from 'lodash.debounce';
 import Footer from '@/components/footer';
 import { usePostContext } from '../context/postContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import SnapItem from '../components/snapItem'; // Asegúrate de la ruta correcta
+import SnapItem from '../components/snapItem';
 import { useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '@/context/authContext';
 
 export default function SearchUsersAndTwitSnaps() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,8 +40,8 @@ export default function SearchUsersAndTwitSnaps() {
   const [isTwitSnapsExpanded, setIsTwitSnapsExpanded] = useState(true);
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
-  const { currentUsername } = useLocalSearchParams();
-  console.log('Current Username:', currentUsername);
+    const { user } = useContext(AuthContext);
+    console.log('User:', user);
 
   if (
     Platform.OS === 'android' &&
@@ -56,10 +58,8 @@ export default function SearchUsersAndTwitSnaps() {
           getAllSnaps(),
         ]);
         if (usersResponse.success && usersResponse.users) {
-          const filteredUsers = usersResponse.users.filter((user) => user !== currentUsername);
-          //console.log('Filtered Users:', filteredUsers);
-          setUsers(filteredUsers);
-          setFilteredUsers(filteredUsers);
+          setUsers(usersResponse.users);
+          setFilteredUsers(usersResponse.users);
         } else {
           console.error('Error al obtener los usuarios:', usersResponse.message);
         }
@@ -100,7 +100,6 @@ export default function SearchUsersAndTwitSnaps() {
         return messageWithoutHashtags.includes(trimmedQuery);
       });
 
-      // Filtrar usuarios
       const filteredU = users.filter((username) =>
         username.toLowerCase().includes(trimmedQuery)
       );
@@ -108,9 +107,6 @@ export default function SearchUsersAndTwitSnaps() {
       setFilteredUsers(filteredU);
       setFilteredTwitSnaps(filteredT);
 
-      // LOG: Verificar los resultados de búsqueda
-      console.log('Filtered Users:', filteredU);
-      console.log('Filtered TwitSnaps:', filteredT);
     }
   };
 
