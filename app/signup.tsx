@@ -1,5 +1,5 @@
 // app/signup.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
@@ -12,6 +12,8 @@ import { registerUser } from '@/handlers/signUpHandler';
 import { auth } from '../firebaseConfig';
 import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { saveRegistrationState } from '@/helper/registrationStorage';
+import { AuthContext } from '@/context/authContext';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,6 +24,8 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
   const router = useRouter();
+  const { signup, registrationState, updateRegistrationState } = useContext(AuthContext);
+
 
   // Configura el esquema de redirección
   const redirectUri = makeRedirectUri({
@@ -66,36 +70,20 @@ export default function SignUpPage() {
       setErrors(newErrors);
       return;
     }
-
     setIsLoading(true);
-
     try {
-      const response = await registerUser(email, password);
-      if (response.success) {
-        const registrationState = {
-          email,
-          password,
-          currentStep: 'location',
-        };
-        await saveRegistrationState(registrationState);
-
-        router.push({
-          pathname: './location',
-          params: { email, password },
-        });
-
+      await signup(email, password);
+      // Navegar al siguiente paso después del registro inicial
+      router.push({
+        pathname: './location',
+        params: { email, password },
+      });
+    } catch (error: any) {
+      if (error.message === 'El correo electrónico ya está en uso.') {
+        Alert.alert('Error', 'El correo electrónico ya está en uso.');
       } else {
-        if (response.message === 'Email already in use') {
-          Alert.alert('Error', 'El correo electrónico ya está en uso.');
-        } else {
-          Alert.alert('Error', 'Error al registrar el usuario.');
-        }
+        Alert.alert('Error', error.message || 'Error al registrar el usuario.');
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Error al conectar con el servidor.');
-    } finally {
-      setIsLoading(false);
     }
   };
 

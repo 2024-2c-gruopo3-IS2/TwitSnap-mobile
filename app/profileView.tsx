@@ -55,7 +55,7 @@ export default function ProfileView() {
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const isOwnProfile = !username;
   const [isFavouriteView, setIsFavouriteView] = useState(false);
-
+  const { user, logout } = useContext(AuthContext);
 
   // Nuevas variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
@@ -67,7 +67,6 @@ export default function ProfileView() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
-  const { user } = React.useContext(AuthContext);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
@@ -82,6 +81,10 @@ export default function ProfileView() {
   };
 
   useEffect(() => {
+      fetchProfile();
+      },[username,isOwnProfile]);
+
+
     const fetchProfile = async () => {
       setIsLoading(true);
       try {
@@ -109,6 +112,8 @@ export default function ProfileView() {
           // 3. Obtener seguidores y seguidos del perfil actual
           const followersPromise = getFollowers(profileResponse.profile.username);
           const followingPromise = getFollowed(profileResponse.profile.username);
+          console.log("followersPromise: ", followersPromise);
+            console.log("followingPromise: ", followingPromise);
 
           // 4. Ejecutar todas las promesas en paralelo
           const [isFollowingResult, followersResponse, followingResponse, snapResponse, likesResponse, favouriteResponse] = await Promise.all([
@@ -119,6 +124,9 @@ export default function ProfileView() {
             getLikedSnaps(),
             getFavouriteSnaps(),
           ]);
+
+            console.log("followers: ", followersResponse);
+            console.log("following: ", followingResponse);
 
           // 5. Actualizar estado de seguimiento
           if (!isOwnProfile) {
@@ -131,7 +139,7 @@ export default function ProfileView() {
           } else {
             // console.error('Error al obtener los seguidores:', followersResponse.message);
             // Alert.alert('El perfil es privado.');
-            setFollowersCount(0); // Valor por defecto en caso de error
+            setFollowersCount('X'); // Valor por defecto en caso de error
             // Mostrar un Toast si los seguidores no son accesibles (perfil privado)
             Toast.show({
               type: 'info',
@@ -145,7 +153,7 @@ export default function ProfileView() {
             setFollowingCount((followingResponse.followed ?? []).length);
           } else {
             // console.error('Error al obtener los seguidos:', followingResponse.message);
-            setFollowingCount(0); // Valor por defecto en caso de error
+            setFollowingCount('X'); // Valor por defecto en caso de error
           }
 
           // 7. Procesar snaps si existen
@@ -178,9 +186,6 @@ export default function ProfileView() {
       }
     };
 
-    fetchProfile();
-  }, [username, isOwnProfile]);
-
   // Función para recargar el perfil
   const reloadProfile = async () => {
     try {
@@ -205,8 +210,9 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(true);
         setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 0) + 1 }));
-        setFollowersCount(prev => prev + 1); // Actualizar contador local
+        //setFollowersCount(prev => prev + 1); // Actualizar contador local
         Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
+        await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
       } else {
         Alert.alert('Error', response.message || 'No se pudo seguir al usuario.');
       }
@@ -228,8 +234,10 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(false);
         setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 1) - 1 }));
-        setFollowersCount(prev => (prev > 0 ? prev - 1 : 0)); // Actualizar contador local con mínimo 0
+        //setFollowersCount(prev => (prev > 0 ? prev - 1 : 0)); // Actualizar contador local con mínimo 0
         Toast.show({ type: 'success', text1: 'Has dejado de seguir al usuario.' });
+        await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
+
       } else {
         Alert.alert('Error', response.message || 'No se pudo dejar de seguir al usuario.');
       }
@@ -280,8 +288,8 @@ export default function ProfileView() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await removeToken();
-              router.replace('/login');
+              await logout(); // Llamar al método logout del contexto
+              router.replace('/login'); // Redirigir a la página de login
             } catch (error) {
               Alert.alert('Error', 'No se pudo cerrar sesión. Inténtalo nuevamente.');
               console.error('Error al cerrar sesión:', error);

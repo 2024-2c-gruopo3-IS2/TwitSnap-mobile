@@ -41,7 +41,7 @@ export default function SearchUsersAndTwitSnaps() {
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
   const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext)
-
+    console.log("[SEARCH]User", user);
   if (
     Platform.OS === 'android' &&
     UIManager.setLayoutAnimationEnabledExperimental

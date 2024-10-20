@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
@@ -10,10 +10,12 @@ import { loginUser } from '@/handlers/loginHandler';
 import { auth, provider } from '@/firebaseConfig'; // Importa tu configuración de Firebase
 import { signInWithCredential } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
+import {AuthContext} from '@/context/authContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
+    const { login, isAuthenticated } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -31,14 +33,17 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const token = await getToken();
-      if (token) {
+      //const token = await getToken();
+      //if (token) {
+      //  router.replace('./feed');
+      //}
+      if (isAuthenticated) {
         router.replace('./feed');
       }
     };
 
     checkSession();
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -48,7 +53,7 @@ export default function LoginPage() {
         signInWithCredential(auth, credential)
           .then(async (userCredential) => {
             const token = await userCredential.user.getIdToken();
-            await saveToken(token);
+            //await saveToken(token);
             router.replace('./feed');
           })
           .catch((error) => {
@@ -73,22 +78,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await loginUser(email, password);
-      if (response.success) {
-        if (response.token) {
-          await saveToken(response.token);
-          router.replace('./feed');
-        } else {
-          setError('No se recibió un token de autenticación.');
-        }
-      } else {
-        setError(response.message || 'Error al iniciar sesión.');
-      }
-    } catch (error) {
-      setError('Error al conectar con el servidor.');
-    } finally {
-      setIsLoading(false);
-    }
+        await login(email,password)
+
+        } catch (error: any) {
+            setError(error.message || 'Error al iniciar sesión.');
+          }
+
   };
 
   return (
