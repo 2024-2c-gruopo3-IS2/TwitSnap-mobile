@@ -4,7 +4,6 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getToken, removeToken, setToken } from '../handlers/authTokenHandler';
 import { getProfile, logoutProfile } from '../handlers/profileHandler';
 
-// La interfaz UserProfile está correcta
 interface UserProfile {
   id: string;
   email: string;
@@ -25,7 +24,6 @@ interface AuthContextProps {
   logout: () => void;
 }
 
-// Creamos el contexto con valores iniciales por defecto
 export const AuthContext = createContext<AuthContextProps>({
   user: null,
   isAuthenticated: false,
@@ -34,50 +32,55 @@ export const AuthContext = createContext<AuthContextProps>({
   logout: () => {},
 });
 
-// El AuthProvider envuelve toda la aplicación para que cualquier componente pueda usar el contexto
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const login = (token: string, profile: UserProfile) => {
-    setToken(token); // Guarda el token, asegurando persistencia de la sesión
-    setUser(profile); // Actualiza el perfil del usuario
-    setIsAuthenticated(true); // Marca al usuario como autenticado
+    setToken(token);
+    setUser(profile);
+    setIsAuthenticated(true);
+    console.log("[AuthProvider] User logged in:", profile.username);
   };
 
   const logout = async () => {
-    await logoutProfile(); // Implementa la lógica de cierre de sesión
-    removeToken(); // Elimina el token
-    setUser(null); // Borra el perfil del usuario
-    setIsAuthenticated(false); // Marca al usuario como no autenticado
+    await logoutProfile();
+    removeToken();
+    setUser(null);
+    setIsAuthenticated(false);
+    console.log("[AuthProvider] User logged out");
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = await getToken(); // Intenta obtener el token de sesión
+        const token = await getToken();
         if (token) {
-          const profileResponse = await getProfile(); // Obtiene el perfil del usuario
-          if (profileResponse?.success && profileResponse.user) {
-            setUser(profileResponse.user); // Guarda el perfil del usuario en el estado
-            console.log('Perfil del usuario SETEADO:', profileResponse.user);
-            setIsAuthenticated(true); // Marca al usuario como autenticado
+          const profileResponse = await getProfile();
+          console.log("Success:", profileResponse.success);
+          console.log("response: ", profileResponse);
+          console.log("User:", profileResponse.profile);
+          if (profileResponse?.success && profileResponse.profile) {
+            setUser(profileResponse.profile);
+            console.log('Perfil del usuario SETEADO:', profileResponse.profile);
+            setIsAuthenticated(true);
           } else {
-            setIsAuthenticated(false); // No está autenticado si no hay perfil válido
+            setIsAuthenticated(false);
           }
         } else {
-          setIsAuthenticated(false); // No está autenticado si no hay token
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error al inicializar la autenticación:', error);
-        setIsAuthenticated(false); // En caso de error, no está autenticado
+        setIsAuthenticated(false);
       } finally {
-        setIsLoading(false); // Termina la carga inicial
+        setIsLoading(false);
+        console.log("[AuthProvider] isLoading set to false");
       }
     };
 
-    initializeAuth(); // Ejecuta la inicialización de la autenticación cuando el componente monta
+    initializeAuth();
   }, []);
 
   return (

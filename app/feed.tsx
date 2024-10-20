@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { usePostContext } from '../context/postContext';
 import Toast from 'react-native-toast-message';
 import { getLikedSnaps, getFavouriteSnaps, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {AuthContext} from '@/context/authContext';
 
 interface Snap {
   id: string; 
@@ -47,6 +48,8 @@ export default function Feed() {
   const [isLoading, setIsLoading] = useState(true);
   const { addNewPost } = usePostContext();
   const router = useRouter();
+    const { user } = useContext(AuthContext);
+    console.log("[FEED] Username:", user);
 
   useEffect(() => {
     const fetchSnaps = async () => {

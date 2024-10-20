@@ -1,20 +1,23 @@
-// index.tsx
+// app/index.tsx
 
 import React, { useEffect, useContext, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
 import LoginPage from './login';
 import Feed from './feed';
 import { getRegistrationState, clearRegistrationState } from '@/helper/registrationStorage';
-import { PostProvider } from '@/context/postContext';
 import { useRouter } from 'expo-router';
-import Toast from 'react-native-toast-message';
-import { AuthProvider, AuthContext } from '@/context/authContext';
+import { AuthContext } from '@/context/authContext';
 
 const MainApp = () => {
+  console.log("[MainApp] Render started"); // Log inicial
   const { isAuthenticated, isLoading, user } = useContext(AuthContext);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
   const router = useRouter();
-  console.log("Username:", user);
+
+  console.log("[INDEX] Username:", user);
+  console.log("[MainApp] isAuthenticated:", isAuthenticated);
+  console.log("[MainApp] isLoading:", isLoading);
+  console.log("[MainApp] isCheckingRegistration:", isCheckingRegistration);
 
   useEffect(() => {
     const checkRegistration = async () => {
@@ -56,6 +59,7 @@ const MainApp = () => {
         console.error('Error al verificar el registro:', error);
       } finally {
         setIsCheckingRegistration(false);
+        console.log("[MainApp] setIsCheckingRegistration(false)");
       }
     };
 
@@ -65,6 +69,7 @@ const MainApp = () => {
   }, [isLoading]);
 
   if (isLoading || isCheckingRegistration) {
+    console.log("[MainApp] Showing ActivityIndicator");
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
         <ActivityIndicator size="large" color="#1DA1F2" />
@@ -72,17 +77,18 @@ const MainApp = () => {
     );
   }
 
+  console.log("[MainApp] Rendering Feed or LoginPage");
+
   return (
-    <PostProvider>
+    <>
       {isAuthenticated ? <Feed /> : <LoginPage />}
-    </PostProvider>
+    </>
   );
 };
 
 export default function Index() {
+  console.log("[Index] Rendering MainApp");
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <MainApp />
   );
 }

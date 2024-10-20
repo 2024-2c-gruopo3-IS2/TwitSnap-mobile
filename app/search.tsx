@@ -40,8 +40,8 @@ export default function SearchUsersAndTwitSnaps() {
   const [isTwitSnapsExpanded, setIsTwitSnapsExpanded] = useState(true);
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
-    const { user } = useContext(AuthContext);
-    console.log('User:', user);
+  const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext)
+  console.log('[SEARCH] User:', user);
 
   if (
     Platform.OS === 'android' &&
@@ -58,8 +58,12 @@ export default function SearchUsersAndTwitSnaps() {
           getAllSnaps(),
         ]);
         if (usersResponse.success && usersResponse.users) {
-          setUsers(usersResponse.users);
-          setFilteredUsers(usersResponse.users);
+          // Excluir al usuario autenticado de los resultados
+          const usersExcludingSelf = usersResponse.users.filter(
+            (username: string) => username !== user?.username
+          );
+          setUsers(usersExcludingSelf);
+          setFilteredUsers(usersExcludingSelf);
         } else {
           console.error('Error al obtener los usuarios:', usersResponse.message);
         }
@@ -78,7 +82,7 @@ export default function SearchUsersAndTwitSnaps() {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
   const performSearch = (query: string) => {
     const trimmedQuery = query.trim().toLowerCase();

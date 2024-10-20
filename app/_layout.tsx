@@ -1,13 +1,19 @@
 // app/_layout.tsx
-import React from 'react';
-import { Slot } from 'expo-router';
-import { PostProvider } from '@/context/postContext'; // Importa tu PostProvider
 
-export default function Layout() {
+import React from 'react';
+import { AuthProvider } from '@/context/authContext';
+import { PostProvider } from '@/context/postContext';
+import { Slot } from 'expo-router';
+import { View, ActivityIndicator } from 'react-native';
+
+const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-      <PostProvider>
-        {/* Slot renderiza la página actual bajo este layout */}
-        <Slot />
-      </PostProvider>
+    <AuthProvider>
+        <PostProvider>
+          <Slot />
+        </PostProvider>
+    </AuthProvider>
   );
-}
+};
+
+export default Layout;

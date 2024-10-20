@@ -1,5 +1,5 @@
 // ProfileView.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,8 @@ import SnapItem from '@/components/snapItem';
 import Footer from '../components/footer';
 import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
+import {AuthContext} from '@/context/authContext';
+
 
 interface Snap {
   id: string;
@@ -55,6 +57,7 @@ export default function ProfileView() {
   const isOwnProfile = !username;
   const [isFavouriteView, setIsFavouriteView] = useState(false);
 
+
   // Nuevas variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
@@ -67,6 +70,8 @@ export default function ProfileView() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
+  const { user } = React.useContext(AuthContext);
+  console.log("[PROFILEVIEW] User:", user);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
