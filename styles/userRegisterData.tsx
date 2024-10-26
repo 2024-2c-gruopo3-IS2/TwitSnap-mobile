@@ -15,16 +15,25 @@ export default StyleSheet.create({
     color: '#fff', // Título en blanco
     marginTop: 60,
   },
+  logo: {
+    width: 50, // Ajusta el tamaño del logo
+    height: 50,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginTop: 30,
+    marginBottom: -40,
+  },
   label: {
     fontSize: 16,
     color: '#fff', // Títulos de los campos en blanco
     marginBottom: 5,
+    fontWeight: 'bold',
   },
   input: {
     backgroundColor: '#333', // Cajas en gris oscuro
     paddingHorizontal: 15,
     paddingVertical: 10,
-    borderRadius: 5,
+    borderRadius: 15,
     marginBottom: 15,
     fontSize: 16,
     color: '#fff', // Texto dentro de los inputs en blanco
@@ -38,15 +47,16 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: '#333',
     color: 'black', // Texto blanco en los pickers
+    fontWeight: 'bold',
     marginHorizontal: 5,
-    borderRadius: 5,
+    borderRadius: 15,
     paddingVertical: 10,
     paddingHorizontal: 5,
   },
   submitButton: {
     backgroundColor: '#1DA1F2', // Botón azul
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 15,
     alignItems: 'center',
     marginTop: 10,
   },
@@ -66,7 +76,7 @@ export default StyleSheet.create({
   picker: {
     backgroundColor: '#fff',
     color: 'black',
-    borderRadius: 5,
+    borderRadius: 15,
   },
   subLabel: {
     color: '#fff',

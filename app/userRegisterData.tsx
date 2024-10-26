@@ -1,13 +1,15 @@
 // UserDataPage.tsx
 
-import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Image, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
 import styles from '../styles/userRegisterData';
 import { clearRegistrationState, saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {AuthContext} from '@/context/authContext';
+import {saveToken} from '@/handlers/authTokenHandler';
 
 export default function UserDataPage() {
   const router = useRouter();
@@ -20,6 +22,7 @@ export default function UserDataPage() {
   const [year, setYear] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [description, setDescription] = useState('');
+  const { refreshUser } = useContext(AuthContext);
 
 
   useEffect(() => {
@@ -85,6 +88,8 @@ export default function UserDataPage() {
         Alert.alert('Error', String(profileResponse.message) || 'Error al crear el perfil.');
         setIsSubmitting(false);
         router.push('./login')
+      } else {
+          await refreshUser();
       }
 
       // Generar un PIN y almacenarlo temporalmente
@@ -116,6 +121,13 @@ export default function UserDataPage() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
+
+          {/* Logo */}
+          <Image
+            source={require('@/assets/images/twitsnap-logo.png')}
+            style={styles.logo}
+          />
+
         <Text style={styles.title}>Completa tu perfil</Text>
 
         {/* Nombre */}

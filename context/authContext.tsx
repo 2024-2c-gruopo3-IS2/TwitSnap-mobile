@@ -36,6 +36,7 @@ interface AuthContextProps {
   registrationState: RegistrationState | null;
   updateRegistrationState: (newState: Partial<RegistrationState>) => Promise<void>;
   clearRegistration: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
@@ -48,6 +49,7 @@ export const AuthContext = createContext<AuthContextProps>({
   registrationState: null,
   updateRegistrationState: async () => {},
   clearRegistration: () => {},
+    refreshUser: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -79,8 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
     } catch (error) {
-      console.error('Error durante el login:', error);
-      throw error;
+      console.log('Error durante el login:', error);
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } catch (error) {
-      console.error('Error durante el signup:', error);
-      throw error;
+        console.log("Error durante el registro:", error);
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +138,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRegistrationState(null);
     console.log("[AuthProvider] Registro limpiado.");
   };
+
+  const refreshUser = async () => {
+      setIsLoading(true);
+      try {
+          const token = await getToken();
+          if (token) {
+              const profileResponse = await getProfile();
+              if (profileResponse?.success && profileResponse.profile) {
+                  setUser(profileResponse.profile);
+                  setIsAuthenticated(true);
+                  console.log("[AuthProvider] User refreshed:", profileResponse.profile.username);
+
+              } else {
+                  console.error('Error al obtener el perfil después de iniciar sesión.');
+                  setIsAuthenticated(false);
+              }
+          } else {
+                setIsAuthenticated(false);
+          }
+      } catch (error) {
+            console.error('Error al refrescar el usuario:', error);
+            setIsAuthenticated(false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -185,6 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         registrationState,
         updateRegistrationState: updateRegistrationStateFunc,
         clearRegistration,
+        refreshUser,
       }}
     >
       {children}
