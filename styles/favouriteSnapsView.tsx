@@ -39,6 +39,8 @@ export default StyleSheet.create({
   },
   flatListContent: {
     paddingBottom: 100, // Para que no se superponga con el Footer
+    marginLeft: 20,
+    marginRight: 20,
   },
   noResultsContainer: {
     flex: 1,

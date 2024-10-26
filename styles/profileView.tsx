@@ -32,7 +32,7 @@ export default StyleSheet.create({
         color: '#fff',
         textAlign: 'center',
         flex: 1,
-        marginTop: 10,
+        marginTop: 20,
     },
     rightSpace: {
         width: 40,

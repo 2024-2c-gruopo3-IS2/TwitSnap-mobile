@@ -71,6 +71,8 @@ export default function SignUpPage() {
       return;
     }
     setIsLoading(true);
+
+
     try {
       await signup(email, password);
       // Navegar al siguiente paso después del registro inicial

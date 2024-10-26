@@ -74,7 +74,7 @@ export default function Followers() {
                 <UserList users={followers} onUserPress={handleUserPress} />
             ) : (
                 <View style={styles.noResultsContainer}>
-                    <Text style={styles.noResultsText}>No tienes seguidores.</Text>
+                    <Text style={styles.noResultsText}>No existen seguidores.</Text>
                 </View>
             )}
         </ScrollView>

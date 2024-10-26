@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { createSnap } from '@/handlers/postHandler'; 
+import { createSnap, likeSnap, unlikeSnap, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
+
 interface Post {
   id?: string;
   username: string;
@@ -17,10 +18,14 @@ interface Snap {
   likes: number;
   likedByUser: boolean;
   canViewLikes: boolean;
+  favouritedByUser: boolean;
 }
 
 interface PostContextType {
   addNewPost: (newPost: Post) => Promise<void>;
+  toggleLike: (snapId: string, likedByUser: boolean) => Promise<void>;
+  toggleFavourite: (snapId: string, favouritedByUser: boolean) => Promise<void>;
+  resetSnaps: () => void;
   snaps: Snap[];
 }
 
@@ -51,13 +56,46 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
         likes: response.snap.likes,
         likedByUser: response.snap.likedByUser,
         canViewLikes: response.snap.canViewLikes,
+        favouritedByUser: response.snap.favouritedByUser,
       };
       setSnaps((prevSnaps) => [newSnap, ...prevSnaps]);
     }
   };
 
+  const toggleLike = async (snapId: string, likedByUser: boolean): Promise<void> => {
+    const response = likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
+
+    if (response.success) {
+      setSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === snapId
+            ? { ...snap, likedByUser: !likedByUser, likes: likedByUser ? snap.likes - 1 : snap.likes + 1 }
+            : snap
+        )
+      );
+    }
+  };
+
+  const toggleFavourite = async (snapId: string, favouritedByUser: boolean): Promise<void> => {
+    const response = favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
+
+    if (response.success) {
+      setSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === snapId
+            ? { ...snap, favouritedByUser: !favouritedByUser }
+            : snap
+        )
+      );
+    }
+  };
+
+  const resetSnaps = () => {
+    setSnaps([]);
+  };
+
   return (
-    <PostContext.Provider value={{ addNewPost, snaps }}>
+    <PostContext.Provider value={{ addNewPost, toggleLike, toggleFavourite, resetSnaps, snaps }}>
       {children}
     </PostContext.Provider>
   );

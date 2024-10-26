@@ -12,6 +12,7 @@ import {
   unfavouriteSnap,
   likeSnap,
   unlikeSnap,
+  getLikedSnaps,
 } from '@/handlers/postHandler';
 import { useRouter } from 'expo-router';
 import styles from '../styles/favouriteSnapsView';
@@ -35,47 +36,57 @@ export default function FavoriteSnapsView() {
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+useEffect(() => {
+  const fetchFavouriteSnaps = async () => {
+    setIsLoading(true);
+    try {
+      // Ejecutar ambas llamadas en paralelo
+      const [favouriteResponse, likedResponse] = await Promise.all([
+        getFavouriteSnaps(),
+        getLikedSnaps(),
+      ]);
 
-  useEffect(() => {
-    const fetchFavouriteSnaps = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getFavouriteSnaps();
-        if (response.success && response.snaps && response.snaps.length > 0) {
-          const favouriteSnaps: Snap[] = response.snaps.map((snap: any) => {
-            return {
-              id: snap.id,
-              username: snap.username,
-              time: snap.time,
-              message: snap.message,
-              isPrivate: snap.isPrivate === 'true',
-              likes: snap.likes || 0,
-              likedByUser: snap.likedByUser || false,
-              canViewLikes: true,
-              favouritedByUser: true, // Todos los snaps en esta vista ya están favoritos
-            };
-          });
-          setSnaps(favouriteSnaps);
-        } else {
-          setSnaps([]);
-          Toast.show({
-            type: 'info',
-            text1: 'No tienes snaps favoritos.',
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching favorite snaps:", error);
+      if (favouriteResponse.success && favouriteResponse.snaps) {
+        const likedSnapIds = likedResponse.success
+          ? new Set(likedResponse.snaps.map((snap: any) => snap.id))
+          : new Set();
+
+        const favouriteSnaps: Snap[] = favouriteResponse.snaps
+          .map((snap: any) => ({
+            id: snap.id,
+            username: snap.username,
+            time: snap.time,
+            message: snap.message,
+            isPrivate: snap.isPrivate === 'true',
+            likes: snap.likes || 0,
+            likedByUser: likedSnapIds.has(snap.id), // Verificar si el snap está en likedSnaps
+            canViewLikes: true,
+            favouritedByUser: true,
+          }))
+          .reverse();
+
+        setSnaps(favouriteSnaps);
+      } else {
+        setSnaps([]);
         Toast.show({
-          type: 'error',
-          text1: 'Error al obtener los snaps favoritos',
+          type: 'info',
+          text1: 'No tienes snaps favoritos.',
         });
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching favorite snaps:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error al obtener los snaps favoritos',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchFavouriteSnaps();
-  }, []);
+  fetchFavouriteSnaps();
+}, []);
+
 
   // Función para manejar el Like
   const handleLike = async (snapId: string, likedByUser: boolean) => {

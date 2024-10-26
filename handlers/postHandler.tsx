@@ -596,3 +596,42 @@ export async function getSnapById(snapId: string): Promise<{ success: boolean; s
         return { success: false, message: 'Error al conectar con el servidor.' };
     }
 }
+
+
+/**
+ * Obtiene los snaps no bloqueados.
+ */
+
+ export async function getUnblockedSnaps(): Promise<{ success: boolean; snaps?: Snap[]; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const unblocked_snaps_url = `${API_URL}/snaps/unblocked/`;
+
+    try {
+        const response = await fetch(unblocked_snaps_url, {
+            method: 'GET',
+            headers: {
+                'token': `${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Snaps no bloqueados obtenidos:', data.data);
+            return { success: true, snaps: data.data };
+        } else {
+            console.log('Error al obtener snaps no bloqueados:', data);
+            return { success: false, message: data.detail || 'Error al obtener snaps no bloqueados.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+ }

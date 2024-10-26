@@ -46,37 +46,57 @@ interface Post {
 export default function Feed() {
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { addNewPost } = usePostContext();
+  const { addNewPost, snaps: contextSnaps } = usePostContext();
   const router = useRouter();
     const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    const fetchSnaps = async () => {
-      const response = await getFeedSnaps();
-      const favouriteResponse = await getFavouriteSnaps();
-      const likesResponse = await getLikedSnaps();
+
+useEffect(() => {
+  const fetchSnaps = async () => {
+    setIsLoading(true);
+
+    try {
+      // Ejecutar las tres llamadas a la API en paralelo
+      const [response, favouriteResponse, likesResponse] = await Promise.all([
+        getFeedSnaps(),
+        getFavouriteSnaps(),
+        getLikedSnaps(),
+      ]);
+
       const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
       const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
 
       if (response.success && response.snaps && response.snaps.length > 0) {
-        const snaps: Snap[] = response.snaps.map((snap: any) => ({
+        const fetchedSnaps: Snap[] = response.snaps.map((snap: any) => ({
           id: snap._id,
-          username: snap.username, 
+          username: snap.username,
           time: snap.time,
           message: snap.message,
           isPrivate: snap.isPrivate,
           likes: snap.likes || 0,
-          likedByUser: likedSnapIds.includes(snap._id), 
+          likedByUser: likedSnapIds.includes(snap._id),
           canViewLikes: true,
-          favouritedByUser: favouriteSnapIds.includes(snap._id), 
+          favouritedByUser: favouriteSnapIds.includes(snap._id),
         }));
-        setSnaps(snaps); 
+        setSnaps(fetchedSnaps);
+      } else {
+        setSnaps([]);
       }
+    } catch (error) {
+      console.error("Error fetching feed snaps:", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error al obtener los snaps del feed',
+      });
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
 
-    fetchSnaps();
-  }, []);
+  fetchSnaps();
+}, []);
+  const allSnaps = [...contextSnaps, ...snaps];
+
 
 
   // Función para manejar el Like
@@ -201,7 +221,7 @@ export default function Feed() {
       </View>
 
       {/* Lista de snaps */}
-      {snaps.length > 0 ? (
+      {allSnaps.length > 0 ? (
         <FlatList
           data={snaps}
           keyExtractor={(item) => item.id?.toString() || ''}  

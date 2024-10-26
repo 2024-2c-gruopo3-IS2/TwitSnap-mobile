@@ -76,6 +76,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error en el inicio de sesión:', loginResponse.message);
         throw new Error(loginResponse.message || 'Error al iniciar sesión.');
       }
+
+
     } catch (error) {
       console.error('Error durante el login:', error);
       throw error;

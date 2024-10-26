@@ -71,7 +71,7 @@ export default function Following() {
                 <UserList users={following} onUserPress={handleUserPress} />
             ) : (
                 <View style={styles.noResultsContainer}>
-                    <Text style={styles.noResultsText}>No sigues a nadie.</Text>
+                    <Text style={styles.noResultsText}>No existen usuarios seguidos.</Text>
                 </View>
             )}
         </ScrollView>

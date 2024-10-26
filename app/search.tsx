@@ -15,7 +15,7 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { getAllUsers } from '@/handlers/profileHandler';
-import { getAllSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
+import { getUnblockedSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
 import BackButton from '../components/backButton';
 import { useRouter } from 'expo-router';
 import debounce from 'lodash.debounce';
@@ -54,7 +54,7 @@ export default function SearchUsersAndTwitSnaps() {
       try {
         const [usersResponse, twitSnapsResponse] = await Promise.all([
           getAllUsers(),
-          getAllSnaps(),
+          getUnblockedSnaps(),
         ]);
         if (usersResponse.success && usersResponse.users) {
           // Excluir al usuario autenticado de los resultados
@@ -384,20 +384,38 @@ export default function SearchUsersAndTwitSnaps() {
               </Pressable>
 
               {/* Mostrar la lista de TwitSnaps o el mensaje "No hay snaps disponibles" */}
-              {isTwitSnapsExpanded && (
-                filteredTwitSnaps.length > 0 ? (
-                  <FlatList
-                    data={filteredTwitSnaps}
-                    keyExtractor={(item, index) => `twitSnap-${item.id || index}`} // Asignar un índice si no hay id
-                    renderItem={renderTwitSnapItem}
-                    keyboardShouldPersistTaps="handled"
-                  />
-                ) : (
-                  <View style={styles.noSnapsContainer}>
-                    <Text style={styles.noSnapsText}>No hay snaps disponibles</Text>
-                  </View>
-                )
-              )}
+                    {isTwitSnapsExpanded && (
+                      <View>
+                        {filteredTwitSnaps.length > 0 ? (
+                          filteredTwitSnaps.map((item, index) => (
+                            <SnapItem
+                              key={`twitSnap-${item.id || index}`}
+                              snap={{
+                                id: item.id,
+                                username: item.username,
+                                time: item.time,
+                                message: item.message,
+                                isPrivate: item.isPrivate,
+                                likes: item.likes,
+                                likedByUser: item.likedByUser,
+                                canViewLikes: item.canViewLikes,
+                                favouritedByUser: item.favouritedByUser,
+                              }}
+                              onLike={() => handleLike(item.id, item.likedByUser)}
+                              onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+                              isOwnProfile={false}
+                              likeIconColor={item.likedByUser ? 'red' : 'gray'}
+                              favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
+                            />
+                          ))
+                        ) : (
+                          <View style={styles.noSnapsContainer}>
+                            <Text style={styles.noSnapsText}>No hay snaps disponibles</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+
             </View>
           </>
         )}
