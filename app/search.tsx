@@ -8,14 +8,13 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
   Pressable,
   Platform,
   UIManager,
   LayoutAnimation,
 } from 'react-native';
 import { getAllUsers } from '@/handlers/profileHandler';
-import { getUnblockedSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
+import { getUnblockedSnaps, getFavouriteSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap, getLikedSnaps } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
 import BackButton from '../components/backButton';
 import { useRouter } from 'expo-router';
 import debounce from 'lodash.debounce';
@@ -23,16 +22,26 @@ import Footer from '@/components/footer';
 import { usePostContext } from '../context/postContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SnapItem from '../components/snapItem';
-import { useLocalSearchParams } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '@/context/authContext';
+
+interface Snap {
+  id: string;
+  username: string;
+  time: string;
+  message: string;
+  isPrivate: boolean;
+  likes: number;
+  likedByUser: boolean;
+  canViewLikes: boolean;
+  favouritedByUser: boolean;
+}
 
 export default function SearchUsersAndTwitSnaps() {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<string[]>([]);
-  const [twitSnaps, setTwitSnaps] = useState<any[]>([]);
+  const [twitSnaps, setTwitSnaps] = useState<Snap[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
-  const [filteredTwitSnaps, setFilteredTwitSnaps] = useState<any[]>([]);
+  const [filteredTwitSnaps, setFilteredTwitSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addNewPost } = usePostContext();
   const router = useRouter();
@@ -40,8 +49,11 @@ export default function SearchUsersAndTwitSnaps() {
   const [isTwitSnapsExpanded, setIsTwitSnapsExpanded] = useState(true);
   const [filteredHashtags, setFilteredHashtags] = useState<any[]>([]);
   const [isHashtagsExpanded, setIsHashtagsExpanded] = useState(true);
-  const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext)
-    console.log("[SEARCH]User", user);
+  const { user, isAuthenticated, isLoading: authLoading } = useContext(AuthContext);
+
+  console.log("[SEARCH]User", user);
+
+  // Habilitar LayoutAnimation en Android
   if (
     Platform.OS === 'android' &&
     UIManager.setLayoutAnimationEnabledExperimental
@@ -52,10 +64,14 @@ export default function SearchUsersAndTwitSnaps() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersResponse, twitSnapsResponse] = await Promise.all([
+        // Realizar llamadas a la API en paralelo
+        const [usersResponse, twitSnapsResponse, likedResponse, favouritedResponse] = await Promise.all([
           getAllUsers(),
           getUnblockedSnaps(),
+          getLikedSnaps(),
+          getFavouriteSnaps(),
         ]);
+
         if (usersResponse.success && usersResponse.users) {
           // Excluir al usuario autenticado de los resultados
           const usersExcludingSelf = usersResponse.users.filter(
@@ -66,9 +82,31 @@ export default function SearchUsersAndTwitSnaps() {
         } else {
           console.error('Error al obtener los usuarios:', usersResponse.message);
         }
+
         if (twitSnapsResponse.success && twitSnapsResponse.snaps) {
-          setTwitSnaps(twitSnapsResponse.snaps);
-          setFilteredTwitSnaps(twitSnapsResponse.snaps);
+          const likedSnapIds = likedResponse.success
+            ? new Set(likedResponse.snaps.map((snap: any) => snap.id))
+            : new Set();
+
+          const favouritedSnapIds = favouritedResponse.success
+               ? new Set(favouritedResponse.snaps.map((snap: any) => snap.id))
+               : new Set();
+
+          // Mapear Snaps y establecer los campos necesarios
+          const mappedTwitSnaps: Snap[] = twitSnapsResponse.snaps.map((snap: any) => ({
+            id: snap._id, // Mapea _id a id
+            username: snap.username,
+            time: snap.time,
+            message: snap.message,
+            isPrivate: snap.isPrivate === 'true',
+            likes: snap.likes || 0,
+            likedByUser: likedSnapIds.has(snap._id),
+            canViewLikes: true,
+            favouritedByUser: favouritedSnapIds.has(snap._id),
+          }));
+
+          setTwitSnaps(mappedTwitSnaps);
+          setFilteredTwitSnaps(mappedTwitSnaps);
         }
         else {
           console.error('Error al obtener los TwitSnaps:', twitSnapsResponse.message);
@@ -105,10 +143,9 @@ export default function SearchUsersAndTwitSnaps() {
 
       const filteredU = users
         .filter((username) => username.toLowerCase().includes(trimmedQuery))
-         .filter((username) => username !== user?.username);
+        .filter((username) => username !== user?.username);
       setFilteredUsers(filteredU);
       setFilteredTwitSnaps(filteredT);
-
     }
   };
 
@@ -133,6 +170,32 @@ export default function SearchUsersAndTwitSnaps() {
 
   // Handlers para "Me Gusta" y "Favorito"
   const handleLike = async (id: string, likedByUser: boolean) => {
+    console.log(`Handling Like for snap ID: ${id}, currently liked: ${likedByUser}`);
+
+    // Actualización optimista
+    setTwitSnaps((prevSnaps) =>
+      prevSnaps.map((snap) =>
+        snap.id === id
+          ? {
+              ...snap,
+              likes: likedByUser ? snap.likes - 1 : snap.likes + 1,
+              likedByUser: !likedByUser,
+            }
+          : snap
+      )
+    );
+    setFilteredTwitSnaps((prevSnaps) =>
+      prevSnaps.map((snap) =>
+        snap.id === id
+          ? {
+              ...snap,
+              likes: likedByUser ? snap.likes - 1 : snap.likes + 1,
+              likedByUser: !likedByUser,
+            }
+          : snap
+      )
+    );
+
     try {
       let response;
       if (likedByUser) {
@@ -143,15 +206,16 @@ export default function SearchUsersAndTwitSnaps() {
         response = await likeSnap(id);
       }
 
-      if (response.success) {
+      if (!response.success) {
+        // Revertir la actualización optimista en caso de fallo
         setTwitSnaps((prevSnaps) =>
           prevSnaps.map((snap) =>
             snap.id === id
               ? {
-                ...snap,
-                likes: likedByUser ? snap.likes - 1 : snap.likes + 1,
-                likedByUser: !likedByUser,
-              }
+                  ...snap,
+                  likes: likedByUser ? snap.likes + 1 : snap.likes - 1,
+                  likedByUser: likedByUser, // Revertir al estado original
+                }
               : snap
           )
         );
@@ -159,60 +223,132 @@ export default function SearchUsersAndTwitSnaps() {
           prevSnaps.map((snap) =>
             snap.id === id
               ? {
-                ...snap,
-                likes: likedByUser ? snap.likes - 1 : snap.likes + 1,
-                likedByUser: !likedByUser,
-              }
+                  ...snap,
+                  likes: likedByUser ? snap.likes + 1 : snap.likes - 1,
+                  likedByUser: likedByUser,
+                }
               : snap
           )
         );
-      } else {
         console.error('Error al dar Me Gusta/Unlike:', response.message);
+        // Opcional: Mostrar una notificación al usuario
       }
     } catch (error) {
+      // Revertir la actualización optimista en caso de error
+      setTwitSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === id
+            ? {
+                ...snap,
+                likes: likedByUser ? snap.likes + 1 : snap.likes - 1,
+                likedByUser: likedByUser,
+              }
+            : snap
+        )
+      );
+      setFilteredTwitSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === id
+            ? {
+                ...snap,
+                likes: likedByUser ? snap.likes + 1 : snap.likes - 1,
+                likedByUser: likedByUser,
+              }
+            : snap
+        )
+      );
       console.error('Error al dar Me Gusta/Unlike:', error);
+      // Opcional: Mostrar una notificación al usuario
     }
   };
 
-  const handleFavourite = async (id: string, favouritedByUser: boolean) => {
-    try {
-      let response;
-      if (favouritedByUser) {
-        // Realizar "unfavourite"
-        response = await unfavouriteSnap(id);
-      } else {
-        // Realizar "favourite"
-        response = await favouriteSnap(id);
-      }
+const handleFavourite = async (id: string, favouritedByUser: boolean) => {
+  console.log(`Handling Favourite for snap ID: ${id}, currently favourited: ${favouritedByUser}`);
 
-      if (response.success) {
-        setTwitSnaps((prevSnaps) =>
-          prevSnaps.map((snap) =>
-            snap.id === id
-              ? {
-                ...snap,
-                favouritedByUser: !favouritedByUser,
-              }
-              : snap
-          )
-        );
-        setFilteredTwitSnaps((prevSnaps) =>
-          prevSnaps.map((snap) =>
-            snap.id === id
-              ? {
-                ...snap,
-                favouritedByUser: !favouritedByUser,
-              }
-              : snap
-          )
-        );
-      } else {
-        console.error('Error al dar Favorito/Unfavourite:', response.message);
-      }
-    } catch (error) {
-      console.error('Error al dar Favorito/Unfavourite:', error);
+  // Actualización optimista
+  setTwitSnaps((prevSnaps) =>
+    prevSnaps.map((snap) =>
+      snap.id === id
+        ? {
+            ...snap,
+            favouritedByUser: !favouritedByUser,
+          }
+        : snap
+    )
+  );
+  setFilteredTwitSnaps((prevSnaps) =>
+    prevSnaps.map((snap) =>
+      snap.id === id
+        ? {
+            ...snap,
+            favouritedByUser: !favouritedByUser,
+          }
+        : snap
+    )
+  );
+
+  try {
+    let response;
+    if (favouritedByUser) {
+      // Realizar "unfavourite"
+      response = await unfavouriteSnap(id);
+    } else {
+      // Realizar "favourite"
+      response = await favouriteSnap(id);
     }
-  };
+
+    if (!response.success) {
+      // Revertir la actualización optimista en caso de fallo
+      setTwitSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === id
+            ? {
+                ...snap,
+                favouritedByUser: favouritedByUser,
+              }
+            : snap
+        )
+      );
+      setFilteredTwitSnaps((prevSnaps) =>
+        prevSnaps.map((snap) =>
+          snap.id === id
+            ? {
+                ...snap,
+                favouritedByUser: favouritedByUser,
+              }
+            : snap
+        )
+      );
+      console.error('Error al dar Favorito/Unfavourite:', response.message);
+      // Opcional: Mostrar una notificación al usuario
+    }
+  } catch (error) {
+    // Revertir la actualización optimista en caso de error
+    setTwitSnaps((prevSnaps) =>
+      prevSnaps.map((snap) =>
+        snap.id === id
+          ? {
+              ...snap,
+              favouritedByUser: favouritedByUser,
+            }
+          : snap
+      )
+    );
+    setFilteredTwitSnaps((prevSnaps) =>
+      prevSnaps.map((snap) =>
+        snap.id === id
+          ? {
+              ...snap,
+              favouritedByUser: favouritedByUser,
+            }
+          : snap
+      )
+    );
+    console.error('Error al dar Favorito/Unfavourite:', error);
+    // Opcional: Mostrar una notificación al usuario
+  }
+};
+
 
   const renderUserItem = ({ item }: { item: string }) => (
     <Pressable
@@ -228,26 +364,19 @@ export default function SearchUsersAndTwitSnaps() {
     </Pressable>
   );
 
-  const renderTwitSnapItem = ({ item }: { item: any }) => (
-    <SnapItem
-      snap={{
-        id: item.id,
-        username: item.username,
-        time: item.time,
-        message: item.message,
-        isPrivate: item.isPrivate,
-        likes: item.likes,
-        likedByUser: item.likedByUser,
-        canViewLikes: item.canViewLikes,
-        favouritedByUser: item.favouritedByUser,
-      }}
-      onLike={() => handleLike(item.id, item.likedByUser)}
-      onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
-      isOwnProfile={false}
-      likeIconColor={item.likedByUser ? 'red' : 'gray'}
-      favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-    />
-  );
+  const renderTwitSnapItem = ({ item }: { item: Snap }) => {
+    console.log("Rendering TwitSnap with ID:", item.id); // Verificar el ID
+    return (
+      <SnapItem
+        snap={item}
+        onLike={() => handleLike(item.id, item.likedByUser)}
+        onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+        isOwnProfile={false}
+        likeIconColor={item.likedByUser ? 'red' : 'gray'}
+        favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
+      />
+    );
+  };
 
   if (isLoading) {
     return (
@@ -258,6 +387,7 @@ export default function SearchUsersAndTwitSnaps() {
   }
 
   const noResults = filteredUsers.length === 0 && filteredTwitSnaps.length === 0 && filteredHashtags.length === 0;
+
   // Funciones para alternar la expansión de las secciones
   const toggleUsersSection = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -360,7 +490,6 @@ export default function SearchUsersAndTwitSnaps() {
             )}
 
             {/* Sección de TwitSnaps */}
-
             <View style={styles.section}>
               {/* El encabezado de TwitSnaps siempre se mostrará */}
               <Pressable
@@ -384,38 +513,26 @@ export default function SearchUsersAndTwitSnaps() {
               </Pressable>
 
               {/* Mostrar la lista de TwitSnaps o el mensaje "No hay snaps disponibles" */}
-                    {isTwitSnapsExpanded && (
-                      <View>
-                        {filteredTwitSnaps.length > 0 ? (
-                          filteredTwitSnaps.map((item, index) => (
-                            <SnapItem
-                              key={`twitSnap-${item.id || index}`}
-                              snap={{
-                                id: item.id,
-                                username: item.username,
-                                time: item.time,
-                                message: item.message,
-                                isPrivate: item.isPrivate,
-                                likes: item.likes,
-                                likedByUser: item.likedByUser,
-                                canViewLikes: item.canViewLikes,
-                                favouritedByUser: item.favouritedByUser,
-                              }}
-                              onLike={() => handleLike(item.id, item.likedByUser)}
-                              onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
-                              isOwnProfile={false}
-                              likeIconColor={item.likedByUser ? 'red' : 'gray'}
-                              favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-                            />
-                          ))
-                        ) : (
-                          <View style={styles.noSnapsContainer}>
-                            <Text style={styles.noSnapsText}>No hay snaps disponibles</Text>
-                          </View>
-                        )}
-                      </View>
-                    )}
-
+              {isTwitSnapsExpanded && (
+                <View>
+                  {filteredTwitSnaps.length > 0 ? (
+                    <FlatList
+                      data={filteredTwitSnaps}
+                      keyExtractor={(item) => `twitSnap-${item.id}`}
+                      renderItem={renderTwitSnapItem}
+                      keyboardShouldPersistTaps="handled"
+                      // Opcional: optimizar la renderización
+                      initialNumToRender={10}
+                      maxToRenderPerBatch={10}
+                      windowSize={21}
+                    />
+                  ) : (
+                    <View style={styles.noSnapsContainer}>
+                      <Text style={styles.noSnapsText}>No hay snaps disponibles</Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </>
         )}

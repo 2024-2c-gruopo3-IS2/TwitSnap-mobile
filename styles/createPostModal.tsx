@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: '90%',
     backgroundColor: '#1c1c1c',
-    borderRadius: 10,
+    borderRadius: 15,
     padding: 20,
   },
   modalTitle: {
@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     borderColor: '#333',
     borderWidth: 1,
-    borderRadius: 5,
+    borderRadius: 15,
     padding: 10,
     verticalAlign: 'top',
   },
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#888',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   postButton: {
     backgroundColor: '#1DA1F2',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 15,
   },
   buttonText: {
     color: '#FFFFFF',
