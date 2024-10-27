@@ -26,6 +26,7 @@ import {
   unlikeSnap,
   getLikedSnaps
 } from '@/handlers/postHandler';
+import { Avatar } from 'react-native-elements';
 import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal';
 import SnapItem from '@/components/snapItem';
@@ -33,6 +34,8 @@ import Footer from '../components/footer';
 import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import {AuthContext} from '@/context/authContext';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 
 interface Snap {
   id: string;
@@ -51,6 +54,7 @@ export default function ProfileView() {
   const segments = useSegments();
   const { username } = useLocalSearchParams();
   const [profile, setProfile] = useState<any>(null);
+  const [profileImage, setProfileImage] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const isOwnProfile = !username;
@@ -80,6 +84,20 @@ export default function ProfileView() {
     }
   };
 
+  const fetchProfileImage = async (username: string) => {
+    try {
+      console.log("\n\nfetching", `profile_photos/${username}.png`)
+      const imageRef = ref(storage, `profile_photos/${username}.png`);
+      console.log("imageRef", imageRef)
+      const url = await getDownloadURL(imageRef);
+      console.log("url", url)
+
+      setProfileImage(url);
+    } catch (error) {
+      setProfileImage('https://via.placeholder.com/150');
+    }
+  };
+
   useEffect(() => {
       fetchProfile();
       },[username,isOwnProfile]);
@@ -93,6 +111,7 @@ export default function ProfileView() {
 
         if (profileResponse.success) {
           setProfile(profileResponse.profile);
+          fetchProfileImage(profileResponse.profile.username);
 
           // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
           let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
@@ -434,9 +453,10 @@ export default function ProfileView() {
 
       <View style={styles.profilePictureContainer}>
         <Image
-          source={{ uri: profile.profile_picture || 'https://via.placeholder.com/150' }}
+          source={{uri: profileImage}}
           style={styles.profilePicture}
         />
+
       </View>
 
       <Text style={styles.name}>

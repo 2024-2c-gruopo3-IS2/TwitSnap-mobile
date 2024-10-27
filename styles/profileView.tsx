@@ -45,8 +45,8 @@ export default StyleSheet.create({
     profilePictureContainer: {
         position: 'absolute',
         top: 100,
-        left: '50%',
-        transform: [{ translateX: -50 }],
+        left: '50%',           
+        transform: [{ translateX: -65 }], // Ajusta el desplazamiento horizontal en base al ancho de la imagen
         borderWidth: 3,
         borderColor: '#fff',
         borderRadius: 75,
@@ -54,12 +54,12 @@ export default StyleSheet.create({
         backgroundColor: '#000',
     },
     profilePicture: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-    },
+        width: 130,
+        height: 130,
+        borderRadius: 65,       // Ajusta el radio para una imagen circular
+    },    
     name: {
-        marginTop: 20,
+        marginTop: 50,
         fontSize: 24,
         fontWeight: 'bold',
         color: '#fff',

@@ -23,6 +23,6 @@ if __name__ == "__main__":
             print("Refreshing microservices...")
             refresh_microservicios()
             print("Waiting 10 seconds...")
-            time.sleep(10)
+            time.sleep(30)
     except KeyboardInterrupt:
         print("\nEjecución interrumpida por el usuario (Ctrl + C).")

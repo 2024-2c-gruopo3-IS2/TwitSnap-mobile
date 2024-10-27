@@ -15,7 +15,7 @@ import {AuthContext} from '@/context/authContext';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
-    const { login, isAuthenticated } = useContext(AuthContext);
+  const { login, isAuthenticated } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
