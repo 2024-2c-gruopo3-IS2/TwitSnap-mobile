@@ -7,28 +7,35 @@ export default StyleSheet.create({
     userItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
-        paddingVertical: 10,
+        marginBottom: 20,  // Aumentar el margen inferior
+        paddingVertical: 12, // Aumentar el padding vertical
         borderBottomWidth: 1,
         borderBottomColor: '#333', // Línea sutil en tema oscuro
     },
     avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 12,
+        width: 60, // Aumentar el tamaño del avatar
+        height: 60,
+        borderRadius: 30,
+        marginRight: 16, // Aumentar el margen a la derecha
     },
     userInfo: {
         flex: 1,
-        
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     name: {
-        fontSize: 16,
+        fontSize: 18, // Aumentar el tamaño de fuente
         fontWeight: 'bold',
         color: '#1DA1F2', // Texto claro para contraste
     },
     username: {
-        fontSize: 14,
+        fontSize: 16, // Aumentar el tamaño de fuente
         color: '#1DA1F2', // Texto más claro para nombres de usuario
+    },
+    profileImageOnFeed: {
+        width: 50, // Aumentar el tamaño de la imagen de perfil en el feed
+        height: 50,
+        borderRadius: 25,
+        marginRight: 12,
     },
 });

@@ -1,33 +1,42 @@
-// snapItem.tsx (Estilos)
-
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
   snapContainer: {
-    padding: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-    backgroundColor: 'black',
-    position: 'relative',
   },
   snapHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  profileImageOnFeed: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    marginRight: 10,
+  },
+  snapHeaderText: {
+    flex: 1,
+    flexDirection: 'column',
   },
   username: {
     fontWeight: 'bold',
-    fontSize: 16,
-    color: 'lightblue',
+    fontSize: 15,
+    color: 'white',
   },
   time: {
-    color: '#aaa',
-    fontSize: 12,
+    color: '#888',
+    fontSize: 13,
+    marginTop: 2,
   },
   content: {
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: 16,
     color: 'white',
+    lineHeight: 22,
+    marginBottom: 10,
   },
   actionButtonsTopRight: {
     position: 'absolute',
@@ -37,38 +46,41 @@ export default StyleSheet.create({
   },
   editButton: {
     backgroundColor: '#127fa4',
-    padding: 8,
+    padding: 6,
     borderRadius: 20,
     marginLeft: 10,
   },
   deleteButton: {
     backgroundColor: '#F44336',
-    padding: 8,
+    padding: 6,
     borderRadius: 20,
     marginLeft: 10,
   },
   actionContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',  // Distribuye los botones de "favorito" y "me gusta" en extremos opuestos
-    alignItems: 'center',
-    marginTop: 10,
+    justifyContent: 'flex-end',
+    marginTop: 8,
   },
   likeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   likeButton: {
-    marginRight: 8,
+    marginRight: 4,
   },
   likeCount: {
     fontSize: 14,
-    color: '#ccc',  // Color para el contador de likes
+    color: '#aaa',
   },
   favouriteContainer: {
-    flex: 1,  // Ocupa el espacio disponible para centrar el botón
-    alignItems: 'center',  // Centra horizontalmente el botón de favorito
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginEnd: 15,
   },
   favouriteButton: {
-    marginLeft: 200,
+    marginRight: 4,
+  },
+  icon: {
+    color: '#1DA1F2',
   },
 });

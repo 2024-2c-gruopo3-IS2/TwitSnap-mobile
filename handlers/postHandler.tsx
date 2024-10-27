@@ -198,6 +198,7 @@ export async function deleteSnap(snapId: number): Promise<{ success: boolean; me
             console.log('Snap eliminado exitosamente');
             return { success: true, message: 'Snap eliminado exitosamente' };
         } else {
+            const data = await response.json();
             console.log('Error al eliminar el snap:', data);
             return { success: false, message: data.detail || 'Error al eliminar el snap.' };
         }

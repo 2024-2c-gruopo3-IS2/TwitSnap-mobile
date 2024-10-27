@@ -47,6 +47,7 @@ interface Snap {
   likedByUser: boolean;
   canViewLikes: boolean;
   favouritedByUser: boolean;
+  profileImage: string;
 }
 
 export default function ProfileView() {
@@ -87,14 +88,14 @@ export default function ProfileView() {
   const fetchProfileImage = async (username: string) => {
     try {
       console.log("\n\nfetching", `profile_photos/${username}.png`)
-      const imageRef = ref(storage, `profile_photos/${username}.png`);
+      const imageRef = await ref(storage, `profile_photos/${username}.png`);
       console.log("imageRef", imageRef)
       const url = await getDownloadURL(imageRef);
       console.log("url", url)
 
-      setProfileImage(url);
+      return url;
     } catch (error) {
-      setProfileImage('https://via.placeholder.com/150');
+      return 'https://via.placeholder.com/150';
     }
   };
 
@@ -111,7 +112,11 @@ export default function ProfileView() {
 
         if (profileResponse.success) {
           setProfile(profileResponse.profile);
-          fetchProfileImage(profileResponse.profile.username);
+          const profileImage = await fetchProfileImage(profileResponse.profile.username);
+          
+          setProfileImage(profileImage);
+
+          console.log("despues del profile image", profileImage);
 
           // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
           let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
@@ -174,7 +179,8 @@ export default function ProfileView() {
             // console.error('Error al obtener los seguidos:', followingResponse.message);
             setFollowingCount('X'); // Valor por defecto en caso de error
           }
-
+          
+          console.log("profileImage: ", profileImage);
           // 7. Procesar snaps si existen
           if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
             const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
@@ -189,6 +195,7 @@ export default function ProfileView() {
               likedByUser: likedSnapsIds.includes(snap._id),
               canViewLikes: true,
               favouritedByUser: favouriteSnapsIds.includes(snap._id),
+              profileImage: profileImage,
             }));
             setSnaps(processedSnaps);
           } else {

@@ -22,6 +22,8 @@ import Toast from 'react-native-toast-message';
 import { getLikedSnaps, getFavouriteSnaps, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '@/context/authContext';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 
 interface Snap {
   id: string; 
@@ -33,6 +35,7 @@ interface Snap {
   likedByUser: boolean;
   canViewLikes: boolean;
   favouritedByUser: boolean;
+  profileImage: string;
 }
 
 interface Post {
@@ -50,6 +53,19 @@ export default function Feed() {
   const router = useRouter();
     const { user } = useContext(AuthContext);
 
+  const fetchProfileImage = async (username: string) => {
+    try {
+      console.log("\n\nfetching", `profile_photos/${username}.png`)
+      const imageRef = ref(storage, `profile_photos/${username}.png`);
+      console.log("imageRef", imageRef)
+      const url = await getDownloadURL(imageRef);
+      console.log("url", url)
+
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150';
+    }
+  };
 
 useEffect(() => {
   const fetchSnaps = async () => {
@@ -67,7 +83,7 @@ useEffect(() => {
       const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
 
       if (response.success && response.snaps && response.snaps.length > 0) {
-        const fetchedSnaps: Snap[] = response.snaps.map((snap: any) => ({
+        const fetchedSnaps: Snap[] = await Promise.all(response.snaps.map(async (snap: any) => ({
           id: snap._id,
           username: snap.username,
           time: snap.time,
@@ -77,8 +93,10 @@ useEffect(() => {
           likedByUser: likedSnapIds.includes(snap._id),
           canViewLikes: true,
           favouritedByUser: favouriteSnapIds.includes(snap._id),
-        }));
+          profileImage: await fetchProfileImage(snap.username),
+        })));
         setSnaps(fetchedSnaps);
+        console.log(snaps)
       } else {
         setSnaps([]);
       }
@@ -243,3 +261,5 @@ useEffect(() => {
     </View>
   );
 }
+
+

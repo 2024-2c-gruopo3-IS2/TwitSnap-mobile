@@ -1,7 +1,7 @@
 // snapItem.tsx
 
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
@@ -16,6 +16,7 @@ interface Snap {
   likedByUser: boolean;
   canViewLikes: boolean;
   favouritedByUser: boolean;
+  profileImage: string;
 }
 
 interface SnapItemProps {
@@ -31,13 +32,18 @@ interface SnapItemProps {
 
 const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, isOwnProfile }) => {
   const router = useRouter();
+  console.log("aaa", snap.profileImage)
 
   return (
     <View style={styles.snapContainer}>
       {/* Cabecera del Snap */}
+
       <View style={styles.snapHeader}>
+        <Image
+          source={{ uri: snap.profileImage }}
+          style={styles.profileImageOnFeed}
+        />
         <Text style={styles.username}>@{snap.username}</Text>
-        <Text style={styles.time}>{snap.time}</Text>
       </View>
 
       {/* Contenido del Snap */}
