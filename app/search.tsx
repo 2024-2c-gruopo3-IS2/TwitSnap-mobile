@@ -12,6 +12,7 @@ import {
   Platform,
   UIManager,
   LayoutAnimation,
+  Image, // Add Image import
 } from 'react-native';
 import { getAllUsers } from '@/handlers/profileHandler';
 import { getUnblockedSnaps, getFavouriteSnaps, likeSnap, favouriteSnap, unlikeSnap, unfavouriteSnap, getLikedSnaps } from '@/handlers/postHandler'; // Asegúrate de tener estas funciones
@@ -23,6 +24,13 @@ import { usePostContext } from '../context/postContext';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SnapItem from '../components/snapItem';
 import { AuthContext } from '@/context/authContext';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
+
+interface User{
+  username: string;
+  profileImage: string;
+}
 
 interface Snap {
   id: string;
@@ -34,13 +42,14 @@ interface Snap {
   likedByUser: boolean;
   canViewLikes: boolean;
   favouritedByUser: boolean;
+  profileImage: string;
 }
 
 export default function SearchUsersAndTwitSnaps() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [users, setUsers] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [twitSnaps, setTwitSnaps] = useState<Snap[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<string[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [filteredTwitSnaps, setFilteredTwitSnaps] = useState<Snap[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { addNewPost } = usePostContext();
@@ -61,6 +70,21 @@ export default function SearchUsersAndTwitSnaps() {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }
 
+  const fetchProfileImage = async (username: string) => {
+    try {
+      console.log("\n\nfetching", `profile_photos/${username}.png`)
+      const imageRef = ref(storage, `profile_photos/${username}.png`);
+      console.log("imageRef", imageRef)
+      const url = await getDownloadURL(imageRef);
+      console.log("url", url)
+
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150';
+    }
+  };
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -77,23 +101,29 @@ export default function SearchUsersAndTwitSnaps() {
           const usersExcludingSelf = usersResponse.users.filter(
             (username: string) => username !== user?.username
           );
-          setUsers(usersExcludingSelf);
-          setFilteredUsers(usersExcludingSelf);
+
+          const users = await Promise.all(usersExcludingSelf.map(async (username: string) => ({
+            username,
+            profileImage: await fetchProfileImage(username),
+          })));
+
+          setUsers(users);
+          setFilteredUsers(users);
         } else {
           console.error('Error al obtener los usuarios:', usersResponse.message);
         }
 
         if (twitSnapsResponse.success && twitSnapsResponse.snaps) {
           const likedSnapIds = likedResponse.success
-            ? new Set(likedResponse.snaps.map((snap: any) => snap.id))
+            ? new Set((likedResponse.snaps ?? []).map((snap: any) => snap.id))
             : new Set();
 
           const favouritedSnapIds = favouritedResponse.success
-               ? new Set(favouritedResponse.snaps.map((snap: any) => snap.id))
+               ? new Set(favouritedResponse.snaps?.map((snap: any) => snap.id) ?? [])
                : new Set();
 
           // Mapear Snaps y establecer los campos necesarios
-          const mappedTwitSnaps: Snap[] = twitSnapsResponse.snaps.map((snap: any) => ({
+          const mappedTwitSnaps: Snap[] = await Promise.all(twitSnapsResponse.snaps.map(async (snap: any) => ({
             id: snap._id, // Mapea _id a id
             username: snap.username,
             time: snap.time,
@@ -103,7 +133,8 @@ export default function SearchUsersAndTwitSnaps() {
             likedByUser: likedSnapIds.has(snap._id),
             canViewLikes: true,
             favouritedByUser: favouritedSnapIds.has(snap._id),
-          }));
+            profileImage: await fetchProfileImage(snap.username), // Add profileImage
+          })));
 
           setTwitSnaps(mappedTwitSnaps);
           setFilteredTwitSnaps(mappedTwitSnaps);
@@ -142,8 +173,8 @@ export default function SearchUsersAndTwitSnaps() {
       });
 
       const filteredU = users
-        .filter((username) => username.toLowerCase().includes(trimmedQuery))
-        .filter((username) => username !== user?.username);
+        .filter((user) => user.username.toLowerCase().includes(trimmedQuery))
+        .filter((user2) => user2.username !== user?.username);
       setFilteredUsers(filteredU);
       setFilteredTwitSnaps(filteredT);
     }
@@ -350,17 +381,23 @@ const handleFavourite = async (id: string, favouritedByUser: boolean) => {
 };
 
 
-  const renderUserItem = ({ item }: { item: string }) => (
+  const renderUserItem = ({ item }: { item: User }) => (
     <Pressable
       style={styles.userContainer}
       onPress={() =>
         router.push({
           pathname: '/profileView',
-          params: { username: item },
+          params: { username: item.username },
         })
       }
     >
-      <Text style={styles.username}>@{item}</Text>
+      <View style={styles.userInfo}>
+          <Image
+          source={{ uri: item.profileImage }}
+          style={styles.profileImageOnFeed}
+          />
+          <Text style={styles.username}>@{item.username}</Text>
+      </View>
     </Pressable>
   );
 
@@ -398,34 +435,6 @@ const handleFavourite = async (id: string, favouritedByUser: boolean) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsTwitSnapsExpanded(!isTwitSnapsExpanded);
   };
-
-  const toggleHashtagsSection = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsHashtagsExpanded(!isHashtagsExpanded);
-  };
-
-  const renderHashtagItem = ({ item }: { item: any }) => (
-    <SnapItem
-      snap={{
-        id: item.id,
-        username: item.username,
-        time: item.time,
-        message: item.message,
-        isPrivate: item.isPrivate,
-        likes: item.likes,
-        likedByUser: item.likedByUser,
-        canViewLikes: item.canViewLikes,
-        favouritedByUser: item.favouritedByUser,
-      }}
-      onLike={() => handleLike(item.id, item.likedByUser)}
-      onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
-      isOwnProfile={false}
-      likeIconColor={item.likedByUser ? 'red' : 'gray'}
-      favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-    />
-  );
-
-  const isHashtagSearch = searchQuery.trim().toLowerCase().startsWith('#');
 
   return (
     <View style={styles.container}>

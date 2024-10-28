@@ -100,5 +100,17 @@ export default StyleSheet.create({
     backgroundColor: '#000', 
     color: '#000',
   },
-
+  profilePictureContainer: {
+      left: '50%',
+      transform: [{ translateX: -75 }],
+    // overflow: 'hidden',
+    // backgroundColor: '#000',
+},
+profilePicture: {
+    width: 150,
+    height: 150,
+    borderRadius: 80,
+    borderColor: '#fff',
+    borderWidth: 5,
+},
 });

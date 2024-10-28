@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
@@ -10,6 +11,9 @@ import { clearRegistrationState, saveRegistrationState, getRegistrationState } f
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '@/context/authContext';
 import {saveToken} from '@/handlers/authTokenHandler';
+import { Avatar } from 'react-native-elements';
+import { ref, uploadBytes } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 
 export default function UserDataPage() {
   const router = useRouter();
@@ -23,7 +27,6 @@ export default function UserDataPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [description, setDescription] = useState('');
   const { refreshUser } = useContext(AuthContext);
-
 
   useEffect(() => {
       const loadSavedState = async () => {
@@ -129,7 +132,7 @@ export default function UserDataPage() {
           />
 
         <Text style={styles.title}>Completa tu perfil</Text>
-
+        
         {/* Nombre */}
         <Text style={styles.label}>Nombre</Text>
         <TextInput
@@ -230,3 +233,4 @@ export default function UserDataPage() {
     </ScrollView>
   );
 }
+

@@ -41,23 +41,7 @@ export default StyleSheet.create({
         width: '100%',
         height: 200,
         resizeMode: 'cover',
-    },
-    profilePictureContainer: {
-        position: 'absolute',
-        top: 100,
-        left: '50%',           
-        transform: [{ translateX: -65 }], // Ajusta el desplazamiento horizontal en base al ancho de la imagen
-        borderWidth: 3,
-        borderColor: '#fff',
-        borderRadius: 75,
-        overflow: 'hidden',
-        backgroundColor: '#000',
-    },
-    profilePicture: {
-        width: 130,
-        height: 130,
-        borderRadius: 65,       // Ajusta el radio para una imagen circular
-    },    
+    }, 
     name: {
         marginTop: 50,
         fontSize: 24,
@@ -273,4 +257,32 @@ export default StyleSheet.create({
         fontSize: 16,
         marginBottom: 20,
     },
+    headerGradient: {
+        padding: 20,
+        alignItems: 'center',
+      },
+      profilePictureContainer: {
+        position: 'absolute',
+        top: 100,
+        left: '50%',
+        transform: [{ translateX: -65 }],
+        borderWidth: 3,
+        borderColor: '#fff',
+        borderRadius: 75,
+        overflow: 'hidden',
+        backgroundColor: '#000',
+    },
+    profilePicture: {
+        width: 130,
+        height: 130,
+        borderRadius: 65,
+    },
+    accessoryContainer: {
+        position: 'absolute',
+        bottom: -10,
+        right: -10,
+        zIndex: 10, // Asegura que el accesorio esté al frente de todo
+    },
+
+    
 });
