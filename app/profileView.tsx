@@ -26,6 +26,7 @@ import {
   unlikeSnap,
   getLikedSnaps
 } from '@/handlers/postHandler';
+import { Avatar } from 'react-native-elements';
 import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal';
 import SnapItem from '@/components/snapItem';
@@ -33,6 +34,9 @@ import Footer from '../components/footer';
 import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import {AuthContext} from '@/context/authContext';
+import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker';
+import { storage } from '../firebaseConfig';
 
 interface Snap {
   id: string;
@@ -44,6 +48,7 @@ interface Snap {
   likedByUser: boolean;
   canViewLikes: boolean;
   favouritedByUser: boolean;
+  profileImage: string;
 }
 
 export default function ProfileView() {
@@ -51,6 +56,7 @@ export default function ProfileView() {
   const segments = useSegments();
   const { username } = useLocalSearchParams();
   const [profile, setProfile] = useState<any>(null);
+  const [profileImage, setProfileImage] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const isOwnProfile = !username;
@@ -67,6 +73,7 @@ export default function ProfileView() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
   const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
+  const [loadingImage, setLoadingImage] = useState(false);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
@@ -77,6 +84,68 @@ export default function ProfileView() {
       router.replace('/feed'); // Redirige al feed u otra ruta principal
     } else {
       router.back(); // Si no, vuelve a la página anterior normalmente
+    }
+  };
+
+  const fetchProfileImage = async (username: string) => {
+    try {
+      console.log("\n\nfetching", `profile_photos/${username}.png`)
+      const imageRef = await ref(storage, `profile_photos/${username}.png`);
+      console.log("imageRef", imageRef)
+      const url = await getDownloadURL(imageRef);
+      console.log("url", url)
+
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150';
+    }
+  };
+
+  const handleChangeProfilePhoto = async () => {
+    if (!isOwnProfile) {
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 4],
+        quality: 1,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const localFilePath = result.assets[0].uri;
+      
+      if (!profile.username) {
+        console.error('No logged in user or user email found');
+        return;
+      }
+
+      const storageRef = ref(storage, `profile_photos/${profile.username}.png`);
+      const response = await fetch(localFilePath);
+      const blob = await response.blob();
+
+      setLoadingImage(true);
+      const snapshot = await uploadBytes(storageRef, blob);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      setProfileImage(downloadURL);
+      const updatedSnaps = snaps.map(snap => {
+        return {
+          ...snap,
+          profileImage: downloadURL,
+        };
+      });
+      setSnaps(updatedSnaps);
+      setLoadingImage(false);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setLoadingImage(false);
+      Alert.alert('Error', 'There was an error uploading your profile image. Please try again.');
     }
   };
 
@@ -93,6 +162,11 @@ export default function ProfileView() {
 
         if (profileResponse.success) {
           setProfile(profileResponse.profile);
+          const profileImage = await fetchProfileImage(profileResponse.profile.username);
+          
+          setProfileImage(profileImage);
+
+          console.log("despues del profile image", profileImage);
 
           // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
           let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
@@ -155,7 +229,8 @@ export default function ProfileView() {
             // console.error('Error al obtener los seguidos:', followingResponse.message);
             setFollowingCount('X'); // Valor por defecto en caso de error
           }
-
+          
+          console.log("profileImage: ", profileImage);
           // 7. Procesar snaps si existen
           if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
             const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
@@ -170,6 +245,7 @@ export default function ProfileView() {
               likedByUser: likedSnapsIds.includes(snap._id),
               canViewLikes: true,
               favouritedByUser: favouriteSnapsIds.includes(snap._id),
+              profileImage: profileImage,
             }));
             setSnaps(processedSnaps);
           } else {
@@ -432,12 +508,16 @@ export default function ProfileView() {
         <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
       )}
 
-      <View style={styles.profilePictureContainer}>
-        <Image
-          source={{ uri: profile.profile_picture || 'https://via.placeholder.com/150' }}
-          style={styles.profilePicture}
+    <View style={styles.profilePictureContainer}>
+      <Avatar
+          rounded
+          size="xlarge"
+          source={{ uri: profileImage }}
+          containerStyle={styles.profilePicture}
+          onPress={handleChangeProfilePhoto}
         />
-      </View>
+    </View>
+    
 
       <Text style={styles.name}>
         {profile.name} {profile.surname}

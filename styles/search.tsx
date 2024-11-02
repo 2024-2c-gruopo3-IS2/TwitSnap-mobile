@@ -1,6 +1,7 @@
 // styles/search.js
 
 import { StyleSheet } from 'react-native';
+import profile from './profile';
 
 const styles = StyleSheet.create({
   container: {
@@ -129,7 +130,23 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
   },
-  
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25, // Forma circular para la imagen de perfil
+    marginRight: 10,
+  },
+  profileImageOnFeed: {
+    width: 40, // Aumentar el tamaño de la imagen de perfil en el feed
+    height: 40,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  userInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 export default styles;

@@ -7,6 +7,8 @@ import styles from '../styles/followList';
 import { getFollowers } from '@/handlers/followHandler';
 import UserList from '@/components/userList'; // Asegúrate de que la ruta sea correcta
 import {AuthContext} from '@/context/authContext';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 interface User {
     id: string;
     username: string;
@@ -24,6 +26,20 @@ export default function Followers() {
 
     const displayUsername = user?.username === username ? user.username : username;
 
+    const fetchProfileImage = async (username: string) => {
+        try {
+          console.log("\n\nfetching", `profile_photos/${username}.png`)
+          const imageRef = ref(storage, `profile_photos/${username}.png`);
+          console.log("imageRef", imageRef)
+          const url = await getDownloadURL(imageRef);
+          console.log("url", url)
+    
+          return url;
+        } catch (error) {
+          return 'https://via.placeholder.com/150';
+        }
+      };
+
     useEffect(() => {
         const fetchFollowers = async () => {
             setIsLoading(true);
@@ -31,13 +47,15 @@ export default function Followers() {
                 const response = await getFollowers(username as string);
                 console.log('Response follow:', response);
                 if (response.success) {
-                    const followersUsers = (response.followers || []).map((user: any) => ({
-                        id: '',
-                        username: user,
-                        name: '',
-                        surname: '',
-                        profile_picture: '',
-                    }));
+                    const followersUsers = await Promise.all(
+                        (response.followers || []).map(async (user: any) => ({
+                            id: '',
+                            username: user,
+                            name: '',
+                            surname: '',
+                            profile_picture: await fetchProfileImage(user),
+                        }))
+                    );
                     console.log('Followers:', followersUsers);
                     setFollowers(followersUsers);
                 } else {
