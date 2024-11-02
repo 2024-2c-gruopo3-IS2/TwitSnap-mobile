@@ -41,11 +41,10 @@ export default function Followers() {
                     console.log('Followers:', followersUsers);
                     setFollowers(followersUsers);
                 } else {
-                    Alert.alert('Error', response.message || 'No se pudieron obtener los seguidores.');
+                    console.log('Error al obtener seguidores:', response.error);
                 }
             } catch (error) {
-                Alert.alert('Error', 'Ocurrió un error al obtener los seguidores.');
-                console.error('Error al obtener seguidores:', error);
+                console.log('Error al obtener seguidores:', error);
             }
             setIsLoading(false);
         };

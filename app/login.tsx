@@ -53,11 +53,9 @@ export default function LoginPage() {
         signInWithCredential(auth, credential)
           .then(async (userCredential) => {
             const token = await userCredential.user.getIdToken();
-            //await saveToken(token);
             router.replace('./feed');
           })
           .catch((error) => {
-            console.error('Error al iniciar sesión con Google:', error);
             Alert.alert('Error', 'Error al iniciar sesión con Google.');
           });
       }

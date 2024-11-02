@@ -39,11 +39,10 @@ export default function Following() {
                     }));
                     setFollowing(followedUsers);
                 } else {
-                    Alert.alert('Error', response.message || 'No se pudieron obtener los seguidos.');
+                    console.log('Error al obtener seguidos:', response.error);
                 }
             } catch (error) {
-                Alert.alert('Error', 'Ocurrió un error al obtener los seguidos.');
-                console.error('Error al obtener seguidos:', error);
+                    console.log('Error al obtener seguidos:', response.error);
             }
             setIsLoading(false);
         };
@@ -63,6 +62,7 @@ export default function Following() {
                 <BackButton />
                 <Text style={styles.headerTitle}>
                     @{displayUsername} <Text style={styles.subtitle}>Siguiendo a</Text>
+
                 </Text>
             </View>
             {isLoading ? (

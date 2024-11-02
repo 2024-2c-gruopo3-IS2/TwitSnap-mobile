@@ -189,6 +189,25 @@ useEffect(() => {
     }
   }
 
+    // Función para manejar SnapShare
+    const handleSnapShare = (snap: Snap) => {
+      const sharedSnap = {
+        ...snap,
+        id: `${snap.id}-shared-${Date.now()}`,
+        username: user.username, // Mostrará al usuario actual como el que comparte
+        isShared: true, // Marca como SnapShare
+        originalUsername: snap.username, // Nombre del autor original
+        time: new Date().toLocaleString(), // Actualiza el tiempo de SnapShare
+      };
+
+      setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]); // Agrega el SnapShare al inicio del feed
+      Toast.show({
+        type: 'success',
+        text1: 'SnapShare exitoso',
+        text2: 'El TwitSnap ha sido compartido en tu feed.',
+      });
+    };
+
   const renderItem = useCallback(
     ({ item }: { item: Snap }) => (
       <SnapItem 
@@ -212,14 +231,6 @@ useEffect(() => {
 
   return (
     <View style={styles.container}>
-      {/* Logo en el centro arriba */}
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('@/assets/images/twitsnap-logo.png')} 
-          style={styles.logo}
-        />
-      </View>
-
       {/* Lista de snaps */}
       {allSnaps.length > 0 ? (
         <FlatList
@@ -234,10 +245,6 @@ useEffect(() => {
           <Text style={styles.noResultsText}>No se encontraron snaps</Text>
         </View>      
       )}
-
-      {/* Footer con botón + */}
-      <Footer  />
-
       {/* Añadir Toast */}
       <Toast />
     </View>

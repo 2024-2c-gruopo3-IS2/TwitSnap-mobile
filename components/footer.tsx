@@ -4,24 +4,24 @@ import { Link, usePathname } from 'expo-router';
 import { MaterialIcons, Ionicons, FontAwesome, Entypo } from '@expo/vector-icons';
 import CreatePostModal from './createPostModal';
 import styles from '../styles/footer';
-import { usePostContext } from '../context/postContext'; // Importa el contexto
+import { usePostContext } from '../context/postContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Footer: React.FC = () => {
   const pathname = usePathname();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { addNewPost } = usePostContext(); // Obtén la función addNewPost del contexto
+  const { addNewPost } = usePostContext();
   const [currentUsername, setCurrentUsername] = useState('');
 
   return (
     <View style={styles.footer}>
       {/* Home Icon */}
-      <Link href="/feed" asChild>
+      <Link href="/tabs" asChild>
         <Pressable>
           <MaterialIcons
             name="home"
             size={30}
-            color={pathname === '/feed' ? '#808080' : '#FFFFFF'}
+            color={pathname === '/tabs' ? '#808080' : '#FFFFFF'}
           />
         </Pressable>
       </Link>

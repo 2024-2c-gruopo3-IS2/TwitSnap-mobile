@@ -52,5 +52,6 @@ export default StyleSheet.create({
     color: '#ccc',
     fontSize: 18,
     textAlign: 'center',
+    marginTop: -600,
   },
 });

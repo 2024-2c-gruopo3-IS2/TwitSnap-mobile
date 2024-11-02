@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     color: '#aaa',
   },
   signupLink: {
-    color: 'blue',
+    color: '#1DA1F2',
   },
   googleIcon: {
     width: 24,
@@ -120,9 +120,10 @@ const styles = StyleSheet.create({
   forgotPasswordContainer: {
     alignItems: 'center',
     marginBottom: 16,
+
   },
   forgotPasswordText: {
-    color: 'lightblue',
+    color: '#1DA1F2',
   },
 });
 

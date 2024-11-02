@@ -37,6 +37,7 @@ interface AuthContextProps {
   updateRegistrationState: (newState: Partial<RegistrationState>) => Promise<void>;
   clearRegistration: () => void;
   refreshUser: () => Promise<void>;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 export const AuthContext = createContext<AuthContextProps>({
@@ -212,6 +213,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         updateRegistrationState: updateRegistrationStateFunc,
         clearRegistration,
         refreshUser,
+        setIsAuthenticated,
       }}
     >
       {children}

@@ -33,7 +33,7 @@ export default StyleSheet.create({
     marginBottom: 5,
   },
   username: {
-    color: 'lightblue',
+    color: '#1DA1F2',
     fontSize: 16,
     fontWeight: 'bold',
   },

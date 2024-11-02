@@ -64,6 +64,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
+    mentionContainer: {
+      backgroundColor: '#333',
+      borderRadius: 8,
+      padding: 5,
+      maxHeight: 120,
+      marginTop: 10,
+    },
+    mentionItem: {
+      paddingVertical: 8,
+      paddingHorizontal: 10,
+    },
+    mentionText: {
+      color: '#1DA1F2',
+      fontSize: 16,
+    },
 });
 
 export default styles;

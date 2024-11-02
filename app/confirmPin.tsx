@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import styles from '../styles/confirmPin';
+import { AuthContext } from '@/context/authContext';
 
 export default function ConfirmPinPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function ConfirmPinPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [pin, setPin] = useState(originalPin); // Mantenemos un estado para el PIN actual
   const [isResending, setIsResending] = useState(false); // Estado para la simulación del envío del nuevo PIN
+  const {setIsAuthenticated} = useContext(AuthContext);
 
   const handleConfirmPin = async () => {
     if (!enteredPin) {
@@ -27,8 +29,9 @@ export default function ConfirmPinPage() {
 
       // Verificar el PIN ingresado
       if (enteredPin === pin) {
+          setIsAuthenticated(true);
         Alert.alert('Éxito', 'Tu cuenta ha sido confirmada exitosamente.');
-        router.replace('./feed');
+        router.replace('/tabs');
       } else {
         Alert.alert('Error', 'El PIN ingresado es incorrecto.');
       }

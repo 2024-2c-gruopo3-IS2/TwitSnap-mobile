@@ -18,7 +18,7 @@ export default StyleSheet.create({
   username: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: 'lightblue',
+    color: '#1DA1F2',
   },
   time: {
     color: '#aaa',
@@ -70,5 +70,8 @@ export default StyleSheet.create({
   },
   favouriteButton: {
     marginLeft: 200,
+  },
+  shareButton: {
+    marginLeft: 10,
   },
 });

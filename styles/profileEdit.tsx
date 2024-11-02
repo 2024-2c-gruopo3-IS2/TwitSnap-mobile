@@ -36,7 +36,7 @@ export default StyleSheet.create({
         backgroundColor: '#333',
         paddingHorizontal: 15,
         paddingVertical: 10,
-        borderRadius: 10,
+        borderRadius: 15,
         marginBottom: 15,
         fontSize: 16,
         color: '#fff',
@@ -49,7 +49,7 @@ export default StyleSheet.create({
     submitButton: {
         backgroundColor: '#1DA1F2',
         padding: 15,
-        borderRadius: 10,
+        borderRadius: 15,
         alignItems: 'center',
         marginTop: 10,
         width: '100%',
