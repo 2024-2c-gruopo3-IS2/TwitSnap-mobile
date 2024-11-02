@@ -88,6 +88,7 @@ export default StyleSheet.create({
         marginHorizontal: 5,  // Espacio uniforme entre botones
         justifyContent: 'center',
         minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
+        flex: 1,
     },
     favouriteSnapsButtonText: {
         color: '#fff',
@@ -186,9 +187,10 @@ export default StyleSheet.create({
     },
     profileActionsContainer: {
         flexDirection: 'row',
-        justifyContent: 'center', // Centrar los botones en la fila
+        justifyContent: 'space-evenly', // Centrar los botones en la fila
         alignItems: 'center',
         marginTop: 20,
+        width: '100%',
     },
     logoutButton: {
         flexDirection: 'row',
@@ -200,6 +202,7 @@ export default StyleSheet.create({
         marginHorizontal: 5,  // Espacio uniforme entre botones
         justifyContent: 'center',
         minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
+        flex:1,
     },
     logoutButtonText: {
         color: '#fff',
@@ -238,6 +241,7 @@ export default StyleSheet.create({
         marginHorizontal: 5,  // Espacio uniforme entre botones
         justifyContent: 'center',
         minWidth: 90,  // Fijar un tamaño mínimo para uniformidad
+        flex: 1,
     },
     editProfileButtonText: {
         color: '#fff',

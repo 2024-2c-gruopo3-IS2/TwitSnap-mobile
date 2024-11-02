@@ -13,8 +13,8 @@ export default StyleSheet.create({
     marginBottom: 8,
   },
   profileImageOnFeed: {
-    width: 45,
-    height: 45,
+    width: 35,
+    height: 35,
     borderRadius: 22.5,
     marginRight: 10,
   },
@@ -25,7 +25,7 @@ export default StyleSheet.create({
   username: {
     fontWeight: 'bold',
     fontSize: 15,
-    color: 'white',
+    color: '#1DA1F2',
   },
   time: {
     color: '#888',
@@ -79,6 +79,13 @@ export default StyleSheet.create({
   },
   favouriteButton: {
     marginRight: 4,
+  },
+  snapShareContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+  },
+  snapShareButton: {
+      marginLeft:10,
   },
   icon: {
     color: '#1DA1F2',

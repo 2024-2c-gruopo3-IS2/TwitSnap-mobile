@@ -23,9 +23,10 @@ interface SnapItemProps {
   snap: Snap;
   onLike: (id: string) => void;
   onFavourite: (id: string) => void;
-  onEdit?: (snap: Snap) => void;    // Función opcional para editar
-  onDelete?: (id: string) => void;  // Función opcional para eliminar
-  isOwnProfile?: boolean;           // Bandera para indicar si es el perfil propio
+  onEdit?: (snap: Snap) => void;
+  onDelete?: (id: string) => void;
+   onSnapShare: (snap: Snap) => void;
+  isOwnProfile?: boolean;
   likeIconColor: string;
   favouriteIconColor: string;
 }
@@ -85,7 +86,15 @@ const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, 
           </Pressable>
           {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
         </View>
+        {/* Botón de SnapShare */}
+        <View style={styles.snapShareContainer}>
+          <Pressable onPress={() => onSnapShare(snap)} style={styles.snapShareButton}>
+            <Icon name="repeat" size={24} color="gray" />
+          </Pressable>
+        </View>
+
       </View>
+
     </View>
   );
 };

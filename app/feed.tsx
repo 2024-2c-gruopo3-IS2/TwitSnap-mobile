@@ -36,6 +36,8 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
+  isShared?: boolean;
+  originalUsername?: string;
 }
 
 interface Post {
