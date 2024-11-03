@@ -14,7 +14,7 @@ function MainTabs() {
       {/* Logo en la parte superior */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('@/assets/images/twitsnap-logo.png')}
+          source={require('@/assets/images/twitsnap_logo.png')}
           style={styles.logo}
         />
       </View>

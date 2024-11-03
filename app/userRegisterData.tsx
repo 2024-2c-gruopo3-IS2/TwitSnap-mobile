@@ -127,7 +127,7 @@ export default function UserDataPage() {
 
           {/* Logo */}
           <Image
-            source={require('@/assets/images/twitsnap-logo.png')}
+            source={require('@/assets/images/twitsnap_logo.png')}
             style={styles.logo}
           />
 

@@ -142,14 +142,13 @@ export default function SignUpPage() {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
+        <Image source={require('../assets/images/twitsnap_logo.png')} style={styles.logoContainer} />
       </View>
 
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
         <Pressable style={styles.googleButton} onPress={signUpWithGoogle}>
-          <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Registrarse con Google</Text>
         </Pressable>
 

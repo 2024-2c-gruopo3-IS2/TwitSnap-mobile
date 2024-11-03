@@ -1,7 +1,7 @@
 // handlers/postHandler.tsx
 
 import { getToken } from './authTokenHandler';
-
+import {Promise} from 'firebase/auth';
 interface Snap {
     id: string;
     username: string;

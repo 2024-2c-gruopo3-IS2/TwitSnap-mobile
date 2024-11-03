@@ -87,14 +87,13 @@ export default function LoginPage() {
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <Image source={require('../assets/images/twitsnap-logo.png')} style={styles.logoContainer} />
+        <Image source={require('../assets/images/twitsnap_logo.png')} style={styles.logoContainer} />
       </View>
 
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
         <Pressable style={styles.googleButton} onPress={signInWithGoogle}>
-          <Image source={require('../assets/images/google-logo.png')} style={styles.googleIcon} />
           <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
         </Pressable>
 

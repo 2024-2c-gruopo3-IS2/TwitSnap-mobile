@@ -4,11 +4,11 @@
     "slug": "tutorial",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/twitsnap-logo.png",
+    "icon": "./assets/images/twitsnap_logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/fiuba_sticker.jpg",
+      "image": "./assets/images/twitsnap_logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/fiuba_sticker.jpg",
+        "foregroundImage": "./assets/images/twitsnap_logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.franciscoduc4.tutorial"
