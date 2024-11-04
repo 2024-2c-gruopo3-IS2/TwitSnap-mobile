@@ -1,4 +1,3 @@
-// ProfileView.tsx
 import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
@@ -10,6 +9,7 @@ import {
   FlatList,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import MessageIcon from 'react-native-vector-icons/FontAwesome';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
 import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
@@ -147,6 +147,10 @@ export default function ProfileView() {
       setLoadingImage(false);
       Alert.alert('Error', 'There was an error uploading your profile image. Please try again.');
     }
+  };
+
+  const handleStartChat = (username: string) => {
+    Alert.alert(`Iniciar chat con ${username}`);
   };
 
   useEffect(() => {
@@ -551,9 +555,11 @@ export default function ProfileView() {
           <Text style={styles.followNumber}>{followingCount}</Text>
           <Text style={styles.followLabel}>Seguidos</Text>
         </Pressable>
+    
       </View>
 
       {!isOwnProfile && (
+      <View style={styles.actionContainer}> 
         <Pressable
           style={[
             styles.followButton,
@@ -570,7 +576,13 @@ export default function ProfileView() {
             </Text>
           )}
         </Pressable>
-      )}
+        
+        <Pressable style={styles.chatButton} onPress={() => handleStartChat(profile?.username)}>
+          <MessageIcon name="comment" size={20} color="#fff" />
+        </Pressable>
+      </View>
+    )}
+
 
       {isOwnProfile && (
         <View style={styles.profileActionsContainer}>

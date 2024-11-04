@@ -288,5 +288,29 @@ export default StyleSheet.create({
         zIndex: 10, // Asegura que el accesorio esté al frente de todo
     },
 
+    chatButton: {
+        backgroundColor: '#1DA1F2',
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 50,
+        maxWidth: 50,
+        minHeight: 50,
+        maxHeight: 50,
+        marginHorizontal:30,
+      },
+
+    chatButtonText: {
+        color: '#fff',
+        fontSize: 16,
+    },
+
+    actionContainer: {
+        flexDirection: 'row', // Organiza los botones en una fila
+        alignItems: 'center', // Alinea los botones verticalmente en el centro
+        justifyContent: 'center', // Centra los botones horizontalmente
+        marginTop: 20, // Espacio superior para el contenedor
+      },
+      
     
 });
