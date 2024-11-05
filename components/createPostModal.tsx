@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import styles from '../styles/createPostModal';
-import { getFollowers } from '@/handlers/followHandler'; // Importa el endpoint de seguidores
+import { getAllUsers } from '@/handlers/profileHandler'; // Importa el endpoint de seguidores
 import { AuthContext } from '@/context/authContext';
 
 interface Post {
@@ -37,31 +37,31 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 }) => {
   const [postContent, setPostContent] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
-  const [followers, setFollowers] = useState([]);
-  const [filteredFollowers, setFilteredFollowers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [showMentions, setShowMentions] = useState(false);
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
     if (isVisible && user) {
-      const fetchFollowers = async () => {
+      const fetchUsers = async () => {
         try {
-          const response = await getFollowers(user.username);
-          if (response.success && response.followers) {
-            const formattedFollowers = response.followers.map(f => ({
+          const response = await getAllUsers();
+          if (response.success && response.users) {
+            const formattedUsers = response.users.map(f => ({
               id: f.id || f.username || Math.random().toString(), // Valor seguro para `id`
               username: f.username || f,
             }));
-            setFollowers(formattedFollowers);
+            setUsers(formattedUsers);
           } else {
-            console.error('Error al obtener los seguidores:', response.message);
+            console.error('Error al obtener los users:', response.message);
           }
         } catch (error) {
-          console.error('Error en la llamada a getFollowers:', error);
+          console.error('Error en la llamada a getAllUsers:', error);
         }
       };
 
-      fetchFollowers();
+      fetchUsers();
     }
   }, [isVisible, user]);
 
@@ -72,11 +72,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     if (mentionTriggerIndex >= 0) {
       const mentionText = text.slice(mentionTriggerIndex + 1).toLowerCase();
 
-      const filtered = followers.filter(follower =>
-        follower.username && follower.username.toLowerCase().includes(mentionText)
+      const filtered = users.filter(user =>
+        user.username && user.username.toLowerCase().includes(mentionText)
       );
 
-      setFilteredFollowers(filtered);
+      setFilteredUsers(filtered);
       setShowMentions(filtered.length > 0);
     } else {
       setShowMentions(false);
@@ -135,9 +135,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
           {/* Sugerencias de menciones */}
           {showMentions && (
             <View style={styles.mentionContainer}>
-              {filteredFollowers.length > 0 ? (
+              {filteredUsers.length > 0 ? (
                 <FlatList
-                  data={filteredFollowers}
+                  data={filteredUsers}
                   keyExtractor={(item) => item.id.toString()} // Usa el id seguro
                   renderItem={({ item }) => (
                     <TouchableOpacity

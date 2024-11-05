@@ -27,6 +27,10 @@ export default StyleSheet.create({
     fontSize: 15,
     color: '#1DA1F2',
   },
+  mentionText: {
+      color: '#1DA1F2',
+      fontWeight: 'bold',
+  },
   time: {
     color: '#888',
     fontSize: 13,

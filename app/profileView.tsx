@@ -37,7 +37,7 @@ import {AuthContext} from '@/context/authContext';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../firebaseConfig';
-import {shareSnap} from '@/handlers/postHandler';
+import {shareSnap, getSharedSnaps} from '@/handlers/postHandler';
 
 interface Snap {
   id: string;
@@ -51,6 +51,7 @@ interface Snap {
   favouritedByUser: boolean;
   profileImage: string;
   retweetUser: string; //si esta vacio es un tweet normal, sino es un retweet
+  isShared: boolean;
 }
 
 export default function ProfileView() {
@@ -91,17 +92,31 @@ export default function ProfileView() {
 
   const fetchProfileImage = async (username: string) => {
     try {
-      console.log("\n\nfetching", `profile_photos/${username}.png`)
       const imageRef = await ref(storage, `profile_photos/${username}.png`);
-      console.log("imageRef", imageRef)
       const url = await getDownloadURL(imageRef);
-      console.log("url", url)
 
       return url;
     } catch (error) {
       return 'https://via.placeholder.com/150';
     }
   };
+
+    // Función para obtener los snaps compartidos por el usuario
+    const fetchSharedSnaps = async () => {
+      const response = await getSharedSnaps();
+      if (response.success && response.snaps) {
+        // Extraer los IDs de los snaps compartidos
+        const sharedSnapIds = new Set(response.snaps.map((snap) => snap.id));
+
+        // Actualizar el estado de los snaps para marcar los compartidos
+        setSnaps((prevSnaps) =>
+          prevSnaps.map((snap) => ({
+            ...snap,
+            isShared: sharedSnapIds.has(snap.id),
+          }))
+        );
+      }
+    };
 
   const handleChangeProfilePhoto = async () => {
     if (!isOwnProfile) {
@@ -190,14 +205,17 @@ export default function ProfileView() {
             console.log("followingPromise: ", followingPromise);
 
           // 4. Ejecutar todas las promesas en paralelo
-          const [isFollowingResult, followersResponse, followingResponse, snapResponse, likesResponse, favouriteResponse] = await Promise.all([
+          const [isFollowingResult, followersResponse, followingResponse, snapResponse, likesResponse, favouriteResponse, sharedResponse] = await Promise.all([
             isFollowingPromise,
             followersPromise,
             followingPromise,
             getSnapsByUsername(profileResponse.profile.username),
             getLikedSnaps(),
             getFavouriteSnaps(),
+            getSharedSnaps(),
           ]);
+            // Verificar si la respuesta de los snaps compartidos es exitosa y obtener los IDs de los snaps compartidos
+            const sharedSnapIds = sharedResponse.success ? new Set(sharedResponse.snaps?.map((snap) => snap.id)) : new Set();
 
             console.log("followers: ", followersResponse);
             console.log("following: ", followingResponse);
@@ -258,6 +276,7 @@ export default function ProfileView() {
                   favouritedByUser: favouriteSnapsIds.includes(snap._id),
                   profileImage: authorProfileImage,
                   retweetUser: snap.retweetUser || "",
+                  isShared: sharedSnapIds.has(snap._id),
                 };
               })
             );
@@ -505,6 +524,47 @@ export default function ProfileView() {
     }
   }
 
+    // Función para manejar la compartición/descompartición de un snap
+    const handleToggleShare = async (snap: Snap) => {
+      if (snap.isShared) {
+        // Descompartir el snap
+        const result = await unshareSnap(snap.id);
+        if (result.success) {
+          setSnaps(prevSnaps =>
+            prevSnaps.map(s => (s.id === snap.id ? { ...s, isShared: false } : s))
+          );
+          Toast.show({
+            type: 'success',
+            text1: 'Snap descompartido exitosamente.',
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: result.message || 'No se pudo descompartir el snap.',
+          });
+        }
+      } else {
+        // Compartir el snap
+        const result = await shareSnap(snap.id);
+        if (result.success) {
+          setSnaps(prevSnaps =>
+            prevSnaps.map(s => (s.id === snap.id ? { ...s, isShared: true } : s))
+          );
+          Toast.show({
+            type: 'success',
+            text1: 'Snap compartido exitosamente.',
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: result.message || 'No se pudo compartir el snap.',
+          });
+        }
+      }
+    };
+
   // Función para compartir el Snap (Retweet)
   const onSnapShare = async (snap: Snap) => {
     try {
@@ -653,7 +713,7 @@ export default function ProfileView() {
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
-        onSnapShare={onSnapShare}
+        onSnapShare={() => handleToggleShare(item)}
         isOwnProfile={isOwnProfile}
         likeIconColor={item.likedByUser ? 'red' : 'gray'}
         favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}

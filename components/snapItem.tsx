@@ -1,8 +1,7 @@
-// snapItem.tsx
+// SnapItem.tsx
 
 import React from 'react';
-import { View, Text, Pressable, Image } from 'react-native';
-import {useState} from 'react';
+import { View, Text, Pressable, Image, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
@@ -19,30 +18,64 @@ interface Snap {
   favouritedByUser: boolean;
   profileImage: string;
   retweetUser: string;
+  isShared: boolean;
+  mentions?: string[];
 }
 
 interface SnapItemProps {
   snap: Snap;
-  onLike: (id: string) => void;
-  onFavourite: (id: string) => void;
+  onLike: () => void;
+  onFavourite: () => void;
   onEdit?: (snap: Snap) => void;
   onDelete?: (id: string) => void;
-   onSnapShare: (snap: Snap) => void;
+  onSnapShare: () => void;
   isOwnProfile?: boolean;
   likeIconColor: string;
   favouriteIconColor: string;
 }
 
-const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, onSnapShare, isOwnProfile }) => {
+const SnapItem: React.FC<SnapItemProps> = ({
+  snap,
+  onLike,
+  onFavourite,
+  onEdit,
+  onDelete,
+  onSnapShare,
+  isOwnProfile,
+  likeIconColor,
+  favouriteIconColor,
+}) => {
   const router = useRouter();
-  const [isShared, setIsShared] = useState(!!snap.retweetUser);
 
-  const handleSnapShare = (snap: Snap) => {
-      onSnapShare(snap);
-        setIsShared(true);
-    };
+  // Función para renderizar el mensaje con menciones resaltadas y presionables
+  const renderMessage = (message: string) => {
+    const parts = message.split(/(@\w+)/g);
 
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        const username = part.slice(1);
 
+        return (
+          <Text
+            key={index}
+            style={styles.mentionText}
+            onPress={() => router.push(`/profileView?username=${username}`)}
+          >
+            {part}
+          </Text>
+        );
+      } else {
+        return <Text key={index}>{part}</Text>;
+      }
+    });
+  };
+
+  // Función para renderizar el nombre de usuario del autor presionable
+  const renderUsername = () => (
+    <Pressable onPress={() => router.push(`/profileView?username=${snap.username}`)}>
+      <Text style={styles.username}>@{snap.username}</Text>
+    </Pressable>
+  );
 
   return (
     <View style={styles.snapContainer}>
@@ -58,11 +91,11 @@ const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, 
           source={{ uri: snap.profileImage }}
           style={styles.profileImageOnFeed}
         />
-        <Text style={styles.username}>@{snap.username}</Text>
+        {renderUsername()}
       </View>
 
-      {/* Contenido del Snap */}
-      <Text style={styles.content}>{snap.message}</Text>
+      {/* Contenido del Snap con Menciones Resaltadas */}
+      <Text style={styles.content}>{renderMessage(snap.message)}</Text>
 
       {/* Botones de Acción: Editar y Eliminar en la parte superior derecha */}
       {isOwnProfile && (
@@ -76,35 +109,35 @@ const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, 
         </View>
       )}
 
-      {/* Botones de "Favorito" y "Me Gusta" */}
+      {/* Botones de "Favorito", "Me Gusta" y "Compartir" */}
       <View style={styles.actionContainer}>
-        {/* Botón de "Favorito" centrado */}
+        {/* Botón de "Favorito" */}
         <View style={styles.favouriteContainer}>
-          <Pressable onPress={() => onFavourite(snap.id)} style={styles.favouriteButton}>
+          <Pressable onPress={onFavourite} style={styles.favouriteButton}>
             <Icon
               name={snap.favouritedByUser ? 'bookmark' : 'bookmark-border'}
               size={24}
-              color={snap.favouritedByUser ? 'gold' : 'gray'}  // Dorado para favoritos
+              color={favouriteIconColor}
             />
           </Pressable>
         </View>
 
-        {/* Botón de "Me Gusta" alineado a la derecha */}
+        {/* Botón de "Me Gusta" */}
         <View style={styles.likeContainer}>
-          <Pressable onPress={() => onLike(snap.id)} style={styles.likeButton}>
+          <Pressable onPress={onLike} style={styles.likeButton}>
             <Icon
               name={snap.likedByUser ? 'favorite' : 'favorite-border'}
               size={24}
-              color={snap.likedByUser ? 'red' : 'gray'}
+              color={likeIconColor}
             />
           </Pressable>
           {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
         </View>
 
-        {/* Botón de SnapShare */}
+        {/* Botón de "Compartir" */}
         <View style={styles.snapShareContainer}>
-          <Pressable onPress={handleSnapShare} style={styles.snapShareButton}>
-            <Icon name="repeat" size={24} color={isShared ? 'green' : 'gray'} />
+          <Pressable onPress={onSnapShare} style={styles.snapShareButton}>
+            <Icon name="repeat" size={24} color={snap.isShared ? 'green' : 'gray'} />
           </Pressable>
         </View>
       </View>
