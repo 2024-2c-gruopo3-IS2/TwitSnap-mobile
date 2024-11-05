@@ -101,23 +101,6 @@ export default function ProfileView() {
     }
   };
 
-    // Función para obtener los snaps compartidos por el usuario
-    const fetchSharedSnaps = async () => {
-      const response = await getSharedSnaps();
-      if (response.success && response.snaps) {
-        // Extraer los IDs de los snaps compartidos
-        const sharedSnapIds = new Set(response.snaps.map((snap) => snap.id));
-
-        // Actualizar el estado de los snaps para marcar los compartidos
-        setSnaps((prevSnaps) =>
-          prevSnaps.map((snap) => ({
-            ...snap,
-            isShared: sharedSnapIds.has(snap.id),
-          }))
-        );
-      }
-    };
-
   const handleChangeProfilePhoto = async () => {
     if (!isOwnProfile) {
       return;
@@ -215,7 +198,6 @@ export default function ProfileView() {
             getSharedSnaps(),
           ]);
             // Verificar si la respuesta de los snaps compartidos es exitosa y obtener los IDs de los snaps compartidos
-            const sharedSnapIds = sharedResponse.success ? new Set(sharedResponse.snaps?.map((snap) => snap.id)) : new Set();
 
             console.log("followers: ", followersResponse);
             console.log("following: ", followingResponse);
@@ -252,7 +234,8 @@ export default function ProfileView() {
           if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
             const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
             const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
-            // Modificar cada snap para agregar información del autor y del retweet
+            const sharedSnapsIds = sharedResponse.snaps?.map(sharedSnap => sharedSnap.id) || [];
+
             const processedSnaps: Snap[] = await Promise.all(
               snapResponse.snaps.map(async (snap: any) => {
                   let originalUsername = snap.username;
@@ -274,9 +257,9 @@ export default function ProfileView() {
                   likedByUser: likedSnapsIds.includes(snap._id),
                   canViewLikes: true,
                   favouritedByUser: favouriteSnapsIds.includes(snap._id),
+                  isShared: sharedSnapsIds.includes(snap._id),
                   profileImage: authorProfileImage,
                   retweetUser: snap.retweetUser || "",
-                  isShared: sharedSnapIds.has(snap._id),
                 };
               })
             );

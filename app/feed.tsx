@@ -24,7 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '@/context/authContext';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
-import { shareSnap } from '@/handlers/postHandler';
+import { shareSna, getSharedSnaps } from '@/handlers/postHandler';
 
 interface Snap {
   id: string; 
@@ -77,14 +77,16 @@ useEffect(() => {
 
     try {
       // Ejecutar las tres llamadas a la API en paralelo
-      const [response, favouriteResponse, likesResponse] = await Promise.all([
+      const [response, favouriteResponse, likesResponse, sharedResponse] = await Promise.all([
         getFeedSnaps(),
         getFavouriteSnaps(),
         getLikedSnaps(),
+        getSharedSnaps(),
       ]);
 
       const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
       const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
+      const sharedSnapIds = sharedResponse.snaps?.map(sharedSnap => sharedSnap.id) || [];
 
       if (response.success && response.snaps && response.snaps.length > 0) {
         const fetchedSnaps: Snap[] = await Promise.all(response.snaps.map(async (snap: any) => ({
@@ -97,6 +99,7 @@ useEffect(() => {
           likedByUser: likedSnapIds.includes(snap._id),
           canViewLikes: true,
           favouritedByUser: favouriteSnapIds.includes(snap._id),
+          isShared: sharedSnapIds.includes(snap._id),
           profileImage: await fetchProfileImage(snap.username),
         })));
         setSnaps(fetchedSnaps);
