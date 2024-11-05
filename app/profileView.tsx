@@ -37,6 +37,7 @@ import {AuthContext} from '@/context/authContext';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../firebaseConfig';
+import {shareSnap} from '@/handlers/postHandler';
 
 interface Snap {
   id: string;
@@ -49,6 +50,7 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
+  retweetUser: string; //si esta vacio es un tweet normal, sino es un retweet
 }
 
 export default function ProfileView() {
@@ -166,8 +168,6 @@ export default function ProfileView() {
           
           setProfileImage(profileImage);
 
-          console.log("despues del profile image", profileImage);
-
           // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
           let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
           if (!isOwnProfile) {
@@ -230,23 +230,37 @@ export default function ProfileView() {
             setFollowingCount('X'); // Valor por defecto en caso de error
           }
           
-          console.log("profileImage: ", profileImage);
           // 7. Procesar snaps si existen
           if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
             const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
             const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
-            const processedSnaps: Snap[] = snapResponse.snaps.map((snap: any) => ({
-              id: snap._id,
-              username: snap.username,
-              time: snap.time,
-              message: snap.message,
-              isPrivate: snap.isPrivate === 'true',
-              likes: snap.likes || 0,
-              likedByUser: likedSnapsIds.includes(snap._id),
-              canViewLikes: true,
-              favouritedByUser: favouriteSnapsIds.includes(snap._id),
-              profileImage: profileImage,
-            }));
+            // Modificar cada snap para agregar información del autor y del retweet
+            const processedSnaps: Snap[] = await Promise.all(
+              snapResponse.snaps.map(async (snap: any) => {
+                  let originalUsername = snap.username;
+                let authorProfileImage = await fetchProfileImage(snap.username);
+
+                // Si el snap es un retweet, obtener el perfil original
+                if (snap.retweetUser) {
+                  originalUsername = snap.username;
+                  authorProfileImage = await fetchProfileImage(snap.username);
+                }
+
+                return {
+                  id: snap._id,
+                  username: originalUsername,
+                  time: snap.time,
+                  message: snap.message,
+                  isPrivate: snap.isPrivate === 'true',
+                  likes: snap.likes || 0,
+                  likedByUser: likedSnapsIds.includes(snap._id),
+                  canViewLikes: true,
+                  favouritedByUser: favouriteSnapsIds.includes(snap._id),
+                  profileImage: authorProfileImage,
+                  retweetUser: snap.retweetUser || "",
+                };
+              })
+            );
             setSnaps(processedSnaps);
           } else {
             setSnaps([]); // Manejar caso sin snaps
@@ -491,6 +505,43 @@ export default function ProfileView() {
     }
   }
 
+  // Función para compartir el Snap (Retweet)
+  const onSnapShare = async (snap: Snap) => {
+    try {
+      const result = await shareSnap(snap.id); // Llama al endpoint con el ID del snap
+
+      if (result.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Snap compartido',
+          text2: 'El snap ha sido compartido exitosamente.',
+        });
+
+        // Opcional: Puedes actualizar la lista de snaps para reflejar el retweet
+        setSnaps((prevSnaps) => [
+          { ...snap, retweetUser: profile.username }, // Agrega el retweet en la lista local
+          ...prevSnaps,
+        ]);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error al compartir',
+          text2: result.message || 'Hubo un problema al compartir el snap.',
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Ocurrió un error al intentar compartir el snap.',
+      });
+    }
+  };
+
+
+
+
+
   // Función para renderizar el encabezado de la lista
   const renderHeader = () => (
     <View>
@@ -602,6 +653,7 @@ export default function ProfileView() {
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
+        onSnapShare={onSnapShare}
         isOwnProfile={isOwnProfile}
         likeIconColor={item.likedByUser ? 'red' : 'gray'}
         favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}

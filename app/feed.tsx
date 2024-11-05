@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '@/context/authContext';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
+import { shareSnap } from '@/handlers/postHandler';
 
 interface Snap {
   id: string; 
@@ -36,6 +37,7 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
+  retweetUsername: string; //si esta vacio es un tweet normal, sino es un retweet
   isShared?: boolean;
   originalUsername?: string;
 }
@@ -209,24 +211,42 @@ useEffect(() => {
     }
   }
 
-    // Función para manejar SnapShare
-    const handleSnapShare = (snap: Snap) => {
-      const sharedSnap = {
-        ...snap,
-        id: `${snap.id}-shared-${Date.now()}`,
-        username: user.username, // Mostrará al usuario actual como el que comparte
-        isShared: true, // Marca como SnapShare
-        originalUsername: snap.username, // Nombre del autor original
-        time: new Date().toLocaleString(), // Actualiza el tiempo de SnapShare
-      };
 
-      setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]); // Agrega el SnapShare al inicio del feed
+  // Función para manejar SnapShare
+  const handleSnapShare = async (snap: Snap) => {
+    try {
+      const result = await shareSnap(snap.id); // Llama al endpoint para compartir el snap
+
+      if (result.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'SnapShare exitoso',
+          text2: 'El TwitSnap ha sido compartido en tu feed.',
+        });
+        const sharedSnap = {
+          ...snap,
+          id: `${snap.id}-shared-${Date.now()}`,
+          username: user.username,
+          isShared: true,
+          originalUsername: snap.username,
+          time: new Date().toLocaleString(),
+        };
+        setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error al compartir',
+          text2: result.message || 'Hubo un problema al compartir el snap.',
+        });
+      }
+    } catch (error) {
       Toast.show({
-        type: 'success',
-        text1: 'SnapShare exitoso',
-        text2: 'El TwitSnap ha sido compartido en tu feed.',
+        type: 'error',
+        text1: 'Error',
+        text2: 'Ocurrió un error al intentar compartir el snap.',
       });
-    };
+    }
+  };
 
   const renderItem = useCallback(
     ({ item }: { item: Snap }) => (
@@ -234,6 +254,7 @@ useEffect(() => {
         snap={item} 
         onLike={() => handleLike(item.id, item.likedByUser)} 
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+        onSnapShare={() => handleSnapShare(item)}
         likeIconColor={item.likedByUser ? 'red' : 'gray'}
         favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
       />

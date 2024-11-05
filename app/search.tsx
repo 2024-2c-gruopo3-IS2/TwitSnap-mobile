@@ -26,6 +26,7 @@ import SnapItem from '../components/snapItem';
 import { AuthContext } from '@/context/authContext';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
+import {shareSnap} from '@/handlers/postHandler';
 
 interface User{
   username: string;
@@ -380,6 +381,30 @@ const handleFavourite = async (id: string, favouritedByUser: boolean) => {
   }
 };
 
+  // Función para manejar SnapShare
+  const handleSnapShare = async (snap: Snap) => {
+    try {
+      const result = await shareSnap(snap.id); // Llama al endpoint para compartir el snap
+
+      if (result.success) {
+        console.log('Snap compartido:', result.message);
+        const sharedSnap = {
+          ...snap,
+          id: `${snap.id}-shared-${Date.now()}`,
+          username: user.username,
+          isShared: true,
+          originalUsername: snap.username,
+          time: new Date().toLocaleString(),
+        };
+        setTwitSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+      } else {
+          console.log('Error al compartir snap:', result.error);
+      }
+    } catch (error) {
+        console.error('Error al compartir snap:', error);
+    }
+  };
+
 
   const renderUserItem = ({ item }: { item: User }) => (
     <Pressable
@@ -408,6 +433,7 @@ const handleFavourite = async (id: string, favouritedByUser: boolean) => {
         snap={item}
         onLike={() => handleLike(item.id, item.likedByUser)}
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
+        onSnapShare={() => handleSnapShare(item)}
         isOwnProfile={false}
         likeIconColor={item.likedByUser ? 'red' : 'gray'}
         favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}

@@ -636,3 +636,70 @@ export async function getSnapById(snapId: string): Promise<{ success: boolean; s
         return { success: false, message: 'Error al conectar con el servidor.' };
     }
  }
+
+ /**
+  Obtiene los trending topics actuales. @snap_router.get("/trending-topics/", summary="Get trending hashtags")
+
+  */
+export async function getTrendingTopics(): Promise<{ success: boolean; topics?: string[]; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const trending_topics_url = `${API_URL}/snaps/trending-topics/`;
+
+    try {
+        const response = await fetch(trending_topics_url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            return { success: true, topics: data.data };
+        } else {
+            return { success: false, message: data.detail || 'Error al obtener los trending topics.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+ Realiza un snap share. URL @snap_router.post("/snap-share", summary="Retweet a snap")
+  */
+export async function shareSnap(snapId: string): Promise<{ success: boolean; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+    const share_url = `${API_URL}/snaps/snap-share?snap_id=${encodeURIComponent(snapId)}`;
+
+    try {
+        const response = await fetch(share_url, {
+            method: 'POST',
+            headers: {
+                'token': `${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Snap compartido exitosamente');
+            return { success: true, message: 'Snap compartido exitosamente' };
+        } else {
+            console.log('Error al compartir el snap:', data);
+            return { success: false, message: data.detail || 'Error al compartir el snap.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}

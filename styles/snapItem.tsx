@@ -90,4 +90,9 @@ export default StyleSheet.create({
   icon: {
     color: '#1DA1F2',
   },
+retweetText: {
+  fontSize: 14,
+  color: 'white',
+  marginBottom: 4,
+},
 });

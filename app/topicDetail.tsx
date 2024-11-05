@@ -1,25 +1,60 @@
-// app/topicDetail.tsx
-
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import BackButton from '../components/backButton';
+import { searchSnapsByHashtag } from '@/handlers/postHandler';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../firebaseConfig';
 
 export default function TopicDetail() {
   const { topic } = useLocalSearchParams(); // Obtener el tema desde los parámetros de la URL
+  const [snaps, setSnaps] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // Datos ficticios de publicaciones relacionadas con el tema seleccionado
-  const relatedPosts = [
-    { id: '1', username: '@user1', content: `Discusión sobre ${topic} #1` },
-    { id: '2', username: '@user2', content: `Ideas innovadoras en ${topic}` },
-    { id: '3', username: '@user3', content: `Análisis profundo de ${topic}` },
-    // Agrega más publicaciones aquí si es necesario
-  ];
+  // Función para obtener la imagen de perfil de un usuario
+  const fetchProfileImage = async (username) => {
+    try {
+      const imageRef = ref(storage, `profile_photos/${username}.png`);
+      const url = await getDownloadURL(imageRef);
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150'; // Imagen de placeholder en caso de error
+    }
+  };
+
+  useEffect(() => {
+    const fetchSnaps = async () => {
+      setIsLoading(true);
+      const response = await searchSnapsByHashtag(topic);
+
+      if (response.success && response.snaps) {
+        // Obtener la URL de la imagen de perfil para cada snap
+        const snapsWithProfileImages = await Promise.all(
+          response.snaps.map(async (snap) => {
+            const profileImage = await fetchProfileImage(snap.username);
+            return { ...snap, profileImage };
+          })
+        );
+
+        setSnaps(snapsWithProfileImages);
+      } else {
+        setErrorMessage(response.message || `No se pudieron cargar los snaps para el hashtag #${topic}.`);
+      }
+      setIsLoading(false);
+    };
+
+    fetchSnaps();
+  }, [topic]);
 
   const renderItem = ({ item }) => (
     <View style={styles.postItem}>
-      <Text style={styles.username}>{item.username}</Text>
-      <Text style={styles.content}>{item.content}</Text>
+      {/* Imagen de perfil */}
+      <Image source={{ uri: item.profileImage }} style={styles.profileImage} />
+      <View style={styles.textContainer}>
+        <Text style={styles.username}>@{item.username}</Text>
+        <Text style={styles.content}>{item.message}</Text>
+      </View>
     </View>
   );
 
@@ -31,13 +66,21 @@ export default function TopicDetail() {
           <Text style={styles.whiteText}>Trending Topic </Text>
           <Text style={styles.blueText}>{topic}</Text>
         </Text>
-        </View>
+      </View>
 
-      <FlatList
-        data={relatedPosts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-      />
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#1DA1F2" />
+      ) : errorMessage ? (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      ) : snaps.length === 0 ? (
+        <Text style={styles.noSnapsText}>No hay snaps relacionados con este tema.</Text>
+      ) : (
+        <FlatList
+          data={snaps}
+          keyExtractor={(item, index) => (item.id ? item.id.toString() : `snap-${index}`)}
+          renderItem={renderItem}
+        />
+      )}
     </View>
   );
 }
@@ -49,9 +92,9 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   headerContainer: {
-    flexDirection: 'row',      // Coloca los elementos en una fila
-    alignItems: 'center',      // Alinea los elementos verticalmente al centro
-    justifyContent: 'space-between', // Espacio uniforme entre los elementos
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 50,
     marginTop: 60,
   },
@@ -59,20 +102,31 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: '#1DA1F2',
     fontWeight: 'bold',
-    marginLeft: 85,            // Espacio entre el botón y el texto
+    marginLeft: 85,
     marginTop: 25,
   },
   postItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 15,
     borderBottomColor: '#333',
     borderBottomWidth: 1,
   },
-    whiteText: {
-      color: '#FFF', // "Trending Topic" en blanco
-    },
-    blueText: {
-      color: '#1DA1F2', // `topic` en azul
-    },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  whiteText: {
+    color: '#FFF',
+  },
+  blueText: {
+    color: '#1DA1F2',
+  },
   username: {
     color: '#1DA1F2',
     fontWeight: 'bold',
@@ -80,5 +134,16 @@ const styles = StyleSheet.create({
   },
   content: {
     color: '#FFF',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  noSnapsText: {
+    color: '#888',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

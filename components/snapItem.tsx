@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
+import {useState} from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
@@ -17,6 +18,7 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
+  retweetUser: string;
 }
 
 interface SnapItemProps {
@@ -31,14 +33,26 @@ interface SnapItemProps {
   favouriteIconColor: string;
 }
 
-const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, isOwnProfile }) => {
+const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, onDelete, onSnapShare, isOwnProfile }) => {
   const router = useRouter();
-  console.log("aaa", snap.profileImage)
+  const [isShared, setIsShared] = useState(!!snap.retweetUser);
+
+  const handleSnapShare = (snap: Snap) => {
+      onSnapShare(snap);
+        setIsShared(true);
+    };
+
+
 
   return (
     <View style={styles.snapContainer}>
+      {/* Mostrar "retweet" si el Snap fue compartido */}
+      {snap.retweetUser && (
+        <Text style={styles.retweetText}>
+          @{snap.retweetUser} ha compartido
+        </Text>
+      )}
       {/* Cabecera del Snap */}
-
       <View style={styles.snapHeader}>
         <Image
           source={{ uri: snap.profileImage }}
@@ -86,15 +100,14 @@ const SnapItem: React.FC<SnapItemProps> = ({ snap, onLike, onFavourite, onEdit, 
           </Pressable>
           {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
         </View>
+
         {/* Botón de SnapShare */}
         <View style={styles.snapShareContainer}>
-          <Pressable onPress={() => onSnapShare(snap)} style={styles.snapShareButton}>
-            <Icon name="repeat" size={24} color="gray" />
+          <Pressable onPress={handleSnapShare} style={styles.snapShareButton}>
+            <Icon name="repeat" size={24} color={isShared ? 'green' : 'gray'} />
           </Pressable>
         </View>
-
       </View>
-
     </View>
   );
 };
