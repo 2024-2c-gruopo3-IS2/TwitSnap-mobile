@@ -28,12 +28,8 @@ export default function Followers() {
 
     const fetchProfileImage = async (username: string) => {
       try {
-        console.log("\n\nfetching", `profile_photos/${username}.png`);
-        // Usar storage().ref en lugar de ref de `firebase/storage`
         const imageRef = ref(`profile_photos/${username}.png`);
-        console.log("imageRef", imageRef);
         const url = await imageRef.getDownloadURL();
-        console.log("url", url);
         return url;
       } catch (error) {
         return 'https://via.placeholder.com/150';

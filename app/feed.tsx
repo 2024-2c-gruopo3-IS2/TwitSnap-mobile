@@ -61,19 +61,16 @@ export default function Feed() {
   const { user } = useContext(AuthContext);
   const currentUsername = user?.username || '';
 
-    const fetchProfileImage = async (username: string) => {
-      try {
-        console.log("\n\nfetching", `profile_photos/${username}.png`);
-        // Usar storage().ref en lugar de ref de `firebase/storage`
-        const imageRef = ref(`profile_photos/${username}.png`);
-        console.log("imageRef", imageRef);
-        const url = await imageRef.getDownloadURL();
-        console.log("url", url);
-        return url;
-      } catch (error) {
-        return 'https://via.placeholder.com/150';
-      }
-    };
+  const fetchProfileImage = async (username: string) => {
+    try {
+      const imageRef = await ref(storage, `profile_photos/${username}.png`);
+      const url = await getDownloadURL(imageRef);
+
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150';
+    }
+  };
 
   useEffect(() => {
     const fetchSnaps = async () => {

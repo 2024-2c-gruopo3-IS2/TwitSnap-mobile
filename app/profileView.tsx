@@ -89,16 +89,16 @@ export default function ProfileView() {
     }
   };
 
-    const fetchProfileImage = async (username: string) => {
-      try {
-        // Usar storage().ref en lugar de ref de `firebase/storage`
-        const imageRef = ref(`profile_photos/${username}.png`);
-        const url = await imageRef.getDownloadURL();
-        return url;
-      } catch (error) {
-        return 'https://via.placeholder.com/150';
-      }
-    };
+  const fetchProfileImage = async (username: string) => {
+    try {
+      const imageRef = await ref(storage, `profile_photos/${username}.png`);
+      const url = await getDownloadURL(imageRef);
+
+      return url;
+    } catch (error) {
+      return 'https://via.placeholder.com/150';
+    }
+  };
 
   // Función para cambiar la foto de perfil
   const handleChangeProfilePhoto = async () => {
@@ -125,13 +125,12 @@ export default function ProfileView() {
         return;
       }
 
-      const storageRef = storage().ref(storage, `profile_photos/${profile.username}.png`);
+      const storageRef = ref(storage, `profile_photos/${profile.username}.png`);
       const response = await fetch(localFilePath);
       const blob = await response.blob();
 
       setIsLoading(true);
-      //const snapshot = await uploadBytes(storageRef, blob);
-      await storageRef.put(blob);
+      const snapshot = await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       setProfileImage(downloadURL);

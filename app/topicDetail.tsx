@@ -50,16 +50,17 @@ export default function TopicDetail() {
   const [errorMessage, setErrorMessage] = useState('');
   const { user } = useContext(AuthContext);
 
-  // Función para obtener la imagen de perfil de un usuario
   const fetchProfileImage = async (username: string) => {
     try {
-      const imageRef = storage().ref(`profile_photos/${username}.png`); // Usa @react-native-firebase/storage
-      const url = await imageRef.getDownloadURL();
+      const imageRef = await ref(storage, `profile_photos/${username}.png`);
+      const url = await getDownloadURL(imageRef);
+
       return url;
     } catch (error) {
       return 'https://via.placeholder.com/150';
     }
   };
+
 useEffect(() => {
   const fetchSnaps = async () => {
     setIsLoading(true);
