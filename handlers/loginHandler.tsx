@@ -51,6 +51,13 @@ export async function loginUser(email: string, password: string): Promise<LoginR
   }
 }
 
+/**
+
+ Pide el request de recupero de contraseña
+
+ */
+
+
 export async function requestPasswordReset(email: string): Promise<PasswordResetRequestResponse> {
   const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/request-password-reset';
 
@@ -65,6 +72,9 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
 
     const data = await response.json();
 
+    // Agrega un log para ver la estructura de la respuesta
+    console.log('Response from requestPasswordReset:', data);
+
     if (response.ok && data.success) {
       return { success: true, message: 'Se ha enviado un enlace de recuperación a tu correo electrónico.' };
     } else {
@@ -76,27 +86,34 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
   }
 }
 
-export async function resetPassword(token: string, newPassword: string): Promise<ResetPasswordResponse> {
-  const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/reset-password';
 
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token, newPassword }),
-    });
+/**
+ Recupera la contraseña
 
-    const data = await response.json();
+ */
 
-    if (response.ok && data.success) {
-      return { success: true, message: 'Tu contraseña ha sido restablecida exitosamente.' };
-    } else {
-      return { success: false, message: data.message || 'No se pudo restablecer la contraseña.' };
+export async function resetPassword(email: string, password: string, token: string): Promise<ResetPasswordResponse> {
+    const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/password-reset';
+
+    try {
+        const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, token }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+        return { success: true, message: 'Contraseña actualizada correctamente.' };
+        } else {
+        return { success: false, message: data.message || 'No se pudo actualizar la contraseña.' };
+        }
+    } catch (error) {
+        console.error('Error en resetPassword:', error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
     }
-  } catch (error) {
-    console.error('Error en resetPassword:', error);
-    return { success: false, message: 'Error al conectar con el servidor.' };
-  }
+
 }

@@ -50,8 +50,9 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
-  retweetUser: string; //si esta vacio es un tweet normal, sino es un retweet
+  retweetUser: string; // Si está vacío, es un snap normal; si no, es un retweet
   isShared: boolean;
+  originalUsername?: string;
 }
 
 export default function ProfileView() {
@@ -63,8 +64,8 @@ export default function ProfileView() {
   const [isLoading, setIsLoading] = useState(true);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const isOwnProfile = !username;
-  const [isFavouriteView, setIsFavouriteView] = useState(false);
   const { user, logout } = useContext(AuthContext);
+  const currentUsername = user?.username || '';
 
   // Nuevas variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
@@ -75,8 +76,6 @@ export default function ProfileView() {
   // Estados relacionados con el seguimiento
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
-  const [isFollowedBy, setIsFollowedBy] = useState(false); // Seguimiento mutuo
-  const [loadingImage, setLoadingImage] = useState(false);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
@@ -90,17 +89,18 @@ export default function ProfileView() {
     }
   };
 
-  const fetchProfileImage = async (username: string) => {
-    try {
-      const imageRef = await ref(storage, `profile_photos/${username}.png`);
-      const url = await getDownloadURL(imageRef);
+    const fetchProfileImage = async (username: string) => {
+      try {
+        // Usar storage().ref en lugar de ref de `firebase/storage`
+        const imageRef = ref(`profile_photos/${username}.png`);
+        const url = await imageRef.getDownloadURL();
+        return url;
+      } catch (error) {
+        return 'https://via.placeholder.com/150';
+      }
+    };
 
-      return url;
-    } catch (error) {
-      return 'https://via.placeholder.com/150';
-    }
-  };
-
+  // Función para cambiar la foto de perfil
   const handleChangeProfilePhoto = async () => {
     if (!isOwnProfile) {
       return;
@@ -119,164 +119,163 @@ export default function ProfileView() {
       }
 
       const localFilePath = result.assets[0].uri;
-      
+
       if (!profile.username) {
         console.error('No logged in user or user email found');
         return;
       }
 
-      const storageRef = ref(storage, `profile_photos/${profile.username}.png`);
+      const storageRef = storage().ref(storage, `profile_photos/${profile.username}.png`);
       const response = await fetch(localFilePath);
       const blob = await response.blob();
 
-      setLoadingImage(true);
-      const snapshot = await uploadBytes(storageRef, blob);
+      setIsLoading(true);
+      //const snapshot = await uploadBytes(storageRef, blob);
+      await storageRef.put(blob);
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       setProfileImage(downloadURL);
-      const updatedSnaps = snaps.map(snap => {
-        return {
-          ...snap,
-          profileImage: downloadURL,
-        };
-      });
+      const updatedSnaps = snaps.map(snap => ({
+        ...snap,
+        profileImage: downloadURL,
+      }));
       setSnaps(updatedSnaps);
-      setLoadingImage(false);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error uploading file:', error);
-      setLoadingImage(false);
+      setIsLoading(false);
       Alert.alert('Error', 'There was an error uploading your profile image. Please try again.');
     }
   };
 
   useEffect(() => {
-      fetchProfile();
-      },[username,isOwnProfile]);
+    fetchProfile();
+  }, [username, isOwnProfile]);
 
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Obtener el perfil (propio o de otro usuario)
+      const profileResponse = isOwnProfile ? await getProfile() : await getUserProfile(username as string);
 
-    const fetchProfile = async () => {
-      setIsLoading(true);
-      try {
-        // 1. Obtener el perfil (propio o de otro usuario)
-        const profileResponse = isOwnProfile ? await getProfile() : await getUserProfile(username as string);
+      if (profileResponse.success) {
+        setProfile(profileResponse.profile);
+        const profileImageUrl = await fetchProfileImage(profileResponse.profile.username);
+        setProfileImage(profileImageUrl);
 
-        if (profileResponse.success) {
-          setProfile(profileResponse.profile);
-          const profileImage = await fetchProfileImage(profileResponse.profile.username);
-          
-          setProfileImage(profileImage);
-
-          // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
-          let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
-          if (!isOwnProfile) {
-            isFollowingPromise = (async () => {
-              const currentProfile = await getProfile();
-              if (currentProfile.success) {
-                const followed = await getFollowed(currentProfile.profile.username);
-                if (followed.success) {
-                  return (followed.followed ?? []).includes(profileResponse.profile.username);
-                }
+        // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
+        let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
+        if (!isOwnProfile) {
+          isFollowingPromise = (async () => {
+            const currentProfile = await getProfile();
+            if (currentProfile.success) {
+              const followed = await getFollowed(currentProfile.profile.username);
+              if (followed.success) {
+                return (followed.followed ?? []).includes(profileResponse.profile.username);
               }
-              return false;
-            })();
-          }
-
-          // 3. Obtener seguidores y seguidos del perfil actual
-          const followersPromise = getFollowers(profileResponse.profile.username);
-          const followingPromise = getFollowed(profileResponse.profile.username);
-          console.log("followersPromise: ", followersPromise);
-            console.log("followingPromise: ", followingPromise);
-
-          // 4. Ejecutar todas las promesas en paralelo
-          const [isFollowingResult, followersResponse, followingResponse, snapResponse, likesResponse, favouriteResponse, sharedResponse] = await Promise.all([
-            isFollowingPromise,
-            followersPromise,
-            followingPromise,
-            getSnapsByUsername(profileResponse.profile.username),
-            getLikedSnaps(),
-            getFavouriteSnaps(),
-            getSharedSnaps(),
-          ]);
-            // Verificar si la respuesta de los snaps compartidos es exitosa y obtener los IDs de los snaps compartidos
-
-            console.log("followers: ", followersResponse);
-            console.log("following: ", followingResponse);
-
-          // 5. Actualizar estado de seguimiento
-          if (!isOwnProfile) {
-            setIsFollowing(isFollowingResult);
-          }
-
-          // 6. Actualizar contadores de seguidores y seguidos
-          if (followersResponse.success) {
-            setFollowersCount((followersResponse.followers ?? []).length);
-          } else {
-            // console.error('Error al obtener los seguidores:', followersResponse.message);
-            // Alert.alert('El perfil es privado.');
-            setFollowersCount('X'); // Valor por defecto en caso de error
-            // Mostrar un Toast si los seguidores no son accesibles (perfil privado)
-            Toast.show({
-              type: 'info',
-              text1: 'Privacidad',
-              text2: 'Este perfil es privado.',
-              visibilityTime: 4000, // Tiempo de visualización (4 segundos)
-            });
-          }
-
-          if (followingResponse.success) {
-            setFollowingCount((followingResponse.followed ?? []).length);
-          } else {
-            // console.error('Error al obtener los seguidos:', followingResponse.message);
-            setFollowingCount('X'); // Valor por defecto en caso de error
-          }
-          
-          // 7. Procesar snaps si existen
-          if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
-            const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
-            const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
-            const sharedSnapsIds = sharedResponse.snaps?.map(sharedSnap => sharedSnap.id) || [];
-
-            const processedSnaps: Snap[] = await Promise.all(
-              snapResponse.snaps.map(async (snap: any) => {
-                  let originalUsername = snap.username;
-                let authorProfileImage = await fetchProfileImage(snap.username);
-
-                // Si el snap es un retweet, obtener el perfil original
-                if (snap.retweetUser) {
-                  originalUsername = snap.username;
-                  authorProfileImage = await fetchProfileImage(snap.username);
-                }
-
-                return {
-                  id: snap._id,
-                  username: originalUsername,
-                  time: snap.time,
-                  message: snap.message,
-                  isPrivate: snap.isPrivate === 'true',
-                  likes: snap.likes || 0,
-                  likedByUser: likedSnapsIds.includes(snap._id),
-                  canViewLikes: true,
-                  favouritedByUser: favouriteSnapsIds.includes(snap._id),
-                  isShared: sharedSnapsIds.includes(snap._id),
-                  profileImage: authorProfileImage,
-                  retweetUser: snap.retweetUser || "",
-                };
-              })
-            );
-            setSnaps(processedSnaps);
-          } else {
-            setSnaps([]); // Manejar caso sin snaps
-          }
-        } else {
-          Alert.alert('Error', profileResponse.message || 'No se pudo obtener el perfil.');
+            }
+            return false;
+          })();
         }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        Alert.alert('Error', 'Ocurrió un error al obtener el perfil.');
-      } finally {
-        setIsLoading(false);
+
+        // 3. Obtener seguidores y seguidos del perfil actual
+        const followersPromise = getFollowers(profileResponse.profile.username);
+        const followingPromise = getFollowed(profileResponse.profile.username);
+
+        // 4. Ejecutar todas las promesas en paralelo
+        const [
+          isFollowingResult,
+          followersResponse,
+          followingResponse,
+          snapResponse,
+          likesResponse,
+          favouriteResponse,
+          sharedResponse,
+        ] = await Promise.all([
+          isFollowingPromise,
+          followersPromise,
+          followingPromise,
+          getSnapsByUsername(profileResponse.profile.username),
+          getLikedSnaps(),
+          getFavouriteSnaps(),
+          getSharedSnaps(),
+        ]);
+
+        const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
+        const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
+        const sharedSnapIds = sharedResponse.snaps?.map(snap => snap.id) || [];
+
+        // 5. Actualizar estado de seguimiento
+        if (!isOwnProfile) {
+          setIsFollowing(isFollowingResult);
+        }
+
+        // 6. Actualizar contadores de seguidores y seguidos
+        if (followersResponse.success) {
+          setFollowersCount((followersResponse.followers ?? []).length);
+        } else {
+          setFollowersCount(0); // Valor por defecto en caso de error
+          Toast.show({
+            type: 'info',
+            text1: 'Privacidad',
+            text2: 'Este perfil es privado.',
+            visibilityTime: 4000, // Tiempo de visualización (4 segundos)
+          });
+        }
+
+        if (followingResponse.success) {
+          setFollowingCount((followingResponse.followed ?? []).length);
+        } else {
+          setFollowingCount(0); // Valor por defecto en caso de error
+        }
+
+        // 7. Procesar snaps si existen
+        if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
+          const processedSnaps: Snap[] = await Promise.all(
+            snapResponse.snaps.map(async (snap: any) => {
+              let originalUsername = snap.originalUsername;
+
+              // **Corregir la asignación de originalUsername**
+              // Eliminar la sobrescritura incorrecta:
+              // if (sharedSnapIds.includes(snap._id)) {
+              //   originalUsername = currentUsername;
+              // }
+
+              // **Mantener originalUsername como está**, ya que `handleShare` lo establece correctamente
+              let authorProfileImage = await fetchProfileImage(snap.username);
+
+              return {
+                id: snap._id,
+                username: snap.username, // Mantener el autor original
+                time: snap.time,
+                message: snap.message,
+                isPrivate: snap.isPrivate === 'true',
+                likes: snap.likes || 0,
+                likedByUser: likedSnapsIds.includes(snap._id),
+                canViewLikes: true,
+                favouritedByUser: favouriteSnapsIds.includes(snap._id),
+                isShared: sharedSnapIds.includes(snap._id), // Asignar basado en sharedSnapIds
+                profileImage: authorProfileImage,
+                retweetUser: snap.retweetUser || "",
+                originalUsername: originalUsername || undefined, // Asegurar que se define
+              };
+            })
+          );
+
+          setSnaps(processedSnaps);
+        } else {
+          setSnaps([]); // Manejar caso sin snaps
+        }
+      } else {
+        Alert.alert('Error', profileResponse.message || 'No se pudo obtener el perfil.');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      Alert.alert('Error', 'Ocurrió un error al obtener el perfil.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -302,7 +301,6 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(true);
         setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 0) + 1 }));
-        //setFollowersCount(prev => prev + 1); // Actualizar contador local
         Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
       } else {
@@ -326,10 +324,8 @@ export default function ProfileView() {
       if (response.success) {
         setIsFollowing(false);
         setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 1) - 1 }));
-        //setFollowersCount(prev => (prev > 0 ? prev - 1 : 0)); // Actualizar contador local con mínimo 0
         Toast.show({ type: 'success', text1: 'Has dejado de seguir al usuario.' });
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
-
       } else {
         Alert.alert('Error', response.message || 'No se pudo dejar de seguir al usuario.');
       }
@@ -393,7 +389,6 @@ export default function ProfileView() {
   };
 
   const handleDeleteSnap = (snapId: string) => {
-
     Alert.alert(
       'Eliminar Snap',
       '¿Estás seguro de que quieres eliminar este snap?',
@@ -402,7 +397,7 @@ export default function ProfileView() {
         {
           text: 'Eliminar',
           onPress: async () => {
-              console.log("Snap ID DELETE: " + snapId);
+            console.log("Snap ID DELETE: " + snapId);
             const result = await deleteSnap(snapId as unknown as number);
 
             if (result.success) {
@@ -505,53 +500,12 @@ export default function ProfileView() {
         text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
       });
     }
-  }
+  };
 
-    // Función para manejar la compartición/descompartición de un snap
-    const handleToggleShare = async (snap: Snap) => {
-      if (snap.isShared) {
-        // Descompartir el snap
-        const result = await unshareSnap(snap.id);
-        if (result.success) {
-          setSnaps(prevSnaps =>
-            prevSnaps.map(s => (s.id === snap.id ? { ...s, isShared: false } : s))
-          );
-          Toast.show({
-            type: 'success',
-            text1: 'Snap descompartido exitosamente.',
-          });
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: result.message || 'No se pudo descompartir el snap.',
-          });
-        }
-      } else {
-        // Compartir el snap
-        const result = await shareSnap(snap.id);
-        if (result.success) {
-          setSnaps(prevSnaps =>
-            prevSnaps.map(s => (s.id === snap.id ? { ...s, isShared: true } : s))
-          );
-          Toast.show({
-            type: 'success',
-            text1: 'Snap compartido exitosamente.',
-          });
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: result.message || 'No se pudo compartir el snap.',
-          });
-        }
-      }
-    };
-
-  // Función para compartir el Snap (Retweet)
-  const onSnapShare = async (snap: Snap) => {
+  // Función para manejar la compartición de un snap (solo compartir, no descompartir)
+  const handleShare = async (snap: Snap) => {
     try {
-      const result = await shareSnap(snap.id); // Llama al endpoint con el ID del snap
+      const result = await shareSnap(snap.id); // Llama al endpoint para compartir el snap
 
       if (result.success) {
         Toast.show({
@@ -560,11 +514,18 @@ export default function ProfileView() {
           text2: 'El snap ha sido compartido exitosamente.',
         });
 
-        // Opcional: Puedes actualizar la lista de snaps para reflejar el retweet
-        setSnaps((prevSnaps) => [
-          { ...snap, retweetUser: profile.username }, // Agrega el retweet en la lista local
-          ...prevSnaps,
-        ]);
+        // Crear un nuevo snap compartido solo si es tu propio perfil
+        if (isOwnProfile) {
+          const sharedSnap = {
+            ...snap,
+            id: `${snap.id}-shared-${Date.now()}`, // Generar un ID único para el compartido
+            username: currentUsername, // Asignar al usuario actual
+            isShared: true,
+            originalUsername: snap.username, // Asignar al autor original
+            time: new Date().toLocaleString(),
+          };
+          setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+        }
       } else {
         Toast.show({
           type: 'error',
@@ -580,10 +541,6 @@ export default function ProfileView() {
       });
     }
   };
-
-
-
-
 
   // Función para renderizar el encabezado de la lista
   const renderHeader = () => (
@@ -602,16 +559,15 @@ export default function ProfileView() {
         <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
       )}
 
-    <View style={styles.profilePictureContainer}>
-      <Avatar
+      <View style={styles.profilePictureContainer}>
+        <Avatar
           rounded
           size="xlarge"
           source={{ uri: profileImage }}
           containerStyle={styles.profilePicture}
           onPress={handleChangeProfilePhoto}
         />
-    </View>
-    
+      </View>
 
       <Text style={styles.name}>
         {profile.name} {profile.surname}
@@ -696,14 +652,15 @@ export default function ProfileView() {
         onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
         onEdit={isOwnProfile ? handleEditSnap : undefined}
         onDelete={isOwnProfile ? handleDeleteSnap : undefined}
-        onSnapShare={() => handleToggleShare(item)}
+        onSnapShare={() => handleShare(item)} // Usar handleShare en lugar de handleToggleShare
         isOwnProfile={isOwnProfile}
         likeIconColor={item.likedByUser ? 'red' : 'gray'}
         favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-
+        shareIconColor={item.isShared ? 'green' : 'gray'} // Color del botón de compartir
+        currentUsername={isOwnProfile ? currentUsername : ''} // Pasar el nombre de usuario actual solo si es tu propio perfil
       />
     ),
-    [isOwnProfile]
+    [isOwnProfile, currentUsername]
   );
 
   if (isLoading) {

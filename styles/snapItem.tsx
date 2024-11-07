@@ -22,6 +22,13 @@ export default StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
   },
+  sharedText: {
+      color: 'gray',
+      fontSize: 14,
+      fontWeight: 'bold',
+      marginBottom: 10,
+  },
+
   username: {
     fontWeight: 'bold',
     fontSize: 15,

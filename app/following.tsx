@@ -27,18 +27,17 @@ export default function Following() {
     const displayUsername = user?.username === username ? user.username : username;
 
     const fetchProfileImage = async (username: string) => {
-        try {
-          console.log("\n\nfetching", `profile_photos/${username}.png`)
-          const imageRef = ref(storage, `profile_photos/${username}.png`);
-          console.log("imageRef", imageRef)
-          const url = await getDownloadURL(imageRef);
-          console.log("url", url)
-    
-          return url;
-        } catch (error) {
-          return 'https://via.placeholder.com/150';
-        }
-      };
+      try {
+        console.log("\n\nfetching", `profile_photos/${username}.png`);
+        const imageRef = ref(`profile_photos/${username}.png`);
+        console.log("imageRef", imageRef);
+        const url = await imageRef.getDownloadURL();
+        console.log("url", url);
+        return url;
+      } catch (error) {
+        return 'https://via.placeholder.com/150';
+      }
+    };
 
     useEffect(() => {
         const fetchFollowing = async () => {

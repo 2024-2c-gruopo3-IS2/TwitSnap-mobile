@@ -1,7 +1,7 @@
 // SnapItem.tsx
 
 import React from 'react';
-import { View, Text, Pressable, Image, Linking } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
@@ -19,6 +19,7 @@ interface Snap {
   profileImage: string;
   retweetUser: string;
   isShared: boolean;
+  originalUsername?: string;
   mentions?: string[];
 }
 
@@ -32,7 +33,10 @@ interface SnapItemProps {
   isOwnProfile?: boolean;
   likeIconColor: string;
   favouriteIconColor: string;
+  shareIconColor?: string;
+  currentUsername?: string;
 }
+// SnapItem.tsx
 
 const SnapItem: React.FC<SnapItemProps> = ({
   snap,
@@ -44,6 +48,8 @@ const SnapItem: React.FC<SnapItemProps> = ({
   isOwnProfile,
   likeIconColor,
   favouriteIconColor,
+  shareIconColor,
+  currentUsername,
 }) => {
   const router = useRouter();
 
@@ -77,14 +83,23 @@ const SnapItem: React.FC<SnapItemProps> = ({
     </Pressable>
   );
 
+  // Función para renderizar el texto de compartición
+  const renderSharedText = () => {
+    if (snap.isShared && currentUsername) {
+      return (
+        <Text style={styles.sharedText}>
+          @{currentUsername} ha compartido
+        </Text>
+      );
+    }
+    return null;
+  };
+
   return (
     <View style={styles.snapContainer}>
-      {/* Mostrar "retweet" si el Snap fue compartido */}
-      {snap.retweetUser && (
-        <Text style={styles.retweetText}>
-          @{snap.retweetUser} ha compartido
-        </Text>
-      )}
+      {/* Mostrar texto de compartición si el snap fue compartido */}
+      {renderSharedText()}
+
       {/* Cabecera del Snap */}
       <View style={styles.snapHeader}>
         <Image
@@ -136,8 +151,12 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
         {/* Botón de "Compartir" */}
         <View style={styles.snapShareContainer}>
-          <Pressable onPress={onSnapShare} style={styles.snapShareButton}>
-            <Icon name="repeat" size={24} color={snap.isShared ? 'green' : 'gray'} />
+          <Pressable
+            onPress={snap.isShared ? undefined : onSnapShare} // Deshabilitar onPress si ya está compartido
+            style={styles.snapShareButton}
+            disabled={snap.isShared} // Deshabilitar el botón si ya está compartido
+          >
+            <Icon name="repeat" size={24} color={shareIconColor || 'gray'} />
           </Pressable>
         </View>
       </View>

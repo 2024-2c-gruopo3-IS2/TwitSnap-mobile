@@ -44,4 +44,13 @@ export default StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+    unreadNotification: {
+      fontWeight: 'bold',
+    },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
 });
