@@ -122,4 +122,10 @@ const styles = StyleSheet.create({
     flatListContent: {
         paddingBottom: 20, // Espacio al final de la lista
     },
+      loaderContainer: {
+        flex: 1,
+        backgroundColor: '#000', // Fondo negro
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
 });

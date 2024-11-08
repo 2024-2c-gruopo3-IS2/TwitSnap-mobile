@@ -1,13 +1,14 @@
 // app/notifications.tsx
 
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Platform, Alert } from 'react-native';
 import Footer from '../components/footer';
 import styles from '../styles/notifications';
 import { AuthContext } from '@/context/authContext';
 import { firestore } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 interface NotificationItem {
   id: string;
@@ -31,32 +32,38 @@ const NotificationsScreen: React.FC = () => {
       return;
     }
 
+    // Registro para notificaciones push
+    registerForPushNotificationsAsync(user.uid);
+
     const subscriber = firestore()
       .collection('notifications')
       .doc(user.uid)
       .collection('userNotifications')
       .orderBy('time', 'desc')
-      .onSnapshot(querySnapshot => {
-        const notif: NotificationItem[] = [];
-        querySnapshot.forEach(documentSnapshot => {
-          notif.push({
-            id: documentSnapshot.id,
-            ...documentSnapshot.data(),
-          } as NotificationItem);
-        });
-        setNotifications(notif);
-        setIsLoading(false);
-      }, error => {
-        console.log('Error fetching notifications:', error);
-        setIsLoading(false);
-      });
+      .onSnapshot(
+        (querySnapshot) => {
+          const notif: NotificationItem[] = [];
+          querySnapshot.forEach((documentSnapshot) => {
+            notif.push({
+              id: documentSnapshot.id,
+              ...documentSnapshot.data(),
+            } as NotificationItem);
+          });
+          setNotifications(notif);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.log('Error fetching notifications:', error);
+          setIsLoading(false);
+        }
+      );
 
     return () => subscriber();
   }, [user]);
 
   // Escuchar notificaciones recibidas cuando la app está en primer plano
   useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
       const { message, messageId, senderId } = notification.request.content.data;
       const time = new Date().toLocaleString();
       const newNotification: NotificationItem = {
@@ -68,13 +75,55 @@ const NotificationsScreen: React.FC = () => {
         senderId,
         messageId,
       };
-      setNotifications(prev => [newNotification, ...prev]);
+      setNotifications((prev) => [newNotification, ...prev]);
+    });
+
+    // Manejar respuestas a notificaciones (cuando el usuario toca la notificación)
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      const { messageId } = response.notification.request.content.data;
+      if (messageId) {
+        handleNotificationPress({ id: messageId, message: response.notification.request.content.body || 'Mensaje', time: new Date().toLocaleString(), type: 'message', read: false, messageId });
+      }
     });
 
     return () => {
       subscription.remove();
+      responseListener.remove();
     };
-  }, []);
+  }, [navigation, user]);
+
+  const registerForPushNotificationsAsync = async (userId: string) => {
+    let token;
+    if (Constants.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        Alert.alert('Permiso denegado', 'No se pudo obtener el permiso para notificaciones');
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log('Expo Push Token:', token);
+      // Guardar el token en Firestore
+      await firestore().collection('users').doc(userId).update({
+        expoPushToken: token,
+      });
+    } else {
+      Alert.alert('Dispositivo no compatible', 'Debes usar un dispositivo físico para las notificaciones push');
+    }
+
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+  };
 
   const handleNotificationPress = (item: NotificationItem) => {
     if (item.type === 'message' && item.messageId) {

@@ -25,6 +25,7 @@ export default StyleSheet.create({
   },
   loaderContainer: {
     flex: 1,
+    backgroundColor: '#000', // Fondo negro
     justifyContent: 'center',
     alignItems: 'center',
   },

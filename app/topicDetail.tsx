@@ -361,4 +361,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+    loaderContainer: {
+      flex: 1,
+      backgroundColor: '#000', // Fondo negro
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 });
