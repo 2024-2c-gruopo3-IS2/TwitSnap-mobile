@@ -73,9 +73,9 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     const data = await response.json();
 
     // Agrega un log para ver la estructura de la respuesta
-    console.log('Response from requestPasswordReset:', data);
+    console.log('[API] Response from requestPasswordReset:', data);
 
-    if (response.ok && data.success) {
+    if (response.ok) {
       return { success: true, message: 'Se ha enviado un enlace de recuperación a tu correo electrónico.' };
     } else {
       return { success: false, message: data.message || 'No se pudo procesar la solicitud de recuperación.' };
@@ -106,7 +106,7 @@ export async function resetPassword(email: string, password: string, token: stri
 
         const data = await response.json();
 
-        if (response.ok && data.success) {
+        if (response.ok) {
         return { success: true, message: 'Contraseña actualizada correctamente.' };
         } else {
         return { success: false, message: data.message || 'No se pudo actualizar la contraseña.' };
