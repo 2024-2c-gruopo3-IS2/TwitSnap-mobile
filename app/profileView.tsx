@@ -149,10 +149,28 @@ export default function ProfileView() {
     }
   };
 
-  const handleStartChat = (username: string) => {
-    Alert.alert(`Iniciar chat con ${username}`);
-  };
+  const handleStartChat = async () => {
+    const authProfile = await getProfile();
 
+    if (!authProfile.success) {
+      Alert.alert('Error', 'No se pudo obtener el perfil del usuario.');
+      return;
+    }
+
+    const user1 = authProfile.profile.username;
+
+    if (user?.username) {
+      // Navegar a la pantalla de ChatScreen pasando los usuarios involucrados
+      router.push({
+        pathname: '/chatScreen',
+        params: { user1: user1, user2: username },
+      });
+    } else {
+      Alert.alert('Error', 'No se ha encontrado un usuario logueado o el perfil seleccionado.');
+    }
+  };
+  
+  
   useEffect(() => {
       fetchProfile();
       },[username,isOwnProfile]);
@@ -577,7 +595,7 @@ export default function ProfileView() {
           )}
         </Pressable>
         
-        <Pressable style={styles.chatButton} onPress={() => handleStartChat(profile?.username)}>
+        <Pressable style={styles.chatButton} onPress={() => handleStartChat()}>
           <MessageIcon name="comment" size={20} color="#fff" />
         </Pressable>
       </View>
