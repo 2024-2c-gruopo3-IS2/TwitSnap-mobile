@@ -541,7 +541,6 @@ export default function ProfileView() {
     }
   };
 
-  // Función para renderizar el encabezado de la lista
   const renderHeader = () => (
     <View>
       <View style={styles.headerContainer}>
@@ -602,24 +601,33 @@ export default function ProfileView() {
         </Pressable>
       </View>
 
-      {!isOwnProfile && (
-        <Pressable
-          style={[
-            styles.followButton,
-            isFollowing ? styles.unfollowButton : styles.followButtonStyle,
-          ]}
-          onPress={isFollowing ? handleUnfollow : handleFollow}
-          disabled={isFollowLoading}
-        >
-          {isFollowLoading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.followButtonText}>
-              {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
-            </Text>
-          )}
-        </Pressable>
-      )}
+      <View style={styles.actionsContainer}>
+          <Pressable
+              style={[
+                  styles.followButton,
+                  isFollowing ? styles.unfollowButton : styles.followButtonStyle,
+              ]}
+              onPress={isFollowing ? handleUnfollow : handleFollow}
+              disabled={isFollowLoading}
+          >
+              {isFollowLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                  <Text style={styles.followButtonText}>
+                      {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
+                  </Text>
+              )}
+          </Pressable>
+
+          <Pressable
+              style={styles.sendMessageButton}
+              onPress={() => router.push(`/chat?with=${encodeURIComponent(profile.username)}`)}
+          >
+              <Icon name="message" size={24} color="#fff" />
+              <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
+          </Pressable>
+      </View>
+
 
       {isOwnProfile && (
         <View style={styles.profileActionsContainer}>

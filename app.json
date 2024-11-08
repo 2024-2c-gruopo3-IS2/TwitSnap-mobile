@@ -30,7 +30,9 @@
         "NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE"
-      ]
+      ],
+      "useNextNotificationsApi": true
+
     },
     "web": {
       "bundler": "metro",

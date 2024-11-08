@@ -41,7 +41,7 @@ export default StyleSheet.create({
         width: '100%',
         height: 200,
         resizeMode: 'cover',
-    }, 
+    },
     name: {
         marginTop: 50,
         fontSize: 24,
@@ -211,8 +211,12 @@ export default StyleSheet.create({
         justifyContent: 'center',
     },
     followButton: {
-        alignSelf: 'center',
-        marginVertical: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E0245E', // Keep the "Dejar de Seguir" color as desired
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 20,
     },
     followButtonStyle: {
         backgroundColor: '#1DA1F2',
@@ -249,10 +253,10 @@ export default StyleSheet.create({
     },
     description: {
         fontSize: 16,
-        color: '#aaa', 
+        color: '#aaa',
         textAlign: 'center',
-        marginTop: 10, 
-        paddingHorizontal: 20, 
+        marginTop: 10,
+        paddingHorizontal: 20,
     },
     errorTextLarge: {
         color: '#aaa',
@@ -287,6 +291,35 @@ export default StyleSheet.create({
         right: -10,
         zIndex: 10, // Asegura que el accesorio esté al frente de todo
     },
+  actionsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center', // Center items vertically
+      justifyContent: 'center', // Center items horizontally
+      marginTop: 10,
+  },
+  sendMessageButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#000', // Fondo negro
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      marginLeft: 10,
+      borderWidth: 1, // Borde fino
+      borderColor: '#fff', // Color del borde en blanco
+  },
+  sendMessageButtonText: {
+      color: '#fff', // Texto en blanco
+      marginLeft: 5,
+      fontSize: 16,
+      fontWeight: 'bold',
+  },
 
-    
+  buttonStyle: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 20,
+      minWidth: 120, // Asegura que todos los botones tengan al menos el mismo ancho
+  },
+
 });

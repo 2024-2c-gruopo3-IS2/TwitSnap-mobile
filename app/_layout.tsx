@@ -3,14 +3,17 @@
 import React from 'react';
 import { AuthProvider } from '@/context/authContext';
 import { PostProvider } from '@/context/postContext';
+import { NotificationProvider } from '@/context/notificationContext';
 import { Slot } from 'expo-router';
 
 const Layout = () => {
   return (
     <AuthProvider>
-      <PostProvider>
-        <Slot />
-      </PostProvider>
+        <NotificationProvider>
+          <PostProvider>
+            <Slot />
+          </PostProvider>
+        </NotificationProvider>
     </AuthProvider>
   );
 };
