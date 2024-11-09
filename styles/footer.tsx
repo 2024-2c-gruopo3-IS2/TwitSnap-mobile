@@ -10,6 +10,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#333',
   },
+    iconButton: {
+      padding: 5,
+    },
 });
 
 export default styles;

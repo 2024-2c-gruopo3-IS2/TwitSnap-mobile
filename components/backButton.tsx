@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
         zIndex: 2,
     },
     circle: {
-        backgroundColor: 'gray',
+        backgroundColor: 'black',
         borderRadius: 25,
         width: 40,
         height: 40,

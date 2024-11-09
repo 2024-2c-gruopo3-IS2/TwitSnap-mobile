@@ -63,9 +63,9 @@ export default function ProfileView() {
   const [profileImage, setProfileImage] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [snaps, setSnaps] = useState<Snap[]>([]);
-  const isOwnProfile = !username;
   const { user, logout } = useContext(AuthContext);
   const currentUsername = user?.username || '';
+  const isOwnProfile = !username;
 
   // Nuevas variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
@@ -99,6 +99,8 @@ export default function ProfileView() {
       return 'https://via.placeholder.com/150';
     }
   };
+
+
 
   // Función para cambiar la foto de perfil
   const handleChangeProfilePhoto = async () => {
@@ -336,6 +338,11 @@ export default function ProfileView() {
     }
   };
 
+  const handleSendMessage = () => {
+      // Navega a la pantalla de chat con el usuario actual
+      router.push(`/chat?with=${encodeURIComponent(profile.username)}`);
+    };
+
   const handleEditSnap = (snap: Snap) => {
     setSelectedSnap(snap);
     setIsEditModalVisible(true);
@@ -542,114 +549,117 @@ export default function ProfileView() {
   };
 
   const renderHeader = () => (
-    <View>
-      <View style={styles.headerContainer}>
-        <BackButton onPress={handleBackPress} />
-        <View style={styles.rightSpace} />
-      </View>
+      <View>
+        <View style={styles.headerContainer}>
+          <BackButton onPress={handleBackPress} />
+          <View style={styles.rightSpace} />
+        </View>
 
-      {profile.cover_photo ? (
-        <Image
-          source={{ uri: profile.cover_photo }}
-          style={styles.coverPhoto}
-        />
-      ) : (
-        <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
-      )}
+        {profile.cover_photo ? (
+          <Image
+            source={{ uri: profile.cover_photo }}
+            style={styles.coverPhoto}
+          />
+        ) : (
+          <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
+        )}
 
-      <View style={styles.profilePictureContainer}>
-        <Avatar
-          rounded
-          size="xlarge"
-          source={{ uri: profileImage }}
-          containerStyle={styles.profilePicture}
-          onPress={handleChangeProfilePhoto}
-        />
-      </View>
+        <View style={styles.profilePictureContainer}>
+          <Avatar
+            rounded
+            size="xlarge"
+            source={{ uri: profileImage }}
+            containerStyle={styles.profilePicture}
+            onPress={handleChangeProfilePhoto}
+          />
+        </View>
 
-      <Text style={styles.name}>
-        {profile.name} {profile.surname}
-      </Text>
-      <Text style={styles.username}>@{profile.username}</Text>
-
-      {/* Descripción del usuario */}
-      {profile.description && (
-        <Text style={styles.description}>
-          {profile.description}
+        <Text style={styles.name}>
+          {profile.name} {profile.surname}
         </Text>
-      )}
+        <Text style={styles.username}>@{profile.username}</Text>
 
-      <View style={styles.followContainer}>
-        <Pressable
-          onPress={() =>
-            router.push(`/followers?username=${encodeURIComponent(profile.username)}`)
-          }
-          style={styles.followSection}
-        >
-          <Text style={styles.followNumber}>{followersCount}</Text>
-          <Text style={styles.followLabel}>Seguidores</Text>
-        </Pressable>
+        {/* Descripción del usuario */}
+        {profile.description && (
+          <Text style={styles.description}>
+            {profile.description}
+          </Text>
+        )}
 
-        <Pressable
-          onPress={() =>
-            router.push(`/following?username=${encodeURIComponent(profile.username)}`)
-          }
-          style={styles.followSection}
-        >
-          <Text style={styles.followNumber}>{followingCount}</Text>
-          <Text style={styles.followLabel}>Seguidos</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.actionsContainer}>
+        <View style={styles.followContainer}>
           <Pressable
-              style={[
-                  styles.followButton,
-                  isFollowing ? styles.unfollowButton : styles.followButtonStyle,
-              ]}
-              onPress={isFollowing ? handleUnfollow : handleFollow}
-              disabled={isFollowLoading}
+            onPress={() =>
+              router.push(`/followers?username=${encodeURIComponent(profile.username)}`)
+            }
+            style={styles.followSection}
           >
-              {isFollowLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                  <Text style={styles.followButtonText}>
-                      {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
-                  </Text>
-              )}
+            <Text style={styles.followNumber}>{followersCount}</Text>
+            <Text style={styles.followLabel}>Seguidores</Text>
           </Pressable>
 
           <Pressable
-              style={styles.sendMessageButton}
-              onPress={() => router.push(`/chat?with=${encodeURIComponent(profile.username)}`)}
+            onPress={() =>
+              router.push(`/following?username=${encodeURIComponent(profile.username)}`)
+            }
+            style={styles.followSection}
           >
-              <Icon name="message" size={24} color="#fff" />
-              <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
-          </Pressable>
-      </View>
-
-
-      {isOwnProfile && (
-        <View style={styles.profileActionsContainer}>
-          <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
-            <Icon name="edit" size={24} color="#fff" />
-            <Text style={styles.editButtonText}>Editar Perfil</Text>
-          </Pressable>
-          {/* Nuevo Botón: Snaps Favoritos */}
-          <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
-            <Icon name="bookmark" size={24} color="#fff" />
-            <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
-          </Pressable>
-          <Pressable style={styles.logoutButton} onPress={handleLogout}>
-            <Icon name="logout" size={24} color="#fff" />
-            <Text style={styles.logoutButtonText}>Logout</Text>
+            <Text style={styles.followNumber}>{followingCount}</Text>
+            <Text style={styles.followLabel}>Seguidos</Text>
           </Pressable>
         </View>
-      )}
 
-      <Text style={styles.snapTitle}>Snaps</Text>
-    </View>
-  );
+        <View style={styles.actionsContainer}>
+          {/* Botón de seguir/dejar de seguir */}
+          {!isOwnProfile && (
+            <Pressable
+              style={[styles.followButton, isFollowing ? styles.unfollowButton : styles.followButtonStyle]}
+              onPress={isFollowing ? handleUnfollow : handleFollow}
+              disabled={isFollowLoading}
+            >
+              {isFollowLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.followButtonText}>
+                  {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
+                </Text>
+              )}
+            </Pressable>
+          )}
+
+          {/* Botón de enviar mensaje solo en perfiles de otros usuarios */}
+          {!isOwnProfile && (
+            <Pressable
+              style={styles.sendMessageButton}
+              onPress={() => router.push(`/chat?with=${encodeURIComponent(profile.username)}`)}
+            >
+              <Icon name="message" size={24} color="#fff" />
+              <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Opciones adicionales solo para el perfil propio */}
+        {isOwnProfile && (
+          <View style={styles.profileActionsContainer}>
+            <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
+              <Icon name="edit" size={24} color="#fff" />
+              <Text style={styles.editButtonText}>Editar Perfil</Text>
+            </Pressable>
+            <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
+              <Icon name="bookmark" size={24} color="#fff" />
+              <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
+            </Pressable>
+            <Pressable style={styles.logoutButton} onPress={handleLogout}>
+              <Icon name="logout" size={24} color="#fff" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </Pressable>
+          </View>
+        )}
+
+        <Text style={styles.snapTitle}>Snaps</Text>
+      </View>
+    );
+
 
   const renderItemCallback = useCallback(
     ({ item }: { item: Snap }) => (

@@ -1,56 +1,68 @@
+// styles/notifications.tsx
+
 import { StyleSheet } from 'react-native';
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    paddingBottom: 60, // Espacio para el footer
-    backgroundColor: '#000', // Fondo negro
+    backgroundColor: '#000',
+  },
+  header: {
+      marginTop:60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  backButton: {
+    marginRight: 15,
   },
   title: {
-    fontSize: 24,
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#fff', // Texto blanco
-    marginTop:50,
+    flex: 1,
+    textAlign: 'center', // Centrar el título
   },
   content: {
     flex: 1,
-    color: '#fff', // Texto blanco para el contenido general
-  },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    padding: 10,
   },
   notificationItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    padding: 15,
+    borderRadius: 8,
+    backgroundColor: '#1f1f1f',
+    marginBottom: 10,
   },
   notificationMessage: {
     color: '#fff',
     fontSize: 16,
   },
+  unreadNotification: {
+    fontWeight: 'bold',
+  },
   notificationTime: {
-    color: '#888',
+    color: '#bbb',
     fontSize: 12,
-    marginTop: 4,
+    marginTop: 5,
   },
-  noNotifications: {
-    color: '#888',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
-  },
-    unreadNotification: {
-      fontWeight: 'bold',
-    },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+  },
+  noNotifications: {
+    color: '#ccc',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+  },
+  footerContainer: {
+    borderTopWidth: 1,
+    borderTopColor: '#333',
   },
 });
+
+export default styles;

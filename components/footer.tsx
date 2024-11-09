@@ -70,6 +70,17 @@ const Footer: React.FC = () => {
           />
         </Pressable>
       </Link>
+
+        {/* Mensajes Directos Icon */}
+      <Link href="/chats" asChild>
+        <Pressable>
+          <MaterialIcons
+            name="message"
+            size={30}
+            color={pathname === '/chats' ? '#808080' : '#FFFFFF'}
+          />
+        </Pressable>
+        </Link>
     </View>
   );
 };
