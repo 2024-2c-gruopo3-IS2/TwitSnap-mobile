@@ -3,7 +3,7 @@ import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { AuthContext } from './authContext';
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update, remove } from 'firebase/database';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 
@@ -56,6 +56,14 @@ export const NotificationProvider: React.FC = ({ children }) => {
         if (token) {
           setExpoPushToken(token);
           console.log("[TOKEN NOTIS]", token);
+
+          // Guarda el token en Firebase en la colección de cada usuario
+          if (user && user.username) {
+            const tokenRef = ref(db, `users/${user.username}/expoPushToken`);
+            update(tokenRef, { token })
+              .then(() => console.log('Token de notificación guardado en Firebase'))
+              .catch(error => console.log('Error al guardar el token en Firebase:', error));
+          }
         } else {
           console.log("[ERROR] Token no recibido");
         }
@@ -87,8 +95,6 @@ export const NotificationProvider: React.FC = ({ children }) => {
         console.log("Error al procesar la notificación:", error);
       }
     });
-
-
 
     // Cargar notificaciones existentes desde Firebase al iniciar
     const notificationsRef = ref(db, `notifications/${user.username}/userNotifications`);
@@ -146,6 +152,20 @@ export const NotificationProvider: React.FC = ({ children }) => {
     }
   };
 
+  const deleteNotification = async (id: string) => {
+    if (!user || !user.username) return;
+
+    try {
+      const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${id}`);
+      await remove(notificationRef); // Elimina la notificación de Firebase
+      setNotifications(prev => prev.filter(notif => notif.id !== id)); // Elimina la notificación del estado local
+      console.log('Notificación eliminada');
+    } catch (error) {
+      console.log('Error al eliminar la notificación:', error);
+    }
+  };
+
+
   // Función para marcar una notificación específica como leída
   const markAsRead = async (id: string) => {
     if (!user || !user.username) return;
@@ -163,7 +183,7 @@ export const NotificationProvider: React.FC = ({ children }) => {
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, markAsRead }}>
+    <NotificationContext.Provider value={{ notifications, markAsRead, deleteNotification }}>
       {children}
     </NotificationContext.Provider>
   );

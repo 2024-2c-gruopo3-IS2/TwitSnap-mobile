@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { createSnap, likeSnap, unlikeSnap, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
+import { sendMentionNotification } from '@/handlers/notificationHandler';
 
 interface Post {
   id?: string;
@@ -49,7 +50,7 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
     if (response.success && response.snap) {
       const newSnap: Snap = {
         id: response.snap.id.toString(),
-        username: response.snap.username,
+        username: response.snap.username || 'Anon',
         time: response.snap.time,
         message: response.snap.message,
         isPrivate: response.snap.isPrivate,
@@ -59,6 +60,14 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
         favouritedByUser: response.snap.favouritedByUser,
       };
       setSnaps((prevSnaps) => [newSnap, ...prevSnaps]);
+
+      // Detectar menciones
+      const mentions = [...message.matchAll(/@(\w+)/g)].map(match => match[1]);
+
+      // Enviar notificación para cada usuario mencionado
+      for (const mentionedUser of mentions) {
+              await sendMentionNotification(mentionedUser, newSnap.username, newSnap.id);
+      }
     }
   };
 

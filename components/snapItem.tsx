@@ -1,10 +1,9 @@
-// SnapItem.tsx
-
 import React from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
+import { sendShareNotification } from '@/handlers/notificationHandler';
 
 interface Snap {
   id: string;
@@ -19,7 +18,7 @@ interface Snap {
   profileImage: string;
   retweetUser: string;
   isShared: boolean;
-  originalUsername?: string;
+  originalUsername?: string; // Username del autor original
   mentions?: string[];
 }
 
@@ -34,9 +33,8 @@ interface SnapItemProps {
   likeIconColor: string;
   favouriteIconColor: string;
   shareIconColor?: string;
-  currentUsername?: string;
+  currentUsername?: string; // Username del usuario actual
 }
-// SnapItem.tsx
 
 const SnapItem: React.FC<SnapItemProps> = ({
   snap,
@@ -53,14 +51,27 @@ const SnapItem: React.FC<SnapItemProps> = ({
 }) => {
   const router = useRouter();
 
-  // Función para renderizar el mensaje con menciones resaltadas y presionables
+  // Función para manejar el SnapShare y enviar la notificación
+  const handleSnapShare = async () => {
+    onSnapShare(); // Llamada a la acción de compartir
+
+    console.log('Compartiendo Snap:', snap.id);
+    console.log('Autor original:', snap.originalUsername);
+    console.log('Autor actual:', currentUsername);
+
+
+    // Enviar notificación al autor original si el Snap tiene un autor diferente al actual
+    if (snap.originalUsername && snap.originalUsername !== currentUsername) {
+      await sendShareNotification(snap.originalUsername, currentUsername || '', snap.id);
+    }
+  };
+
+  // Función para renderizar el mensaje con menciones resaltadas
   const renderMessage = (message: string) => {
     const parts = message.split(/(@\w+)/g);
-
     return parts.map((part, index) => {
       if (part.startsWith('@')) {
         const username = part.slice(1);
-
         return (
           <Text
             key={index}
@@ -97,7 +108,7 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
   return (
     <View style={styles.snapContainer}>
-      {/* Mostrar texto de compartición si el snap fue compartido */}
+      {/* Mostrar texto de compartición si el Snap fue compartido */}
       {renderSharedText()}
 
       {/* Cabecera del Snap */}
@@ -112,7 +123,7 @@ const SnapItem: React.FC<SnapItemProps> = ({
       {/* Contenido del Snap con Menciones Resaltadas */}
       <Text style={styles.content}>{renderMessage(snap.message)}</Text>
 
-      {/* Botones de Acción: Editar y Eliminar en la parte superior derecha */}
+      {/* Botones de Acción: Editar y Eliminar */}
       {isOwnProfile && (
         <View style={styles.actionButtonsTopRight}>
           <Pressable onPress={() => onEdit && onEdit(snap)} style={styles.editButton}>
@@ -152,9 +163,9 @@ const SnapItem: React.FC<SnapItemProps> = ({
         {/* Botón de "Compartir" */}
         <View style={styles.snapShareContainer}>
           <Pressable
-            onPress={snap.isShared ? undefined : onSnapShare} // Deshabilitar onPress si ya está compartido
+            onPress={snap.isShared ? undefined : handleSnapShare}
             style={styles.snapShareButton}
-            disabled={snap.isShared} // Deshabilitar el botón si ya está compartido
+            disabled={snap.isShared}
           >
             <Icon name="repeat" size={24} color={shareIconColor || 'gray'} />
           </Pressable>

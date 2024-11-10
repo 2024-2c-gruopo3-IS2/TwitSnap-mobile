@@ -13,6 +13,7 @@ import { BlurView } from 'expo-blur';
 import styles from '../styles/createPostModal';
 import { getAllUsers } from '@/handlers/profileHandler'; // Importa el endpoint de seguidores
 import { AuthContext } from '@/context/authContext';
+import {usePostContext} from '@/context/postContext';
 
 interface Post {
   id?: string;
@@ -91,7 +92,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     setShowMentions(false);
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (postContent.trim() === '') {
       Alert.alert('Error', 'El contenido no puede estar vacío');
       return;
@@ -101,15 +102,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       return;
     }
 
-    const newPost: Post = {
-      id: Date.now().toString(),
-      username: 'User', // Reemplaza con el nombre de usuario real
-      time: 'Just now',
+    const newPost = {
+      username: user.username,
+      time: new Date().toLocaleString(),
       message: postContent,
       isPrivate: isPrivate,
     };
 
-    addNewPost(newPost);
+    await addNewPost(newPost);
     setPostContent('');
     setIsPrivate(false);
     onClose();

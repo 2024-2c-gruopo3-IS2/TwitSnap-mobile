@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flex: 1,
     textAlign: 'center', // Centrar el título
+    marginLeft: -30,
   },
   content: {
     flex: 1,
@@ -63,6 +64,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#333',
   },
+  notificationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 10,
+      borderBottomWidth: 1,
+      borderColor: '#ccc',
+    },
+    notificationContent: {
+      flex: 1,
+    },
+    deleteButton: {
+      padding: 5,
+    },
 });
 
 export default styles;

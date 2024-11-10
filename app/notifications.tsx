@@ -1,7 +1,5 @@
-// app/notifications.tsx
-
 import React, { useContext } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import Footer from '../components/footer';
 import styles from '../styles/notifications';
 import { NotificationContext } from '../context/notificationContext';
@@ -19,7 +17,7 @@ interface NotificationItem {
 }
 
 const NotificationsScreen: React.FC = () => {
-  const { notifications, markAsRead } = useContext(NotificationContext);
+  const { notifications, markAsRead, deleteNotification } = useContext(NotificationContext);
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -30,15 +28,25 @@ const NotificationsScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteNotification = (id: string) => {
+    Alert.alert('Eliminar notificación', '¿Estás seguro de que quieres eliminar esta notificación?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Eliminar', onPress: () => deleteNotification(id) },
+    ]);
+  };
+
   const renderNotification = ({ item }: { item: NotificationItem }) => (
-    <TouchableOpacity onPress={() => handleNotificationPress(item)}>
-      <View style={styles.notificationItem}>
+    <View style={styles.notificationItem}>
+      <TouchableOpacity onPress={() => handleNotificationPress(item)} style={styles.notificationContent}>
         <Text style={[styles.notificationMessage, !item.read && styles.unreadNotification]}>
           {item.message}
         </Text>
         <Text style={styles.notificationTime}>{item.time}</Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleDeleteNotification(item.id)} style={styles.deleteButton}>
+        <Icon name="delete" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
   );
 
   if (isLoading) {
@@ -51,7 +59,6 @@ const NotificationsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Contenedor del botón de retroceso y título */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#FFFFFF" />
@@ -62,7 +69,7 @@ const NotificationsScreen: React.FC = () => {
       <View style={styles.content}>
         {notifications.length > 0 ? (
           <FlatList
-            data={notifications}
+            data={notifications.slice().reverse()}
             keyExtractor={(item) => item.id}
             renderItem={renderNotification}
           />
@@ -71,7 +78,6 @@ const NotificationsScreen: React.FC = () => {
         )}
       </View>
 
-      {/* Footer */}
       <View style={styles.footerContainer}>
         <Footer />
       </View>
