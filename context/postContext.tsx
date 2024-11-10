@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { createSnap, likeSnap, unlikeSnap, favouriteSnap, unfavouriteSnap } from '@/handlers/postHandler';
 import { sendMentionNotification } from '@/handlers/notificationHandler';
+import { AuthContext } from '@/context/authContext';
 
 interface Post {
   id?: string;
@@ -42,6 +43,7 @@ export const usePostContext = () => {
 
 export const PostProvider = ({ children }: { children: ReactNode }) => {
   const [snaps, setSnaps] = useState<Snap[]>([]);
+  const { user } = useContext(AuthContext);
 
   const addNewPost = async (newPost: Post): Promise<void> => {
     const { message, isPrivate } = newPost;
@@ -66,7 +68,7 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
 
       // Enviar notificación para cada usuario mencionado
       for (const mentionedUser of mentions) {
-              await sendMentionNotification(mentionedUser, newSnap.username, newSnap.id);
+              await sendMentionNotification(mentionedUser, user.username, newSnap.id);
       }
     }
   };

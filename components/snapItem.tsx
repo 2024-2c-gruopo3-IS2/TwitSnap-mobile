@@ -1,9 +1,18 @@
-import React from 'react';
+// components/SnapItem.tsx
+import React, { useState } from 'react';
 import { View, Text, Pressable, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/snapItem';
 import { useRouter } from 'expo-router';
+import {
+  likeSnap,
+  unlikeSnap,
+  favouriteSnap,
+  unfavouriteSnap,
+  shareSnap
+} from '@/handlers/postHandler';
 import { sendShareNotification } from '@/handlers/notificationHandler';
+import Toast from 'react-native-toast-message';
 
 interface Snap {
   id: string;
@@ -18,51 +27,110 @@ interface Snap {
   profileImage: string;
   retweetUser: string;
   isShared: boolean;
-  originalUsername?: string; // Username del autor original
+  originalUsername?: string;
   mentions?: string[];
 }
 
 interface SnapItemProps {
   snap: Snap;
-  onLike: () => void;
-  onFavourite: () => void;
-  onEdit?: (snap: Snap) => void;
-  onDelete?: (id: string) => void;
-  onSnapShare: () => void;
   isOwnProfile?: boolean;
-  likeIconColor: string;
-  favouriteIconColor: string;
-  shareIconColor?: string;
+  onEdit?: (snap: Snap) => void; // Propiedad onEdit opcional
+  onDelete?: (id: string) => void; // Propiedad onDelete opcional
+  onShare?: () => void; // Propiedad onShare opcional
   currentUsername?: string; // Username del usuario actual
+  isOwned?: boolean; // Indica si el snap es del usuario actual
 }
 
 const SnapItem: React.FC<SnapItemProps> = ({
   snap,
-  onLike,
-  onFavourite,
+  isOwnProfile,
   onEdit,
   onDelete,
-  onSnapShare,
-  isOwnProfile,
-  likeIconColor,
-  favouriteIconColor,
-  shareIconColor,
+  onShare,
   currentUsername,
+  isOwned = false,
 }) => {
   const router = useRouter();
+  const [snapData, setSnapData] = useState(snap);
+
+  // Define colores para los íconos cuando están activos
+  const activeLikeColor = 'red';
+  const activeFavouriteColor = 'yellow';
+  const activeShareColor = 'green';
+
+  // Función para manejar "Me gusta"
+  const handleLike = async () => {
+    const updatedLikeStatus = !snapData.likedByUser;
+    const updatedLikes = updatedLikeStatus ? snapData.likes + 1 : snapData.likes - 1;
+    setSnapData({ ...snapData, likedByUser: updatedLikeStatus, likes: updatedLikes });
+
+    const apiResponse = updatedLikeStatus ? await likeSnap(snapData.id) : await unlikeSnap(snapData.id);
+
+    if (!apiResponse.success) {
+      setSnapData({ ...snapData, likedByUser: !updatedLikeStatus, likes: snapData.likes });
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Hubo un problema al procesar tu solicitud.',
+      });
+    }
+  };
+
+  // Función para manejar "Favorito"
+  const handleFavourite = async () => {
+    const updatedFavouriteStatus = !snapData.favouritedByUser;
+    setSnapData({ ...snapData, favouritedByUser: updatedFavouriteStatus });
+
+    const apiResponse = updatedFavouriteStatus
+      ? await favouriteSnap(snapData.id)
+      : await unfavouriteSnap(snapData.id);
+
+    if (!apiResponse.success) {
+      setSnapData({ ...snapData, favouritedByUser: !updatedFavouriteStatus });
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Hubo un problema al procesar tu solicitud.',
+      });
+    } else {
+      // Si se desmarca como favorito, notificar al padre
+      if (!updatedFavouriteStatus && onDelete) {
+        onDelete(snapData.id);
+      }
+    }
+  };
 
   // Función para manejar el SnapShare y enviar la notificación
   const handleSnapShare = async () => {
-    onSnapShare(); // Llamada a la acción de compartir
+    if (snapData.isShared) return; // Evita duplicar el compartido
 
-    console.log('Compartiendo Snap:', snap.id);
-    console.log('Autor original:', snap.originalUsername);
-    console.log('Autor actual:', currentUsername);
+    const result = await shareSnap(snapData.id);
 
+    if (result.success) {
+      Toast.show({
+        type: 'success',
+        text1: 'Snap compartido',
+        text2: 'El snap ha sido compartido exitosamente.',
+      });
 
-    // Enviar notificación al autor original si el Snap tiene un autor diferente al actual
-    if (snap.originalUsername && snap.originalUsername !== currentUsername) {
-      await sendShareNotification(snap.originalUsername, currentUsername || '', snap.id);
+      // Actualizar el Snap como compartido
+      setSnapData({
+        ...snapData,
+        isShared: true,
+        originalUsername: snapData.username,
+        username: currentUsername || '',
+      });
+
+      // Notificar al padre que el snap ha sido compartido
+      if (onShare) {
+        onShare();
+      }
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Error al compartir',
+        text2: 'Hubo un problema al compartir el snap.',
+      });
     }
   };
 
@@ -89,17 +157,17 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
   // Función para renderizar el nombre de usuario del autor presionable
   const renderUsername = () => (
-    <Pressable onPress={() => router.push(`/profileView?username=${snap.username}`)}>
-      <Text style={styles.username}>@{snap.username}</Text>
+    <Pressable onPress={() => router.push(`/profileView?username=${snapData.username}`)}>
+      <Text style={styles.username}>@{snapData.username}</Text>
     </Pressable>
   );
 
   // Función para renderizar el texto de compartición
   const renderSharedText = () => {
-    if (snap.isShared && currentUsername) {
+    if (!isOwned && snapData.isShared && snapData.originalUsername) {
       return (
         <Text style={styles.sharedText}>
-          @{currentUsername} ha compartido
+          @{snapData.originalUsername} ha compartido
         </Text>
       );
     }
@@ -108,28 +176,25 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
   return (
     <View style={styles.snapContainer}>
-      {/* Mostrar texto de compartición si el Snap fue compartido */}
+      {/* Mostrar texto de compartición si el Snap fue compartido y no es propio */}
       {renderSharedText()}
 
       {/* Cabecera del Snap */}
       <View style={styles.snapHeader}>
-        <Image
-          source={{ uri: snap.profileImage }}
-          style={styles.profileImageOnFeed}
-        />
+        <Image source={{ uri: snapData.profileImage }} style={styles.profileImageOnFeed} />
         {renderUsername()}
       </View>
 
       {/* Contenido del Snap con Menciones Resaltadas */}
-      <Text style={styles.content}>{renderMessage(snap.message)}</Text>
+      <Text style={styles.content}>{renderMessage(snapData.message)}</Text>
 
-      {/* Botones de Acción: Editar y Eliminar */}
-      {isOwnProfile && (
+      {/* Botones de Acción: Editar y Eliminar (solo si es propio) */}
+      {isOwned && (
         <View style={styles.actionButtonsTopRight}>
-          <Pressable onPress={() => onEdit && onEdit(snap)} style={styles.editButton}>
+          <Pressable onPress={() => onEdit && onEdit(snapData)} style={styles.editButton}>
             <Icon name="edit" size={20} color="#fff" />
           </Pressable>
-          <Pressable onPress={() => onDelete && onDelete(snap.id)} style={styles.deleteButton}>
+          <Pressable onPress={() => onDelete && onDelete(snapData.id)} style={styles.deleteButton}>
             <Icon name="delete" size={20} color="#fff" />
           </Pressable>
         </View>
@@ -139,35 +204,35 @@ const SnapItem: React.FC<SnapItemProps> = ({
       <View style={styles.actionContainer}>
         {/* Botón de "Favorito" */}
         <View style={styles.favouriteContainer}>
-          <Pressable onPress={onFavourite} style={styles.favouriteButton}>
+          <Pressable onPress={handleFavourite} style={styles.favouriteButton}>
             <Icon
-              name={snap.favouritedByUser ? 'bookmark' : 'bookmark-border'}
+              name={snapData.favouritedByUser ? 'bookmark' : 'bookmark-border'}
               size={24}
-              color={favouriteIconColor}
+              color={snapData.favouritedByUser ? activeFavouriteColor : 'gray'}
             />
           </Pressable>
         </View>
 
         {/* Botón de "Me Gusta" */}
         <View style={styles.likeContainer}>
-          <Pressable onPress={onLike} style={styles.likeButton}>
+          <Pressable onPress={handleLike} style={styles.likeButton}>
             <Icon
-              name={snap.likedByUser ? 'favorite' : 'favorite-border'}
+              name={snapData.likedByUser ? 'favorite' : 'favorite-border'}
               size={24}
-              color={likeIconColor}
+              color={snapData.likedByUser ? activeLikeColor : 'gray'}
             />
           </Pressable>
-          {snap.canViewLikes && <Text style={styles.likeCount}>{snap.likes}</Text>}
+          {snapData.canViewLikes && <Text style={styles.likeCount}>{snapData.likes}</Text>}
         </View>
 
         {/* Botón de "Compartir" */}
         <View style={styles.snapShareContainer}>
           <Pressable
-            onPress={snap.isShared ? undefined : handleSnapShare}
+            onPress={handleSnapShare}
             style={styles.snapShareButton}
-            disabled={snap.isShared}
+            disabled={snapData.isShared}
           >
-            <Icon name="repeat" size={24} color={shareIconColor || 'gray'} />
+            <Icon name="repeat" size={24} color={snapData.isShared ? activeShareColor : 'gray'} />
           </Pressable>
         </View>
       </View>

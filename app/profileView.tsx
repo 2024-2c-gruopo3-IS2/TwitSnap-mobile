@@ -27,17 +27,17 @@ import {
   getLikedSnaps
 } from '@/handlers/postHandler';
 import { Avatar } from 'react-native-elements';
-import { removeToken } from '@/handlers/authTokenHandler';
 import EditSnapModal from '@/components/editSnapModal';
 import SnapItem from '@/components/snapItem';
 import Footer from '../components/footer';
 import { useSegments } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import {AuthContext} from '@/context/authContext';
+import { AuthContext } from '@/context/authContext';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../firebaseConfig';
-import {shareSnap, getSharedSnaps} from '@/handlers/postHandler';
+import { shareSnap, getSharedSnaps } from '@/handlers/postHandler';
+import { followUserNotify } from '@/handlers/notificationHandler';
 
 interface Snap {
   id: string;
@@ -50,7 +50,7 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
-  retweetUser: string; // Si está vacío, es un snap normal; si no, es un retweet
+  retweetUser: string;
   isShared: boolean;
   originalUsername?: string;
 }
@@ -91,7 +91,7 @@ export default function ProfileView() {
 
   const fetchProfileImage = async (username: string) => {
     try {
-      const imageRef = await ref(storage, `profile_photos/${username}.png`);
+      const imageRef = ref(storage, `profile_photos/${username}.png`);
       const url = await getDownloadURL(imageRef);
 
       return url;
@@ -99,8 +99,6 @@ export default function ProfileView() {
       return 'https://via.placeholder.com/150';
     }
   };
-
-
 
   // Función para cambiar la foto de perfil
   const handleChangeProfilePhoto = async () => {
@@ -145,7 +143,7 @@ export default function ProfileView() {
     } catch (error) {
       console.error('Error uploading file:', error);
       setIsLoading(false);
-      Alert.alert('Error', 'There was an error uploading your profile image. Please try again.');
+      Alert.alert('Error', 'Hubo un error al subir tu foto de perfil. Inténtalo de nuevo.');
     }
   };
 
@@ -236,13 +234,7 @@ export default function ProfileView() {
             snapResponse.snaps.map(async (snap: any) => {
               let originalUsername = snap.originalUsername;
 
-              // **Corregir la asignación de originalUsername**
-              // Eliminar la sobrescritura incorrecta:
-              // if (sharedSnapIds.includes(snap._id)) {
-              //   originalUsername = currentUsername;
-              // }
-
-              // **Mantener originalUsername como está**, ya que `handleShare` lo establece correctamente
+              // Mantener originalUsername como está, ya que `handleShare` lo establece correctamente
               let authorProfileImage = await fetchProfileImage(snap.username);
 
               return {
@@ -292,6 +284,7 @@ export default function ProfileView() {
     }
   };
 
+  // Función para manejar seguir al usuario
   const handleFollow = async () => {
     if (isFollowLoading) return;
 
@@ -303,6 +296,7 @@ export default function ProfileView() {
         setIsFollowing(true);
         setProfile((prev: any) => ({ ...prev, followers_count: (prev.followers_count || 0) + 1 }));
         Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
+        await followUserNotify(profile.username, currentUsername);
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
       } else {
         Alert.alert('Error', response.message || 'No se pudo seguir al usuario.');
@@ -315,6 +309,7 @@ export default function ProfileView() {
     }
   };
 
+  // Función para manejar dejar de seguir al usuario
   const handleUnfollow = async () => {
     if (isFollowLoading) return;
 
@@ -338,39 +333,13 @@ export default function ProfileView() {
     }
   };
 
+  // Función para enviar un mensaje
   const handleSendMessage = () => {
-      // Navega a la pantalla de chat con el usuario actual
-      router.push(`/chat?with=${encodeURIComponent(profile.username)}`);
-    };
-
-  const handleEditSnap = (snap: Snap) => {
-    setSelectedSnap(snap);
-    setIsEditModalVisible(true);
+    // Navega a la pantalla de chat con el usuario actual
+    router.push(`/chat?with=${encodeURIComponent(profile.username)}`);
   };
 
-  const handleUpdateSnap = async (snapId: string, message: string, isPrivate: boolean) => {
-    try {
-      const result = await updateSnap(snapId, message, isPrivate);
-
-      if (result.success) {
-        // Actualizar el snap en la lista
-        setSnaps(prevSnaps =>
-          prevSnaps.map(snap =>
-            snap.id === snapId ? { ...snap, message, isPrivate } : snap
-          )
-        );
-        Alert.alert('Éxito', 'Snap actualizado exitosamente');
-        setIsEditModalVisible(false);
-        setSelectedSnap(null);
-      } else {
-        Alert.alert('Error', result.message || 'No se pudo actualizar el snap.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Ocurrió un error al actualizar el snap.');
-      console.error('Error al actualizar el snap:', error);
-    }
-  };
-
+  // Función para cerrar sesión
   const handleLogout = () => {
     Alert.alert(
       'Cerrar Sesión',
@@ -394,7 +363,38 @@ export default function ProfileView() {
     );
   };
 
-  const handleDeleteSnap = (snapId: string) => {
+  // Función para manejar la edición de un snap
+  const handleEditSnap = (snap: Snap) => {
+    setSelectedSnap(snap);
+    setIsEditModalVisible(true);
+  };
+
+  // Función para manejar la actualización de un snap después de editarlo
+  const handleUpdateSnap = async (snapId: string, message: string, isPrivate: boolean) => {
+    try {
+      const result = await updateSnap(snapId, message, isPrivate);
+
+      if (result.success) {
+        // Actualizar el snap en la lista usando una actualización funcional
+        setSnaps(prevSnaps =>
+          prevSnaps.map(snap =>
+            snap.id === snapId ? { ...snap, message, isPrivate } : snap
+          )
+        );
+        Alert.alert('Éxito', 'Snap actualizado exitosamente');
+        setIsEditModalVisible(false);
+        setSelectedSnap(null);
+      } else {
+        Alert.alert('Error', result.message || 'No se pudo actualizar el snap.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Ocurrió un error al actualizar el snap.');
+      console.error('Error al actualizar el snap:', error);
+    }
+  };
+
+  // Función para manejar la eliminación de un snap
+  const handleDeleteSnap = async (snapId: string) => {
     Alert.alert(
       'Eliminar Snap',
       '¿Estás seguro de que quieres eliminar este snap?',
@@ -404,10 +404,10 @@ export default function ProfileView() {
           text: 'Eliminar',
           onPress: async () => {
             console.log("Snap ID DELETE: " + snapId);
-            const result = await deleteSnap(snapId as unknown as number);
+            const result = await deleteSnap(snapId);
 
             if (result.success) {
-              setSnaps(snaps.filter(snap => snap.id !== snapId));
+              setSnaps(prevSnaps => prevSnaps.filter(snap => snap.id !== snapId));
               Alert.alert('Éxito', 'Snap eliminado exitosamente');
             } else {
               Alert.alert('Error', 'No se pudo eliminar el snap.');
@@ -418,98 +418,8 @@ export default function ProfileView() {
     );
   };
 
-  // Función para manejar el Like
-  const handleLike = async (snapId: string, likedByUser: boolean) => {
-    // Optimizar la UI primero
-    setSnaps(prevSnaps =>
-      prevSnaps.map(snap => {
-        if (snap.id === snapId) {
-          const updatedLikeStatus = !likedByUser;
-          const updatedLikes = updatedLikeStatus ? snap.likes + 1 : snap.likes - 1;
-          return {
-            ...snap,
-            likedByUser: updatedLikeStatus,
-            likes: updatedLikes,
-          };
-        }
-        return snap;
-      })
-    );
-
-    // Llamada a la API
-    const apiResponse = likedByUser ? await unlikeSnap(snapId) : await likeSnap(snapId);
-
-    if (apiResponse.success) {
-      // Usar Toast
-      Toast.show({
-        type: 'success',
-        text1: likedByUser ? 'Has quitado el "me gusta"' : 'Has dado "me gusta" exitosamente',
-      });
-    } else {
-      // Revertir el cambio en caso de error
-      setSnaps(prevSnaps =>
-        prevSnaps.map(snap => {
-          if (snap.id === snapId) {
-            const revertedLikeStatus = likedByUser;
-            const revertedLikes = revertedLikeStatus ? snap.likes + 1 : snap.likes - 1;
-            return {
-              ...snap,
-              likedByUser: revertedLikeStatus,
-              likes: revertedLikes,
-            };
-          }
-          return snap;
-        })
-      );
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
-      });
-    }
-  };
-
-  const handleFavourite = async (snapId: string, favouritedByUser: boolean) => {
-    setSnaps(prevSnaps =>
-      prevSnaps.map(snap => {
-        if (snap.id === snapId) {
-          return {
-            ...snap,
-            favouritedByUser: !favouritedByUser,
-          };
-        }
-        return snap;
-      })
-    );
-    const apiResponse = favouritedByUser ? await unfavouriteSnap(snapId) : await favouriteSnap(snapId);
-
-    if (apiResponse.success) {
-      Toast.show({
-        type: 'success',
-        text1: favouritedByUser ? 'Has quitado el favorito' : 'Has marcado como favorito exitosamente',
-      });
-    } else {
-      setSnaps(prevSnaps =>
-        prevSnaps.map(snap => {
-          if (snap.id === snapId) {
-            return {
-              ...snap,
-              favouritedByUser: favouritedByUser,
-            };
-          }
-          return snap;
-        })
-      );
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: apiResponse.message || 'Hubo un problema al procesar tu solicitud.',
-      });
-    }
-  };
-
-  // Función para manejar la compartición de un snap (solo compartir, no descompartir)
-  const handleShare = async (snap: Snap) => {
+  // Función para manejar la compartición de un snap
+  const handleShareSnap = async (snap: Snap) => {
     try {
       const result = await shareSnap(snap.id); // Llama al endpoint para compartir el snap
 
@@ -520,17 +430,20 @@ export default function ProfileView() {
           text2: 'El snap ha sido compartido exitosamente.',
         });
 
-        // Crear un nuevo snap compartido solo si es tu propio perfil
-        if (isOwnProfile) {
-          const sharedSnap = {
-            ...snap,
-            id: `${snap.id}-shared-${Date.now()}`, // Generar un ID único para el compartido
-            username: currentUsername, // Asignar al usuario actual
-            isShared: true,
-            originalUsername: snap.username, // Asignar al autor original
-            time: new Date().toLocaleString(),
-          };
-          setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+        // Crear un nuevo snap compartido
+        const sharedSnap = {
+          ...snap,
+          id: `${snap.id}-shared-${Date.now()}`, // Generar un ID único para el compartido
+          username: currentUsername, // Asignar al usuario actual
+          isShared: true,
+          originalUsername: snap.username, // Asignar al autor original
+          time: new Date().toLocaleString(),
+        };
+        setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+
+        // Enviar notificación al autor original si es diferente al actual
+        if (snap.originalUsername && snap.originalUsername !== currentUsername) {
+          await sendShareNotification(snap.originalUsername, currentUsername || '', snap.id);
         }
       } else {
         Toast.show({
@@ -548,135 +461,143 @@ export default function ProfileView() {
     }
   };
 
+  // Función para manejar la eliminación de un snap de favoritos desde SnapItem
+  const handleUnfavourite = useCallback((snapId: string) => {
+    setSnaps(prevSnaps => prevSnaps.filter(snap => snap.id !== snapId));
+    Toast.show({
+      type: 'success',
+      text1: 'Snap eliminado de favoritos',
+    });
+  }, []);
+
   const renderHeader = () => (
-      <View>
-        <View style={styles.headerContainer}>
-          <BackButton onPress={handleBackPress} />
-          <View style={styles.rightSpace} />
-        </View>
-
-        {profile.cover_photo ? (
-          <Image
-            source={{ uri: profile.cover_photo }}
-            style={styles.coverPhoto}
-          />
-        ) : (
-          <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
-        )}
-
-        <View style={styles.profilePictureContainer}>
-          <Avatar
-            rounded
-            size="xlarge"
-            source={{ uri: profileImage }}
-            containerStyle={styles.profilePicture}
-            onPress={handleChangeProfilePhoto}
-          />
-        </View>
-
-        <Text style={styles.name}>
-          {profile.name} {profile.surname}
-        </Text>
-        <Text style={styles.username}>@{profile.username}</Text>
-
-        {/* Descripción del usuario */}
-        {profile.description && (
-          <Text style={styles.description}>
-            {profile.description}
-          </Text>
-        )}
-
-        <View style={styles.followContainer}>
-          <Pressable
-            onPress={() =>
-              router.push(`/followers?username=${encodeURIComponent(profile.username)}`)
-            }
-            style={styles.followSection}
-          >
-            <Text style={styles.followNumber}>{followersCount}</Text>
-            <Text style={styles.followLabel}>Seguidores</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() =>
-              router.push(`/following?username=${encodeURIComponent(profile.username)}`)
-            }
-            style={styles.followSection}
-          >
-            <Text style={styles.followNumber}>{followingCount}</Text>
-            <Text style={styles.followLabel}>Seguidos</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.actionsContainer}>
-          {/* Botón de seguir/dejar de seguir */}
-          {!isOwnProfile && (
-            <Pressable
-              style={[styles.followButton, isFollowing ? styles.unfollowButton : styles.followButtonStyle]}
-              onPress={isFollowing ? handleUnfollow : handleFollow}
-              disabled={isFollowLoading}
-            >
-              {isFollowLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text style={styles.followButtonText}>
-                  {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
-                </Text>
-              )}
-            </Pressable>
-          )}
-
-          {/* Botón de enviar mensaje solo en perfiles de otros usuarios */}
-          {!isOwnProfile && (
-            <Pressable
-              style={styles.sendMessageButton}
-              onPress={() => router.push(`/chat?with=${encodeURIComponent(profile.username)}`)}
-            >
-              <Icon name="message" size={24} color="#fff" />
-              <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
-            </Pressable>
-          )}
-        </View>
-
-        {/* Opciones adicionales solo para el perfil propio */}
-        {isOwnProfile && (
-          <View style={styles.profileActionsContainer}>
-            <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
-              <Icon name="edit" size={24} color="#fff" />
-              <Text style={styles.editButtonText}>Editar Perfil</Text>
-            </Pressable>
-            <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
-              <Icon name="bookmark" size={24} color="#fff" />
-              <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
-            </Pressable>
-            <Pressable style={styles.logoutButton} onPress={handleLogout}>
-              <Icon name="logout" size={24} color="#fff" />
-              <Text style={styles.logoutButtonText}>Logout</Text>
-            </Pressable>
-          </View>
-        )}
-
-        <Text style={styles.snapTitle}>Snaps</Text>
+    <View>
+      <View style={styles.headerContainer}>
+        <BackButton onPress={handleBackPress} />
+        <View style={styles.rightSpace} />
       </View>
-    );
 
+      {profile.cover_photo ? (
+        <Image
+          source={{ uri: profile.cover_photo }}
+          style={styles.coverPhoto}
+        />
+      ) : (
+        <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
+      )}
+
+      <View style={styles.profilePictureContainer}>
+        <Avatar
+          rounded
+          size="xlarge"
+          source={{ uri: profileImage }}
+          containerStyle={styles.profilePicture}
+          onPress={handleChangeProfilePhoto}
+        />
+      </View>
+
+      <Text style={styles.name}>
+        {profile.name} {profile.surname}
+      </Text>
+      <Text style={styles.username}>@{profile.username}</Text>
+
+      {/* Descripción del usuario */}
+      {profile.description && (
+        <Text style={styles.description}>
+          {profile.description}
+        </Text>
+      )}
+
+      <View style={styles.followContainer}>
+        <Pressable
+          onPress={() =>
+            router.push(`/followers?username=${encodeURIComponent(profile.username)}`)
+          }
+          style={styles.followSection}
+        >
+          <Text style={styles.followNumber}>{followersCount}</Text>
+          <Text style={styles.followLabel}>Seguidores</Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() =>
+            router.push(`/following?username=${encodeURIComponent(profile.username)}`)
+          }
+          style={styles.followSection}
+        >
+          <Text style={styles.followNumber}>{followingCount}</Text>
+          <Text style={styles.followLabel}>Seguidos</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.actionsContainer}>
+        {/* Botón de seguir/dejar de seguir */}
+        {!isOwnProfile && (
+          <Pressable
+            style={[styles.followButton, isFollowing ? styles.unfollowButton : styles.followButtonStyle]}
+            onPress={isFollowing ? handleUnfollow : handleFollow}
+            disabled={isFollowLoading}
+          >
+            {isFollowLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.followButtonText}>
+                {isFollowing ? 'Dejar de Seguir' : 'Seguir'}
+              </Text>
+            )}
+          </Pressable>
+        )}
+
+        {/* Botón de enviar mensaje solo en perfiles de otros usuarios */}
+        {!isOwnProfile && (
+          <Pressable
+            style={styles.sendMessageButton}
+            onPress={handleSendMessage}
+          >
+            <Icon name="message" size={24} color="#fff" />
+            <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* Opciones adicionales solo para el perfil propio */}
+      {isOwnProfile && (
+        <View style={styles.profileActionsContainer}>
+          <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
+            <Icon name="edit" size={24} color="#fff" />
+            <Text style={styles.editButtonText}>Editar Perfil</Text>
+          </Pressable>
+          <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
+            <Icon name="bookmark" size={24} color="#fff" />
+            <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
+          </Pressable>
+          <Pressable style={styles.logoutButton} onPress={handleLogout}>
+            <Icon name="logout" size={24} color="#fff" />
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </Pressable>
+        </View>
+      )}
+
+      <Text style={styles.snapTitle}>Snaps</Text>
+    </View>
+  );
 
   const renderItemCallback = useCallback(
-    ({ item }: { item: Snap }) => (
-      <SnapItem
-        snap={item}
-        onLike={() => handleLike(item.id, item.likedByUser)}
-        onFavourite={() => handleFavourite(item.id, item.favouritedByUser)}
-        onEdit={isOwnProfile ? handleEditSnap : undefined}
-        onDelete={isOwnProfile ? handleDeleteSnap : undefined}
-        onSnapShare={() => handleShare(item)} // Usar handleShare en lugar de handleToggleShare
-        isOwnProfile={isOwnProfile}
-        likeIconColor={item.likedByUser ? 'red' : 'gray'}
-        favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-        shareIconColor={item.isShared ? 'green' : 'gray'} // Color del botón de compartir
-        currentUsername={isOwnProfile ? currentUsername : ''} // Pasar el nombre de usuario actual solo si es tu propio perfil
-      />
-    ),
+    ({ item }: { item: Snap }) => {
+      const isOwned = isOwnProfile && item.username === currentUsername;
+
+      return (
+        <SnapItem
+          snap={item}
+          isOwnProfile={isOwnProfile}
+          onEdit={isOwned ? handleEditSnap : undefined} // Solo pasar onEdit si es propio
+          onDelete={isOwned ? handleDeleteSnap : undefined} // Solo pasar onDelete si es propio
+          onShare={() => handleShareSnap(item)}
+          currentUsername={isOwnProfile ? currentUsername : ''}
+          isOwned={isOwned}
+        />
+      );
+    },
     [isOwnProfile, currentUsername]
   );
 
