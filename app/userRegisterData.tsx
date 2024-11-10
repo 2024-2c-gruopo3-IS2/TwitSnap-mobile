@@ -97,12 +97,6 @@ export default function UserDataPage() {
 
       // Generar un PIN y almacenarlo temporalmente
       const generatedPIN = generatePIN();
-      // Simular el envío del PIN por email (en producción, esto lo haría el backend)
-      Alert.alert(
-        'PIN de Confirmación',
-        `Se ha enviado un PIN de confirmación a tu correo electrónico (${email}).\n\nPIN Simulado: ${generatedPIN}`
-      );
-
       await clearRegistrationState();
 
       // Navegar a la página de confirmación del PIN, pasando el PIN generado

@@ -148,15 +148,6 @@ export default function SignUpPage() {
       <Text style={styles.title}>Regístrate en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={signUpWithGoogle}>
-          <Text style={styles.buttonText}>Registrarse con Google</Text>
-        </Pressable>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-          <Text style={styles.orText}>o</Text>
-          <View style={styles.divider} />
-        </View>
 
         <View style={styles.inputContainer}>
           <TextInput

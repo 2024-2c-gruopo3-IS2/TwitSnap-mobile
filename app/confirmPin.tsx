@@ -1,36 +1,47 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import styles from '../styles/confirmPin';
 import { AuthContext } from '@/context/authContext';
+import { generatePin, verifyPin } from '@/handlers/signUpHandler';
 
 export default function ConfirmPinPage() {
   const router = useRouter();
-  const { email, password, country, interests, pin: originalPin } = useLocalSearchParams(); // Recibe el PIN original
+  const { email, password, country, interests } = useLocalSearchParams(); // Datos del usuario
   const [enteredPin, setEnteredPin] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [pin, setPin] = useState(originalPin); // Mantenemos un estado para el PIN actual
+  const [pin, setPin] = useState('');
   const [isResending, setIsResending] = useState(false); // Estado para la simulación del envío del nuevo PIN
-  const {setIsAuthenticated} = useContext(AuthContext);
+  const { setIsAuthenticated } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchPin = async () => {
+      try {
+        const newPin = await generatePin(email); // Genera un nuevo PIN usando generatePin
+        console.log(`Nuevo PIN: ${newPin}`);
+
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'No se pudo generar un nuevo PIN. Intenta nuevamente.');
+      }
+    };
+
+    fetchPin();
+  } , []);
 
   const handleConfirmPin = async () => {
     if (!enteredPin) {
       Alert.alert('Error', 'Por favor, ingresa el PIN de confirmación.');
-      console.log("Pin original: " + pin);
-      console.log("Pin ingresado: " + enteredPin);
       return;
     }
 
     setIsVerifying(true);
 
     try {
-      // Simular espera de procesamiento
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const isValid = await verifyPin(email, enteredPin); // Verifica el PIN usando verifyPin
 
-      // Verificar el PIN ingresado
-      if (enteredPin === pin) {
-          setIsAuthenticated(true);
-        Alert.alert('Éxito', 'Tu cuenta ha sido confirmada exitosamente.');
+      if (isValid) {
+        setIsAuthenticated(true);
         router.replace('/tabs');
       } else {
         Alert.alert('Error', 'El PIN ingresado es incorrecto.');
@@ -47,14 +58,8 @@ export default function ConfirmPinPage() {
     setIsResending(true);
 
     try {
-      // Simular el envío de un nuevo PIN (espera de 2 segundos)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Generar un nuevo PIN simulado (para esta demostración, un número aleatorio)
-      const newPin = Math.floor(1000 + Math.random() * 9000).toString();
-      setPin(newPin);
-
-      Alert.alert('Nuevo PIN Enviado', `Se ha enviado un nuevo PIN: ${newPin}`);
+      const newPin = await generatePin(email); // Genera un nuevo PIN usando generatePin
+      setPin(newPin); // Actualiza el estado del PIN
       console.log(`Nuevo PIN: ${newPin}`);
     } catch (error) {
       console.error(error);
