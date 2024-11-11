@@ -7,10 +7,11 @@ import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/login';
 import { saveToken, getToken } from '@/handlers/authTokenHandler';
 import { loginUser } from '@/handlers/loginHandler';
-import { auth, provider } from '@/firebaseConfig'; // Importa tu configuración de Firebase
+import { auth, provider } from '@/firebaseConfig';
 import { signInWithCredential } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
 import {AuthContext} from '@/context/authContext';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -31,12 +32,14 @@ export default function LoginPage() {
     scopes: ['profile', 'email'],
   });
 
+  GoogleSignIn.configure({
+    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    offlineAccess: true,
+    forceCodeForRefreshToken: true,
+  });
+
   useEffect(() => {
     const checkSession = async () => {
-      //const token = await getToken();
-      //if (token) {
-      //  router.replace('./feed');
-      //}
       if (isAuthenticated) {
         router.replace('./feed');
       }
@@ -62,9 +65,31 @@ export default function LoginPage() {
     }
   }, [response]);
 
-  const signInWithGoogle = () => {
-    promptAsync();
-  };
+  const handleSignInWithGoogle = async () => {
+      try {
+        await GoogleSignin.hasPlayServices();
+        const userInfo = await GoogleSignin.signIn();
+
+        const token = userInfo.data.idToken;
+
+        const googleCredential = GoogleAuthProvider.credential(token);
+        const firebaseUserCredential = await signInWithCredential(auth, googleCredential);
+      //const response = await loginWithGoogleCandidate(firebaseUserCredential._tokenResponse.idToken);
+      } catch (error) {
+        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+          console.log('User cancelled the sign-in');
+        } else if (error.code === statusCodes.IN_PROGRESS) {
+          console.log('Sign-in is in progress');
+        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+          console.log('Play services are not available');
+        } else {
+          console.error('Google Sign-In error:', error);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
 
   const handleLogin = async () => {
     setError('');
@@ -74,7 +99,6 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-
     try {
         await login(email,password)
 
@@ -93,9 +117,15 @@ export default function LoginPage() {
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={signInWithGoogle}>
-          <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
-        </Pressable>
+          <Pressable style={styles.googleButton} onPress={signInWithGoogle}>
+            <View style={styles.googleButtonContent}>
+              <Image
+                source={require('../assets/images/google.png')}
+                style={styles.googleLogo}
+              />
+              <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
+            </View>
+          </Pressable>
 
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />

@@ -90,7 +90,12 @@ const styles = StyleSheet.create({
   signupLink: {
     color: '#1DA1F2',
   },
-  googleIcon: {
+  googleButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleLogo: {
     width: 24,
     height: 24,
     marginRight: 8,

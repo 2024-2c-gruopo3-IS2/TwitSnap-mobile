@@ -7,7 +7,8 @@ buildscript {
         compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '34')
         targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
         kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.23'
-
+        googlePlayServicesVersion = "21.2.0"
+        firebaseVersion = "33.5.1"
         ndkVersion = "26.1.10909125"
     }
     repositories {
