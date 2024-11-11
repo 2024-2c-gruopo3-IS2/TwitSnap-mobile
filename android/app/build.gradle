@@ -88,15 +88,19 @@ android {
 
     afterEvaluate {
         tasks.named("packageReleaseResources").configure {
+            dependsOn(":react-native-firebase-app:generateReleaseResValues", ":react-native-firebase-messaging:generateReleaseResValues")
             mustRunAfter(":react-native-firebase-app:generateReleaseResValues")
             mustRunAfter(":react-native-firebase-messaging:generateReleaseResValues")
         }
 
-        tasks.matching { it.name == "packageReleaseResources" }.configureEach {
-            dependsOn(":react-native-firebase-app:generateReleaseResValues")
-            dependsOn(":react-native-firebase-messaging:generateReleaseResValues")
+        tasks.named("packageDebugResources").configure {
+            dependsOn(":react-native-firebase-app:generateDebugResValues", ":react-native-firebase-messaging:generateDebugResValues")
+            mustRunAfter(":react-native-firebase-app:generateDebugResValues")
+            mustRunAfter(":react-native-firebase-messaging:generateDebugResValues")
         }
     }
+
+
 
 }
 
