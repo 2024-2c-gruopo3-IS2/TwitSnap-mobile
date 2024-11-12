@@ -11,7 +11,7 @@ import { auth, provider } from '@/firebaseConfig';
 import { signInWithCredential } from 'firebase/auth';
 import { GoogleAuthProvider } from 'firebase/auth';
 import {AuthContext} from '@/context/authContext';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+//import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,11 +32,11 @@ export default function LoginPage() {
     scopes: ['profile', 'email'],
   });
 
-  GoogleSignIn.configure({
-    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    offlineAccess: true,
-    forceCodeForRefreshToken: true,
-  });
+  // GoogleSignIn.configure({
+  //   webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+  //   offlineAccess: true,
+  //   forceCodeForRefreshToken: true,
+  // });
 
   useEffect(() => {
     const checkSession = async () => {
@@ -65,30 +65,30 @@ export default function LoginPage() {
     }
   }, [response]);
 
-  const handleSignInWithGoogle = async () => {
-      try {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
+  // const handleSignInWithGoogle = async () => {
+  //     try {
+  //       await GoogleSignin.hasPlayServices();
+  //       const userInfo = await GoogleSignin.signIn();
 
-        const token = userInfo.data.idToken;
+  //       const token = userInfo.data.idToken;
 
-        const googleCredential = GoogleAuthProvider.credential(token);
-        const firebaseUserCredential = await signInWithCredential(auth, googleCredential);
-      //const response = await loginWithGoogleCandidate(firebaseUserCredential._tokenResponse.idToken);
-      } catch (error) {
-        if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-          console.log('User cancelled the sign-in');
-        } else if (error.code === statusCodes.IN_PROGRESS) {
-          console.log('Sign-in is in progress');
-        } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-          console.log('Play services are not available');
-        } else {
-          console.error('Google Sign-In error:', error);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //       const googleCredential = GoogleAuthProvider.credential(token);
+  //       const firebaseUserCredential = await signInWithCredential(auth, googleCredential);
+  //     //const response = await loginWithGoogleCandidate(firebaseUserCredential._tokenResponse.idToken);
+  //     } catch (error) {
+  //       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+  //         console.log('User cancelled the sign-in');
+  //       } else if (error.code === statusCodes.IN_PROGRESS) {
+  //         console.log('Sign-in is in progress');
+  //       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+  //         console.log('Play services are not available');
+  //       } else {
+  //         console.error('Google Sign-In error:', error);
+  //       }
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
 
   const handleLogin = async () => {
@@ -117,7 +117,7 @@ export default function LoginPage() {
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-          <Pressable style={styles.googleButton} onPress={signInWithGoogle}>
+          <Pressable style={styles.googleButton} onPress={() => console.log("a implementar")}>
             <View style={styles.googleButtonContent}>
               <Image
                 source={require('../assets/images/google.png')}

@@ -1,4 +1,4 @@
-package com.franciscoduc4.tutorial
+package twit.snap
 
 import android.os.Build
 import android.os.Bundle
