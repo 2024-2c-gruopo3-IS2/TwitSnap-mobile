@@ -86,3 +86,44 @@ export const followUserNotify = async (followedUser, currentUser) => {
     }
     }
 
+export const sendMessageNotification = async (chatID, senderEmail, receiverEmail, message) => {
+    try {
+        // Obtén el token de notificación del usuario receptor desde Firebase
+        const tokenRef = ref(db, `users/${receiverEmail}/expoPushToken`);
+        const tokenSnapshot = await get(tokenRef);
+        const expoPushToken = tokenSnapshot.exists() ? tokenSnapshot.val().token : null;
+
+        if (!expoPushToken) {
+        console.log(`Token de notificación no encontrado para el usuario: ${receiverEmail}`);
+        return;
+        }
+
+        // Crea la notificación
+        const notification = {
+        to: expoPushToken,
+        sound: 'default',
+        title: 'Nuevo Mensaje',
+        body: `${senderEmail}: ${message}`,
+        data: { chatID },
+        };
+
+        // Enviar la notificación utilizando Expo Push API
+        const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(notification),
+        });
+
+        const data = await response.json();
+        if (data?.data?.status === 'ok') {
+        console.log(`Notificación de mensaje enviada a ${receiverEmail}`);
+        } else {
+        console.error('Error enviando la notificación de mensaje:', data);
+        }
+    } catch (error) {
+        console.error("Error en sendMessageNotification:", error);
+    }
+    }

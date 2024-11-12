@@ -6,7 +6,7 @@ export * from 'expo-router';
 declare module 'expo-router' {
   export namespace ExpoRouter {
     export interface __routes<T extends string = string> extends Record<string, unknown> {
-      StaticRoutes: `/` | `/_sitemap` | `/chat` | `/chats` | `/confirmPin` | `/favouriteSnapsView` | `/feed` | `/followers` | `/following` | `/forgotPassword` | `/interests` | `/location` | `/login` | `/notifications` | `/profileEdit` | `/profileView` | `/search` | `/setProfileImagePage` | `/signup` | `/tabs` | `/topicDetail` | `/trendingTopics` | `/userRegisterData`;
+      StaticRoutes: `/` | `/_sitemap` | `/chat` | `/chatItem` | `/chatItemSearch` | `/chatMessage` | `/chats` | `/confirmPin` | `/customTextInput` | `/favouriteSnapsView` | `/feed` | `/followers` | `/following` | `/forgotPassword` | `/interests` | `/location` | `/login` | `/newChat` | `/notifications` | `/profileEdit` | `/profileView` | `/search` | `/searchBar` | `/setProfileImagePage` | `/signup` | `/specificChat` | `/tabs` | `/topicDetail` | `/trendingTopics` | `/userRegisterData`;
       DynamicRoutes: never;
       DynamicRouteTemplate: never;
     }
