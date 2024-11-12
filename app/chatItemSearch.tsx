@@ -2,25 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { ref, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
-import defaultProfileImage from '../assets/images/placeholder_user.jpg';
-import {AuthContext} from '../../contexts/AuthContext';
+import {AuthContext} from '../context/authContext';
 
 const ChatItemSearch = ({ item, handleChatPress }) => {
-  const [avatar, setAvatar] = useState(defaultProfileImage);
-  const { isCandidate } = useUser();
+  console.log("[CHAT ITEM SEARCH] Item: ", item);
+  const [avatar, setAvatar] = useState("https://via.placeholder.com/150");
 
   const fetchAvatarImage = async () => {
     try {
-      const imageRef = ref(storage, `profile/images/${item.email}`);
+      console.log("[CHAT ITEM SEARCH] Username: ", item.username);
+      const imageRef = ref(storage, `profile_photos/${item.username}.png`);
       const url = await getDownloadURL(imageRef);
       setAvatar({ uri: url });
     } catch (error) {
-      setAvatar(defaultProfileImage);
+      setAvatar({uri: "https://via.placeholder.com/150"});
     }
   };
 
   useEffect(() => {
-    fetchAvatarImage();
+    const fetchData = async () => {
+      await fetchAvatarImage();
+    };
+    fetchData();
   }, []);
 
   return (
@@ -28,19 +31,9 @@ const ChatItemSearch = ({ item, handleChatPress }) => {
       <View style={styles.row}>
         <Image source={avatar} style={styles.pic} />
         <View style={styles.infoContainer}>
-          { isCandidate ? (
             <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-              {item.name}
+              {item.username}
             </Text>
-          ) : (
-            <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-              {item.first_name} {item.last_name}
-            </Text>
-          )}
-          <Text style={styles.titleTxt}>{item.title}</Text>
-          <Text style={styles.descTxt} numberOfLines={1} ellipsizeMode="tail">
-            {item.description}
-          </Text>
         </View>
       </View>
     </TouchableOpacity>

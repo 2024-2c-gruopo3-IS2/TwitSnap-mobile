@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, Keyboard, Text, ListRenderItem, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ref, get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import { get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import { ref } from 'firebase/storage';
 import { Entypo } from '@expo/vector-icons'; // Importa el icono de retroceso
 import { AuthContext } from '../context/authContext';
 import { db, storage } from '../firebaseConfig';
@@ -27,7 +28,9 @@ const NewChat: React.FC = () => {
 
   const fetchProfileImage = async (username: string) => {
     try {
+      console.log('[NEW CHAT] Username: ', username);
       const imageRef = ref(storage, `profile_photos/${username}.png`);
+      console.log('[NEW CHAT] Image ref:', imageRef);
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
@@ -50,6 +53,7 @@ const NewChat: React.FC = () => {
               profileImage: await fetchProfileImage(username),
             }))
           );
+          console.log('[NEW CHAT] Users:', users);
 
           setUsers(users);
           setFilteredUsers(users);

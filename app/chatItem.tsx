@@ -9,8 +9,6 @@ import countUnreadMessages from '../functions/countUnreadMessage';
 import {AuthContext} from '../context/authContext';
 import { useRouter } from 'expo-router';
 
-
-
 // Define the type for each chat item
 interface ChatItemProps {
   item: {
@@ -35,41 +33,31 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
 
   const fetchAvatarImage = async (): Promise<void> => {
     try {
-      const imageRef1 = ref(storage, `profile/images/${item.user1Email}`);
+      const imageRef1 = ref(storage, `profile_photos/${item.user1Email}.png`);
       const url1 = await getDownloadURL(imageRef1);
       setAvatarUser1({ uri: url1 });
       setLoadingUser1(false);
 
-      const imageRef2 = ref(storage, `profile/images/${item.user2Email}`);
+      const imageRef2 = ref(storage, `profile_photos/${item.user2Email}.png`);
       const url2 = await getDownloadURL(imageRef2);
       setAvatarUser2({ uri: url2 });
       setLoadingUser2(false);
     } catch (error) {
-      setAvatarUser1('https://via.placeholder.com/150');
-      setAvatarUser2('https://via.placeholder.com/150');
+      setAvatarUser1({uri: "https://via.placeholder.com/150"});
+      setAvatarUser2({uri: "https://via.placeholder.com/150"});
       setLoadingUser1(false);
       setLoadingUser2(false);
     }
   };
 
   useEffect(() => {
-    fetchAvatarImage();
+    const fetchData = async () => {
+      await fetchAvatarImage();
+    };
+    fetchData();
   }, []);
 
-  useEffect(() => {
-      console.log("[CHAT ITEM] Chat ID: ", item.chatID);
-    const fetchUnreadMessages = async (): Promise<void> => {
-      try {
-        const amount = await countUnreadMessages(item.chatID, user.username);
-        setUnreadCount(amount);
-      } catch (error) {
-        console.error('Error fetching unread messages:', error);
-      }
-    };
-    fetchUnreadMessages();
-  }, [item.chatID, user.username]);
-
-  const handleChatPress = (): void => {
+  const handleChatPress = async (): void => {
     const chatID = item.chatID;
     console.log("[specific ITEM] Chat ID: ", chatID);
     const email_sender = user.username === item.user1Email ? user.username : item.user2Email;
@@ -77,9 +65,10 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
     const email_receiver = user.username === item.user1Email ? item.user2Email : item.user1Email;
     console.log("[specific ITEM] email_receiver: ", email_receiver);
     const fromNotification = false;
+
     router.push({
         pathname:'./specificChat',
-        params: { chatID, email_sender, email_receiver, fromNotification }
+        params: { chatID, email_sender, email_receiver, fromNotification}
         });
   };
 
@@ -99,7 +88,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
             />
           ) : (
             <Image
-              source={item.user1Email === user.username ? avatarUser2 || 'https://via.placeholder.com/150' : avatarUser1 || 'https://via.placeholder.com/150'}
+              source={item.user1Email === user.username ? (avatarUser2 || defaultProfileImage) : (avatarUser1 || defaultProfileImage)}
               style={styles.pic}
             />
           )}
@@ -173,6 +162,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-
 
 export default ChatItem;

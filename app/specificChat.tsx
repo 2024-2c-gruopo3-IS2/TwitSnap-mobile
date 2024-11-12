@@ -3,14 +3,18 @@ import { View, FlatList, StyleSheet, TextInput, TouchableOpacity, Text, Keyboard
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { AuthContext } from '../context/authContext';
 import { ref, get, push, serverTimestamp, onChildAdded, off } from 'firebase/database';
-import { db } from '../firebaseConfig';
+import { db, storage } from '../firebaseConfig';
 import ChatMessage from './chatMessage';
+import { ref as ref2, getDownloadURL } from 'firebase/storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 const SpecificChat = () => {
   const router = useRouter();
   const { user } = useContext(AuthContext);
   const { chatID, email_sender, email_receiver, fromNotification, otherUserProfileImage, otherUserName } = useLocalSearchParams();
+  const [imageURL, setImageURL] = useState("https://via.placeholder.com/150");
+
+  console.log("otherUserProfileImage: ", otherUserProfileImage);
 
   if (!chatID || !email_sender || !email_receiver) {
     console.error('Missing required route parameters');
@@ -22,6 +26,13 @@ const SpecificChat = () => {
   const flatListRef = useRef(null);
 
   useEffect(() => {
+    const fetchImageUrl = async () => {
+      const imageRef = ref2(storage, `profile_photos/${email_receiver}.png`);
+      const url = await getDownloadURL(imageRef);
+      console.log("Image URL: ", url);
+      setImageURL(url);
+    };
+
     const messageRef = ref(db, `chats/${chatID}/messages`);
     const handleNewMessage = (snapshot) => {
       if (snapshot.exists()) {
@@ -29,6 +40,7 @@ const SpecificChat = () => {
       }
     };
 
+    fetchImageUrl();
     onChildAdded(messageRef, handleNewMessage);
 
     return () => {
@@ -60,7 +72,7 @@ const SpecificChat = () => {
         <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
           <Entypo name="chevron-left" size={28} color="#FFFFFF" />
         </TouchableOpacity>
-        <Image source={{ uri: otherUserProfileImage }} style={styles.profileImage} />
+        <Image source={{ uri: imageURL }} style={styles.profileImage} />
         <Text style={styles.userName}>{email_receiver}</Text>
       </View>
 
