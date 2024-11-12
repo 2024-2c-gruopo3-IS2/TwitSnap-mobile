@@ -1,18 +1,20 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Entypo } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
-const SearchBar = ({ searchText, setSearchText, handleSearchButton }) => {
+const SearchBar = ({ searchText, setSearchText, handleSearchButton, handleBackPress }) => {
   return (
     <View style={styles.searchBarContainer}>
       <TextInput
         style={styles.searchInput}
         value={searchText}
         onChangeText={setSearchText}
-        placeholder="Search name"
+        placeholder="Buscar usuario..."
+        placeholderTextColor="#BBBBBB" // Color gris claro para el placeholder
       />
-      <TouchableOpacity style={styles.searchButton} onPress={handleSearchButton}>
-        <Text style={styles.searchButtonText}>Search</Text>
-      </TouchableOpacity>
+      <Ionicons name="search" size={24} color="#1DA1F2" style={styles.searchIcon} />
+
     </View>
   );
 };
@@ -23,34 +25,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     margin: 10,
     paddingRight: 15,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'black', // Fondo oscuro para la barra de búsqueda
+    borderRadius: 25,
+    paddingVertical: 5,
   },
+  searchIcon: {
+      marginLeft: 15,
+      marginRight: 30,
+    },
   searchInput: {
     flex: 1,
-    borderColor: '#DCDCDC',
-    borderWidth: 1,
+    height: 45,
     borderRadius: 25,
     paddingHorizontal: 15,
-    height: 45,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#2C2C2C', // Fondo ligeramente más claro para el campo de entrada
+    color: '#FFFFFF', // Texto blanco
   },
   searchButton: {
     marginLeft: 10,
-    backgroundColor: "#2D58A0",
+    backgroundColor: "#1DA1F2", // Color azul para el botón de búsqueda
     borderRadius: 25,
     paddingVertical: 10,
     paddingHorizontal: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
   },
   searchButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Texto blanco para el botón
     fontWeight: '600',
   },
 });
 
 export default SearchBar;
-

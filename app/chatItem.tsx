@@ -103,11 +103,6 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
               style={styles.pic}
             />
           )}
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount}</Text>
-            </View>
-          )}
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
@@ -127,15 +122,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 10,
     marginVertical: 5,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    backgroundColor: '#1E1E1E', // Fondo oscuro
   },
   row: {
     flexDirection: 'row',
@@ -149,30 +136,24 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 50,
     height: 50,
+    borderWidth: 1,
+    borderColor: '#1DA1F2', // Borde para resaltar la imagen
   },
   badge: {
     position: 'absolute',
     bottom: -5,
     right: -5,
-    backgroundColor: '#2D58A0',
+    backgroundColor: '#1DA1F2', // Color más claro para visibilidad
     borderRadius: 12,
     width: 24,
     height: 24,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
+    borderColor: '#1E1E1E', // Bordes oscuros para contraste
   },
   badgeText: {
-    color: '#fff',
+    color: '#000000', // Texto oscuro para mejor contraste
     fontWeight: 'bold',
     fontSize: 12,
   },
@@ -182,15 +163,16 @@ const styles = StyleSheet.create({
   },
   nameTxt: {
     fontWeight: '600',
-    color: '#333',
+    color: '#FFFFFF', // Texto claro
     fontSize: 16,
   },
   lastMsgTxt: {
     fontWeight: '400',
-    color: '#888',
+    color: '#BBBBBB', // Texto más claro
     fontSize: 14,
     marginTop: 2,
   },
 });
+
 
 export default ChatItem;

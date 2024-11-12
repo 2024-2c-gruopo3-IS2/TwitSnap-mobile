@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { StyleSheet, View, FlatList, Pressable, RefreshControl, Text } from 'react-native';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl, Text, SafeAreaView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Entypo } from '@expo/vector-icons';
 import { query, orderByChild, equalTo, get, ref } from 'firebase/database';
@@ -15,11 +15,18 @@ interface Chat {
   [key: string]: any;
 }
 
+const COLORS = {
+  background: '#121212',
+  card: '#1E1E1E',
+  text: '#FFFFFF',
+  subText: '#BBBBBB',
+  primary: '#1DA1F2',  // Cambiado a color azul
+  border: '#1DA1F2',
+};
+
 const Chats: React.FC = () => {
   const { user } = useContext(AuthContext);
   const router = useRouter();
-    console.log ("[CHATS] user: ", user);
-
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -39,6 +46,10 @@ const Chats: React.FC = () => {
 
   const handlePressPlus = () => {
     router.push('/newChat');
+  };
+
+  const handleBackPress = () => {
+    router.back();
   };
 
   const handleRefresh = async () => {
@@ -73,39 +84,68 @@ const Chats: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {chats.length === 0 && !loading ? (
-        <View style={styles.noChatsContainer}>
-          <Text style={styles.noChatsText}>No chats available</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={chats}
-          keyExtractor={(item) => item.chatId}
-          renderItem={({ item }) => <ChatItem item={item} />}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshingChats}
-              onRefresh={handleRefresh}
-              colors={['#6B5A8E']}
-            />
-          }
-        />
-      )}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.headerContainer}>
+          <Pressable style={styles.backButton} onPress={handleBackPress}>
+            <Entypo name="chevron-left" size={30} color="#FFFFFF" />
+          </Pressable>
+          <Text style={styles.headerTitle}>Chats</Text>
+       </View>
+
+      <View style={styles.listContainer}>
+        {chats.length === 0 && !loading ? (
+          <View style={styles.noChatsContainer}>
+            <Text style={styles.noChatsText}>No chats available</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={chats}
+            keyExtractor={(item) => item.chatId}
+            renderItem={({ item }) => <ChatItem item={item} />}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshingChats}
+                onRefresh={handleRefresh}
+                colors={[COLORS.primary]}
+              />
+            }
+          />
+        )}
+      </View>
+
       <Pressable style={styles.floatingButton} onPress={handlePressPlus}>
-        <Entypo name="plus" size={24} color="white" />
+        <Entypo name="plus" size={24} color="#FFFFFF" />
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: 'black',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 15,
+    zIndex: 1,
+    marginTop: 70,
+  },
+  headerTitle: {
+    fontSize: 24,
+    color: 'white',
+    fontWeight: 'bold',
+    marginTop:70,
+    marginLeft: 170
+  },
+  listContainer: {
+    flex: 1,
+    paddingTop: 60,
+    marginTop: -20,
   },
   floatingButton: {
-    backgroundColor: '#2D58A0',
+    backgroundColor: COLORS.primary,
     borderRadius: 50,
     width: 60,
     height: 60,
@@ -114,14 +154,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 5,
   },
   noChatsContainer: {
     flex: 1,
@@ -130,7 +162,7 @@ const styles = StyleSheet.create({
   },
   noChatsText: {
     fontSize: 16,
-    color: '#888',
+    color: COLORS.subText,
   },
 });
 

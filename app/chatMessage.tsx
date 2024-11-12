@@ -1,82 +1,55 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import defaultProfileImage from '../assets/images/placeholder_user.jpg';
+import { View, Text, StyleSheet } from 'react-native';
 
-const ChatMessage = ({ item, user, avatarUser1, avatarUser2 }) => {
-  const defaultImageUri = "https://firebasestorage.googleapis.com/v0/b/jobinterviewme.appspot.com/o/profile%2Fimages%2Fdefault-profile.png?alt=media&token=3b3b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b";
+const ChatMessage = ({ item, user }) => {
+  const isUserMessage = item.sender === user.username;
 
-  const renderRightMessage = () => (
-    <View style={styles.rightMsg}>
-      <View style={styles.rightBlock}>
-        <Text style={styles.rightTxt}>{item.text}</Text>
-      </View>
-      <Image
-        source={{ uri: item.user1Email === user.email ? avatarUser2?.uri || defaultImageUri : avatarUser1?.uri || defaultImageUri }}
-        style={styles.userPic}
-      />
-    </View>
-  );
-
-  const renderLeftMessage = () => (
-    <View style={styles.eachMsg}>
-      <Image
-        source={{ uri: item.user1Email === user.email ? avatarUser1?.uri || defaultImageUri : avatarUser2?.uri || defaultImageUri }}
-        style={styles.userPic}
-      />
-      <View style={styles.leftBlock}>
-        <Text style={styles.leftTxt}>{item.text}</Text>
+  return (
+    <View style={[styles.messageContainer, isUserMessage ? styles.userMessageContainer : styles.receivedMessageContainer]}>
+      <View style={[styles.messageBubble, isUserMessage ? styles.userMessageBubble : styles.receivedMessageBubble]}>
+        <Text style={[styles.messageText, isUserMessage ? styles.userMessageText : styles.receivedMessageText]}>
+          {item.text}
+        </Text>
       </View>
     </View>
   );
-
-  return item.sender === user.email ? renderRightMessage() : renderLeftMessage();
 };
 
 const styles = StyleSheet.create({
-  eachMsg: {
+  messageContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
     marginVertical: 5,
+    paddingHorizontal: 10,
   },
-  rightMsg: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginVertical: 5,
+  userMessageContainer: {
+    justifyContent: 'flex-end',
     alignSelf: 'flex-end',
   },
-  userPic: {
-    height: 40,
-    width: 40,
-    margin: 5,
-    borderRadius: 20,
+  receivedMessageContainer: {
+    justifyContent: 'flex-start',
+    alignSelf: 'flex-start',
   },
-  leftBlock: {
+  messageBubble: {
     maxWidth: '75%',
     padding: 10,
-    backgroundColor: '#444',
     borderRadius: 15,
-    shadowColor: '#000',
-    shadowRadius: 2,
-    shadowOpacity: 0.2,
-    shadowOffset: { height: 1 },
   },
-  rightBlock: {
-    maxWidth: '75%',
-    padding: 10,
-    backgroundColor: '#222',
-    borderRadius: 15,
-    shadowColor: '#000',
-    shadowRadius: 2,
-    shadowOpacity: 0.2,
-    shadowOffset: { height: 1 },
+  userMessageBubble: {
+    backgroundColor: '#1DA1F2', // Fondo azul para los mensajes del usuario
+    borderTopRightRadius: 0,
   },
-  leftTxt: {
+  receivedMessageBubble: {
+    backgroundColor: '#333', // Fondo gris para los mensajes recibidos
+    borderTopLeftRadius: 0,
+  },
+  messageText: {
     fontSize: 16,
-    color: 'white',
   },
-  rightTxt: {
-    fontSize: 16,
-    color: '#fff',
+  userMessageText: {
+    color: '#FFFFFF', // Texto blanco para los mensajes del usuario
+  },
+  receivedMessageText: {
+    color: '#BBBBBB', // Texto gris claro para los mensajes recibidos
   },
 });
 

@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, Keyboard, Text, ListRenderItem, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ref, get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import { Entypo } from '@expo/vector-icons'; // Importa el icono de retroceso
 import { AuthContext } from '../context/authContext';
 import { db, storage } from '../firebaseConfig';
 import SearchBar from './searchBar';
@@ -142,6 +143,10 @@ const NewChat: React.FC = () => {
     Keyboard.dismiss();
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   const renderUser: ListRenderItem<User> = ({ item }) => (
     <Pressable onPress={() => handleChatPress(item)}>
       <View style={styles.userContainer}>
@@ -153,18 +158,29 @@ const NewChat: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SearchBar
-        searchText={usernameSearched}
-        setSearchText={setUsernameSearched}
-        handleSearchButton={handleSearchButtonFunction}
-      />
+      {/* Título */}
+      <Text style={styles.title}>Crear un nuevo Chat</Text>
+
+      {/* Contenedor de encabezado con el botón de retroceso y la barra de búsqueda */}
+      <View style={styles.headerContainer}>
+        <Pressable style={styles.backButton} onPress={handleBackPress}>
+          <Entypo name="chevron-left" size={24} color="#FFFFFF" />
+        </Pressable>
+        <SearchBar
+          searchText={usernameSearched}
+          setSearchText={setUsernameSearched}
+          handleSearchButton={handleSearchButtonFunction}
+          containerStyle={styles.searchBar}
+        />
+      </View>
       {isLoading ? (
-        <Text>Loading...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       ) : filteredUsers.length > 0 ? (
         <FlatList
           data={filteredUsers}
           keyExtractor={(item) => item.username}
           renderItem={renderUser}
+          contentContainerStyle={styles.listContent}
         />
       ) : (
         <View style={styles.noUsersContainer}>
@@ -178,22 +194,54 @@ const NewChat: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    marginTop: 40,
+    backgroundColor: 'black',
+    paddingTop: 40,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  backButton: {
+    marginRight: 10,
+  },
+  searchBar: {
+    flex: 1, // Permite que la barra de búsqueda ocupe el espacio restante
+  },
+  listContent: {
+    paddingTop: 10,
+    marginTop: -10,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 10,
+    marginTop: 20,
+  },
+
   userContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
+    backgroundColor: '#1E1E1E',
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderRadius: 10,
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#1DA1F2',
   },
   username: {
     fontSize: 16,
+    color: '#FFFFFF',
   },
   noUsersContainer: {
     flex: 1,
@@ -202,7 +250,13 @@ const styles = StyleSheet.create({
   },
   noUsersText: {
     fontSize: 16,
-    color: '#888',
+    color: '#BBBBBB',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#BBBBBB',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 

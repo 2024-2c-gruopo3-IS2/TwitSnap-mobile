@@ -49,11 +49,11 @@ const ChatItemSearch = ({ item, handleChatPress }) => {
 
 const styles = StyleSheet.create({
   itemContainer: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#1E1E1E', // Fondo oscuro
     borderRadius: 10,
     marginVertical: 5,
     marginHorizontal: 10,
-    shadowColor: '#000',
+    shadowColor: '#FFFFFF', // Sombra clara
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -68,6 +68,8 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     width: 60,
     height: 60,
+    borderWidth: 1,
+    borderColor: '#BB86FC', // Borde para resaltar la imagen
   },
   infoContainer: {
     flexDirection: 'column',
@@ -77,20 +79,21 @@ const styles = StyleSheet.create({
   },
   nameTxt: {
     fontWeight: '700',
-    color: '#333',
+    color: '#FFFFFF', // Texto claro
     fontSize: 16,
   },
   titleTxt: {
     fontWeight: '500',
-    color: '#666',
+    color: '#BB86FC', // Texto destacado
     fontSize: 14,
   },
   descTxt: {
     fontWeight: '300',
-    color: '#999',
+    color: '#BBBBBB', // Texto más claro
     fontSize: 12,
   },
 });
+
 
 export default ChatItemSearch;
 
