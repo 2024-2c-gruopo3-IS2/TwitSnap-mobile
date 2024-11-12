@@ -7,6 +7,8 @@ import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { storage } from '../firebaseConfig';
 import countUnreadMessages from '../functions/countUnreadMessage';
 import {AuthContext} from '../context/authContext';
+import { useRouter } from 'expo-router';
+
 
 
 // Define the type for each chat item
@@ -22,8 +24,8 @@ interface ChatItemProps {
 }
 
 const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
-  const navigation = useNavigation();
-  const { loggedInUser, refreshingChats, setRefreshingChats } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+  const router = useRouter();
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [avatarUser1, setAvatarUser1] = useState<{ uri: string } | null>(null);
   const [avatarUser2, setAvatarUser2] = useState<{ uri: string } | null>(null);
@@ -52,46 +54,52 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
 
   useEffect(() => {
     fetchAvatarImage();
-  }, [refreshingChats]);
+  }, []);
 
   useEffect(() => {
+      console.log("[CHAT ITEM] Chat ID: ", item.chatID);
     const fetchUnreadMessages = async (): Promise<void> => {
       try {
-        const amount = await countUnreadMessages(item.chatID, loggedInUser.email);
+        const amount = await countUnreadMessages(item.chatID, user.username);
         setUnreadCount(amount);
       } catch (error) {
         console.error('Error fetching unread messages:', error);
       }
     };
-    setRefreshingChats(false);
     fetchUnreadMessages();
-  }, [item.chatID, loggedInUser.email, refreshingChats]);
+  }, [item.chatID, user.username]);
 
   const handleChatPress = (): void => {
     const chatID = item.chatID;
-    const email_sender = loggedInUser.email === item.user1Email ? loggedInUser.email : item.user2Email;
-    const email_receiver = loggedInUser.email === item.user1Email ? item.user2Email : item.user1Email;
+    console.log("[specific ITEM] Chat ID: ", chatID);
+    const email_sender = user.username === item.user1Email ? user.username : item.user2Email;
+    console.log("[specific ITEM] email_sender: ", email_sender);
+    const email_receiver = user.username === item.user1Email ? item.user2Email : item.user1Email;
+    console.log("[specific ITEM] email_receiver: ", email_receiver);
     const fromNotification = false;
-    navigation.push('SpecificChat', { chatID, email_sender, email_receiver, fromNotification });
+    router.push({
+        pathname:'./specificChat',
+        params: { chatID, email_sender, email_receiver, fromNotification }
+        });
   };
 
   useEffect(() => {
     const lastMsg = item.messages && Object.values(item.messages).slice(-1)[0]?.text || 'No messages yet';
     setLastMessage(lastMsg);
-  }, [item.messages, refreshingChats]);
+  }, [item.messages]);
 
   return (
     <TouchableOpacity onPress={handleChatPress} style={styles.chatItem}>
       <View style={styles.row}>
         <View style={styles.avatarContainer}>
-          {(loadingUser1 && item.user1Email === loggedInUser.email) || (loadingUser2 && item.user2Email === loggedInUser.email) ? (
+          {(loadingUser1 && item.user1Email === user.username) || (loadingUser2 && item.user2Email === user.username) ? (
             <ShimmerPlaceholder
               style={styles.pic}
               shimmerColors={['#f0f0f0', '#e0e0e0', '#f0f0f0']}
             />
           ) : (
             <Image
-              source={item.user1Email === loggedInUser.email ? avatarUser2 || 'https://via.placeholder.com/150' : avatarUser1 || 'https://via.placeholder.com/150'}
+              source={item.user1Email === user.username ? avatarUser2 || 'https://via.placeholder.com/150' : avatarUser1 || 'https://via.placeholder.com/150'}
               style={styles.pic}
             />
           )}
@@ -103,7 +111,7 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.nameTxt} numberOfLines={1} ellipsizeMode="tail">
-            {item.user1Email === loggedInUser.email ? item.user2Username : item.user1Username}
+            {item.user1Email === user.username ? item.user2Username : item.user1Username}
           </Text>
           <Text style={styles.lastMsgTxt} numberOfLines={1} ellipsizeMode="tail">
             {lastMessage}

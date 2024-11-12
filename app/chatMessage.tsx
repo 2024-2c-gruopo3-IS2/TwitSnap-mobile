@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import defaultProfileImage from '../assets/images/placeholder_user.jpg';
 
-const ChatMessage = ({ item, loggedInUser, avatarUser1, avatarUser2 }) => {
+const ChatMessage = ({ item, user, avatarUser1, avatarUser2 }) => {
   const defaultImageUri = "https://firebasestorage.googleapis.com/v0/b/jobinterviewme.appspot.com/o/profile%2Fimages%2Fdefault-profile.png?alt=media&token=3b3b3b3b-3b3b-3b3b-3b3b-3b3b3b3b3b3b";
 
   const renderRightMessage = () => (
@@ -11,7 +11,7 @@ const ChatMessage = ({ item, loggedInUser, avatarUser1, avatarUser2 }) => {
         <Text style={styles.rightTxt}>{item.text}</Text>
       </View>
       <Image
-        source={{ uri: item.user1Email === loggedInUser.email ? avatarUser2?.uri || defaultImageUri : avatarUser1?.uri || defaultImageUri }}
+        source={{ uri: item.user1Email === user.email ? avatarUser2?.uri || defaultImageUri : avatarUser1?.uri || defaultImageUri }}
         style={styles.userPic}
       />
     </View>
@@ -20,7 +20,7 @@ const ChatMessage = ({ item, loggedInUser, avatarUser1, avatarUser2 }) => {
   const renderLeftMessage = () => (
     <View style={styles.eachMsg}>
       <Image
-        source={{ uri: item.user1Email === loggedInUser.email ? avatarUser1?.uri || defaultImageUri : avatarUser2?.uri || defaultImageUri }}
+        source={{ uri: item.user1Email === user.email ? avatarUser1?.uri || defaultImageUri : avatarUser2?.uri || defaultImageUri }}
         style={styles.userPic}
       />
       <View style={styles.leftBlock}>
@@ -29,7 +29,7 @@ const ChatMessage = ({ item, loggedInUser, avatarUser1, avatarUser2 }) => {
     </View>
   );
 
-  return item.sender === loggedInUser.email ? renderRightMessage() : renderLeftMessage();
+  return item.sender === user.email ? renderRightMessage() : renderLeftMessage();
 };
 
 const styles = StyleSheet.create({

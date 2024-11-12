@@ -16,8 +16,10 @@ interface Chat {
 }
 
 const Chats: React.FC = () => {
-  const { loggedInUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const router = useRouter();
+    console.log ("[CHATS] user: ", user);
+
 
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -44,18 +46,10 @@ const Chats: React.FC = () => {
 
     setLoading(true);
     const chatsRef = ref(db, 'chats');
-    const email = loggedInUser?.email;
-
-    if (!email) {
-      setLoading(false);
-      return;
-    }
-
+    const username = user?.username;
     try {
-      console.log("Fetching chats...");
-      const user1Query = query(chatsRef, orderByChild('user1Email'), equalTo(email));
-      const user2Query = query(chatsRef, orderByChild('user2Email'), equalTo(email));
-
+      const user1Query = query(chatsRef, orderByChild('user1Email'), equalTo(username));
+      const user2Query = query(chatsRef, orderByChild('user2Email'), equalTo(username));
       const user1Chats = await get(user1Query);
       const user2Chats = await get(user2Query);
 

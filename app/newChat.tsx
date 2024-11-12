@@ -119,7 +119,7 @@ const NewChat: React.FC = () => {
           chatID,
           user1Email: user.username,
           user2Email: item.username,
-          user1Username: user.name,
+          user1Username: user.username,
           user2Username: item.username,
           timestamp: currentTimestamp,
           messages: [],

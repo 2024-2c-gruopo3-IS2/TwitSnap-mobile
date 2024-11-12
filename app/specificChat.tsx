@@ -1,185 +1,86 @@
-import React, { useState, useContext, useEffect, useCallback } from 'react';
-import { View, FlatList, StyleSheet, Keyboard, Text, ListRenderItem, Pressable, Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import { ref, get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { View, FlatList, StyleSheet, TextInput, TouchableOpacity, Text, KeyboardAvoidingView } from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import { ref, get, push, serverTimestamp, onChildAdded, off } from 'firebase/database';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/authContext';
-import { db, storage } from '../firebaseConfig';
-import SearchBar from './searchBar';
-import ChatItemSearch from './chatItemSearch';
-import { getAllUsers } from '../handlers/profileHandler';
-import { getDownloadURL } from 'firebase/storage';
-import debounce from 'lodash.debounce';
+import { db } from '../firebaseConfig';
+import ChatMessage from './chatMessage';
+import { useSearchParams } from 'expo-router';
+import {useRouter} from 'expo-router';
+import {useLocalSearchParams} from 'expo-router';
 
-interface User {
-  username: string;
-  profileImage: string;
-}
-
-const NewChat: React.FC = () => {
+const SpecificChat = () => {
   const router = useRouter();
-  const { loggedInUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+  //const { chatID, email_sender, email_receiver, fromNotification } = route.params || {};
+  const { chatID, email_sender, email_receiver, fromNotification } = useLocalSearchParams();
 
-  const [usernameSearched, setUsernameSearched] = useState<string>('');
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfileImage = async (username: string) => {
-    try {
-      const imageRef = ref(storage, `profile_photos/${username}.png`);
-      const url = await getDownloadURL(imageRef);
-      return url;
-    } catch (error) {
-      return 'https://via.placeholder.com/150';
-    }
-  };
+  console.log('chatID: ', chatID);
+    console.log('email_sender: ', email_sender);
+    console.log('email_receiver: ', email_receiver);
+    console.log('fromNotification: ', fromNotification);
+
+  if (!chatID || !email_sender || !email_receiver) {
+    console.error('Missing required route parameters');
+    return null;
+  }
+
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const flatListRef = useRef(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch('YOUR_API_ENDPOINT');
-        if (!response.ok) {
-          throw new Error('Error connecting to the server.');
-        }
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Received non-JSON response.');
-        }
-        const usersResponse = await response.json();
-        if (usersResponse.success && usersResponse.users) {
-          const usersExcludingSelf = usersResponse.users.filter(
-            (user: User) => user.username !== loggedInUser.username
-          );
-
-          const users = await Promise.all(
-            usersExcludingSelf.map(async (user: User) => ({
-              ...user,
-              profileImage: await fetchProfileImage(user.username),
-            }))
-          );
-
-          setUsers(users);
-          setFilteredUsers(users);
-        } else {
-          console.error('Error fetching users:', usersResponse.message);
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error.message);
-      } finally {
-        setIsLoading(false);
+    const messageRef = ref(db, `chats/${chatID}/messages`);
+    const handleNewMessage = (snapshot) => {
+      if (snapshot.exists()) {
+        setMessages((prevMessages) => [...prevMessages, snapshot.val()]);
       }
     };
 
-    fetchUsers();
-  }, [loggedInUser]);
+    onChildAdded(messageRef, handleNewMessage);
 
-  const performSearch = (query: string) => {
-    const trimmedQuery = query.trim().toLowerCase();
-    const filtered = users.filter(user =>
-      user.username.toLowerCase().includes(trimmedQuery)
-    );
-    setFilteredUsers(filtered);
+    return () => {
+      off(messageRef, 'child_added', handleNewMessage);
+    };
+  }, [chatID]);
+
+  const sendMessage = async () => {
+    if (newMessage.trim().length > 0) {
+      const message = {
+        sender: user.email,
+        text: newMessage,
+        timestamp: serverTimestamp(),
+      };
+
+      await push(ref(db, `chats/${chatID}/messages`), message);
+      setNewMessage('');
+    }
   };
-
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      performSearch(query);
-    }, 300),
-    [users]
-  );
-
-  useEffect(() => {
-    debouncedSearch(usernameSearched);
-    return debouncedSearch.cancel;
-  }, [usernameSearched, debouncedSearch]);
-
-  const generateChatID = (user1: string, user2: string): string => {
-    const sortedUserIDs = [user1, user2].sort();
-    return `${sortedUserIDs[0].replace(/[\.\#\$\/\[\]]/g, '_')}_${sortedUserIDs[1].replace(/[\.\#\$\/\[\]]/g, '_')}`;
-  };
-
-  const handleChatPress = (item: User): void => {
-    const chatID = generateChatID(loggedInUser.email, item.username);
-    const chat = ref(db, `chats/${chatID}`);
-
-    get(chat).then((snapshot) => {
-      if (snapshot.exists()) {
-        const chatRef = ref(db, `chats/${chatID}/messages`);
-        const messageQuery = query(chatRef, orderByChild('timestamp'), limitToLast(20));
-
-        get(messageQuery).then((snapshot) => {
-          const userSender = loggedInUser.email;
-          const userReceiver = item.username;
-          const messages = snapshot.exists() ? Object.values(snapshot.val()) : [];
-          router.push({
-            pathname: 'specificChat',
-            params: {
-              chatID,
-              userSender,
-              userReceiver,
-              messages,
-            },
-          });
-        }).catch(console.error);
-      } else {
-        const currentTimestamp = serverTimestamp();
-        set(chat, {
-          chatID,
-          user1Email: loggedInUser.email,
-          user2Email: item.username,
-          user1Username: loggedInUser.name,
-          user2Username: item.username,
-          timestamp: currentTimestamp,
-          messages: [],
-        }).then(() => {
-          router.push({
-            pathname: 'specificChat',
-            params: {
-              chatID,
-              userSender: loggedInUser.email,
-              userReceiver: item.username,
-              messages: [],
-            },
-          });
-        }).catch(console.error);
-      }
-    }).catch(console.error);
-  };
-
-  const handleSearchButtonFunction = async (): Promise<void> => {
-    Keyboard.dismiss();
-  };
-
-  const renderUser: ListRenderItem<User> = ({ item }) => (
-    <Pressable onPress={() => handleChatPress(item)}>
-      <View style={styles.userContainer}>
-        <Image source={{ uri: item.profileImage }} style={styles.profileImage} />
-        <Text style={styles.username}>@{item.username}</Text>
-      </View>
-    </Pressable>
-  );
 
   return (
-    <View style={styles.container}>
-      <SearchBar
-        searchText={usernameSearched}
-        setSearchText={setUsernameSearched}
-        handleSearchButton={handleSearchButtonFunction}
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        keyExtractor={(item) => item.timestamp.toString()}
+
+        renderItem={({ item }) => <ChatMessage item={item} user={user} />}
+        onContentSizeChange={() => flatListRef.current.scrollToEnd({ animated: true })}
       />
-      {isLoading ? (
-        <Text>Loading...</Text>
-      ) : filteredUsers.length > 0 ? (
-        <FlatList
-          data={filteredUsers}
-          keyExtractor={(item) => item.username}
-          renderItem={renderUser}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Type a message"
         />
-      ) : (
-        <View style={styles.noUsersContainer}>
-          <Text style={styles.noUsersText}>No users found.</Text>
-        </View>
-      )}
-    </View>
+        <TouchableOpacity onPress={sendMessage}>
+          <Ionicons name="send" size={24} color="blue" />
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -188,29 +89,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f0f0f0',
   },
-  userContainer: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    paddingHorizontal: 10,
+    backgroundColor: '#f0f0f0',
+    borderTopColor: '#ccc',
   },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  username: {
-    fontSize: 16,
-  },
-  noUsersContainer: {
+  textInput: {
     flex: 1,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  noUsersText: {
-    fontSize: 16,
-    color: '#888',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 25,
+    marginRight: 10,
+    paddingHorizontal: 10,
   },
 });
 
-export default NewChat;
+export default SpecificChat;

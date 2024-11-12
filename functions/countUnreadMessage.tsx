@@ -3,7 +3,7 @@ import { db } from '../firebaseConfig';
 import generateUserEmailID from './generateUserEmailId';
 
 const countUnreadMessages = async (chatID, currentUserEmail) => {
-    const messagesRef = ref(db, 'chats/${chatID}/messages');
+    const messagesRef = ref(db, `chats/${chatID}/messages`);
 
     try {
       const snapshot = await get(query(
