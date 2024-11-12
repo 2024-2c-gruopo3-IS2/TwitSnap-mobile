@@ -1,108 +1,106 @@
-// app/chats.tsx
-
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput } from 'react-native';
-import Footer from '@/components/footer';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
+import { StyleSheet, View, FlatList, Pressable, RefreshControl, Text } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { Entypo } from '@expo/vector-icons';
+import { query, orderByChild, equalTo, get, ref } from 'firebase/database';
 import { useRouter } from 'expo-router';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import ChatItem from './chatItem';
+import { db } from '../firebaseConfig';
+import { AuthContext } from '../context/authContext';
 
-const ChatsScreen: React.FC = () => {
+interface Chat {
+  chatId: string;
+  user1Email: string;
+  user2Email: string;
+  [key: string]: any;
+}
+
+const Chats: React.FC = () => {
+  const { loggedInUser } = useContext(AuthContext);
   const router = useRouter();
-  const [searchText, setSearchText] = useState('');
 
-  const mockChats = [
-    {
-      chatId: '1',
-      otherUser: {
-        uid: 'uid1',
-        username: 'usuario1',
-        profilePicture: 'https://randomuser.me/api/portraits/men/1.jpg',
-      },
-      lastMessage: {
-        text: 'Hola, ¿cómo estás?',
-        timestamp: 1625152800000,
-      },
-    },
-    {
-      chatId: '2',
-      otherUser: {
-        uid: 'uid2',
-        username: 'usuario2',
-        profilePicture: 'https://randomuser.me/api/portraits/women/2.jpg',
-      },
-      lastMessage: {
-        text: '¿Quieres salir esta noche?',
-        timestamp: 1625239200000,
-      },
-    },
-    {
-      chatId: '3',
-      otherUser: {
-        uid: 'uid3',
-        username: 'usuario3',
-        profilePicture: 'https://randomuser.me/api/portraits/men/3.jpg',
-      },
-      lastMessage: {
-        text: '¡Claro! A las 8 en el café.',
-        timestamp: 1625325600000,
-      },
-    },
-  ];
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [refreshingChats, setRefreshingChats] = useState<boolean>(false);
 
-  const filteredChats = mockChats.filter(chat =>
-    chat.otherUser.username.toLowerCase().includes(searchText.toLowerCase())
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshingChats(true);
+    }, [])
   );
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.chatItem}
-      onPress={() => router.push(`/chat?uid=uid1`)} // Fijo en uid1 para pruebas
-    >
-      {item.otherUser.profilePicture ? (
-        <Image source={{ uri: item.otherUser.profilePicture }} style={styles.profileImage} />
-      ) : (
-        <View style={styles.placeholderImage}>
-          <Text style={styles.placeholderText}>
-            {item.otherUser.username.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-      )}
-      <View style={styles.chatInfo}>
-        <Text style={styles.username}>{item.otherUser.username}</Text>
-        <Text style={styles.lastMessage} numberOfLines={1}>
-          {item.lastMessage.text}
-        </Text>
-      </View>
-      <Text style={styles.timestamp}>
-        {new Date(item.lastMessage.timestamp).toLocaleTimeString()}
-      </Text>
-    </TouchableOpacity>
-  );
+  useEffect(() => {
+    if (refreshingChats) {
+      handleRefresh();
+    }
+  }, [refreshingChats]);
+
+  const handlePressPlus = () => {
+    router.push('/newChat');
+  };
+
+  const handleRefresh = async () => {
+    if (loading) return;
+
+    setLoading(true);
+    const chatsRef = ref(db, 'chats');
+    const email = loggedInUser?.email;
+
+    if (!email) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Fetching chats...");
+      const user1Query = query(chatsRef, orderByChild('user1Email'), equalTo(email));
+      const user2Query = query(chatsRef, orderByChild('user2Email'), equalTo(email));
+
+      const user1Chats = await get(user1Query);
+      const user2Chats = await get(user2Query);
+
+      const user1ChatsData = user1Chats.exists() ? user1Chats.val() : {};
+      const user2ChatsData = user2Chats.exists() ? user2Chats.val() : {};
+
+      const chatData = { ...user1ChatsData, ...user2ChatsData };
+
+      const chatList: Chat[] = Object.keys(chatData).map((chatId) => ({
+        chatId,
+        ...chatData[chatId],
+      }));
+
+      setChats(chatList);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+    } finally {
+      setLoading(false);
+      setRefreshingChats(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar usuario..."
-          placeholderTextColor="#888"
-          value={searchText}
-          onChangeText={setSearchText}
+      {chats.length === 0 && !loading ? (
+        <View style={styles.noChatsContainer}>
+          <Text style={styles.noChatsText}>No chats available</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={chats}
+          keyExtractor={(item) => item.chatId}
+          renderItem={({ item }) => <ChatItem item={item} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshingChats}
+              onRefresh={handleRefresh}
+              colors={['#6B5A8E']}
+            />
+          }
         />
-      </View>
-
-      <FlatList
-        data={filteredChats}
-        keyExtractor={(item) => item.chatId}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContainer}
-        style={styles.list}
-      />
-
-      <Footer />
+      )}
+      <Pressable style={styles.floatingButton} onPress={handlePressPlus}>
+        <Entypo name="plus" size={24} color="white" />
+      </Pressable>
     </View>
   );
 };
@@ -110,75 +108,36 @@ const ChatsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#f4f4f4',
   },
-  header: {
-    flexDirection: 'row',
+  floatingButton: {
+    backgroundColor: '#2D58A0',
+    borderRadius: 50,
+    width: 60,
+    height: 60,
     alignItems: 'center',
-    paddingHorizontal: 10,
-    marginTop: 50,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
-  backButton: {
-    paddingRight: 10,
-  },
-  searchInput: {
+  noChatsContainer: {
     flex: 1,
-    backgroundColor: '#1f1f1f',
-    color: '#fff',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  list: {
-    flex: 1,
-  },
-  listContainer: {
-    padding: 10,
-  },
-  chatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#1f1f1f',
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-  },
-  placeholderImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#555',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  placeholderText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  chatInfo: {
-    flex: 1,
-    marginLeft: 10,
-  },
-  username: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  lastMessage: {
-    color: '#ccc',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  timestamp: {
-    color: '#ccc',
-    fontSize: 12,
+  noChatsText: {
+    fontSize: 16,
+    color: '#888',
   },
 });
 
-export default ChatsScreen;
+export default Chats;
