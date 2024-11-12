@@ -1,4 +1,4 @@
-package com.franciscoduc4.tutorial
+package twit.snap
 
 import android.app.Application
 import android.content.res.Configuration

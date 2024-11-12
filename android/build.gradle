@@ -15,10 +15,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+        classpath 'com.google.gms:google-services:4.4.1'
         classpath('com.android.tools.build:gradle')
         classpath('com.facebook.react:react-native-gradle-plugin')
         classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-        classpath 'com.google.gms:google-services:4.3.14' // Plugin de Google Services para Firebase
     }
 }
 
@@ -40,6 +40,3 @@ allprojects {
         maven { url 'https://www.jitpack.io' }
     }
 }
-
-// Elimina la siguiente línea si está presente
-// apply plugin: 'com.google.gms.google-services'
