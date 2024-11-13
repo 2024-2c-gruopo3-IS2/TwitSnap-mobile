@@ -18,7 +18,8 @@ interface NotificationItem {
   read: boolean;
   senderId?: string;
   messageId?: string;
-  topic?: string; // Añadido
+  topic?: string;
+  followUsername?: string;
 }
 
 interface NotificationContextProps {
@@ -88,7 +89,8 @@ export const NotificationProvider: React.FC = ({ children }) => {
           read: false,
           senderId: data.senderId || null,
           messageId: data.messageId || null,
-          topic: data.topic || null, // Añadido
+          topic: data.topic || null,
+          followUsername: data.followUsername || null,
         };
 
         setNotifications(prev => [newNotification, ...prev]);
@@ -109,6 +111,15 @@ export const NotificationProvider: React.FC = ({ children }) => {
           });
         }
 
+        if (newNotification.type === 'follow' && newNotification.followerUsername) {
+              Toast.show({
+                type: 'info',
+                text1: 'Nuevo Seguidor',
+                text2: `${newNotification.followerUsername} te ha seguido.`,
+                onPress: () => handleNotificationPress(newNotification),
+              });
+          }
+
       } catch (error) {
         console.log("Error al procesar la notificación:", error);
       }
@@ -116,17 +127,22 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
     // Listener para manejar respuestas a notificaciones (cuando el usuario las toca)
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      const data = response.notification.request.content.data || {};
-      const type = data.type || 'general';
-      if (type === 'trending' && data.topic) {
-        router.push({
-          pathname: 'topicDetail',
-          params: { topic: data.topic },
+          const data = response.notification.request.content.data || {};
+          const type = data.type || 'general';
+          if (type === 'trending' && data.topic) {
+            router.push({
+              pathname: 'topicDetail',
+              params: { topic: data.topic },
+            });
+          } else if (type === 'message' && data.messageId) {
+            router.push(`/chat/${data.messageId}`);
+          } else if (type === 'follow' && data.followerUsername) {
+            router.push({
+              pathname: 'profileView',
+              params: { username: data.followerUsername },
+            });
+          }
         });
-      } else if (type === 'message' && data.messageId) {
-        router.push(`/chat/${data.messageId}`);
-      }
-    });
 
     // Cargar notificaciones existentes desde Firebase al iniciar
     const notificationsRef = ref(db, `notifications/${user.username}/userNotifications`);
@@ -143,6 +159,7 @@ export const NotificationProvider: React.FC = ({ children }) => {
           senderId: data.senderId,
           messageId: data.messageId,
           topic: data.topic || null, // Añadido
+          followUsername: data.followUsername || null, // Añadido
         });
       });
       setNotifications(notif);
@@ -189,14 +206,19 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
   // Función para manejar el clic en una notificación y marcarla como leída
   const handleNotificationPress = async (item: NotificationItem) => {
-    if (item.type === 'message' && item.messageId) {
-      router.push(`/chat/${item.messageId}`);
-    } else if (item.type === 'trending' && item.topic) {
-      router.push({
-        pathname: 'topicDetail',
-        params: { topic: item.topic },
-      });
-    }
+      if (item.type === 'message' && item.messageId) {
+        router.push(`/chat/${item.messageId}`);
+      } else if (item.type === 'trending' && item.topic) {
+        router.push({
+          pathname: 'topicDetail',
+          params: { topic: item.topic },
+        });
+      } else if (item.type === 'follow' && item.followerUsername) {
+        router.push({
+          pathname: 'profile', // Asumir que 'profile' es la pantalla del perfil
+          params: { username: item.followerUsername },
+        });
+      }
 
     try {
       const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${item.id}`);

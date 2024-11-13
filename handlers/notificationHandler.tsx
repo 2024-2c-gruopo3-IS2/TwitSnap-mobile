@@ -57,12 +57,13 @@ export const followUserNotify = async (followedUser, currentUser) => {
       return;
     }
 
-    // Crea la notificación
+    // Crea la notificación con datos adicionales
     const notification = {
       to: expoPushToken,
       sound: 'default',
       title: 'Nuevo Seguidor',
       body: `${currentUser} te ha seguido.`,
+      data: { type: 'follow', followerUsername: currentUser },
     };
 
     // Enviar la notificación utilizando Expo Push API
@@ -84,7 +85,7 @@ export const followUserNotify = async (followedUser, currentUser) => {
   } catch (error) {
     console.error("Error en followUserNotify:", error);
   }
-}
+};
 
 export const sendMessageNotification = async (chatID, senderEmail, receiverEmail, message) => {
   try {

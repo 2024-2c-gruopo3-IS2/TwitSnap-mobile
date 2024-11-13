@@ -33,14 +33,17 @@ const NotificationsScreen: React.FC = () => {
           params: { topic: item.topic },
         });
         markAsRead(item.id);
+      } else if (item.type === 'follow' && item.followerUsername) {
+         router.push({
+           pathname: 'profile', // Asumir que 'profile' es la pantalla del perfil
+           params: { username: item.followerUsername },
+         });
+        markAsRead(item.id);
       }
     };
 
   const handleDeleteNotification = (id: string) => {
-    Alert.alert('Eliminar notificación', '¿Estás seguro de que quieres eliminar esta notificación?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', onPress: () => deleteNotification(id) },
-    ]);
+    deleteNotification(id);
   };
 
   const renderNotification = ({ item }: { item: NotificationItem }) => (
