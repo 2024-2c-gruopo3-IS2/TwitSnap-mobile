@@ -548,16 +548,6 @@ export default function ProfileView() {
           </Pressable>
         )}
 
-        {/* Botón de enviar mensaje solo en perfiles de otros usuarios */}
-        {!isOwnProfile && (
-          <Pressable
-            style={styles.sendMessageButton}
-            onPress={handleSendMessage}
-          >
-            <Icon name="message" size={24} color="#fff" />
-            <Text style={styles.sendMessageButtonText}>Enviar Mensaje</Text>
-          </Pressable>
-        )}
       </View>
 
       {/* Opciones adicionales solo para el perfil propio */}

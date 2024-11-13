@@ -7,6 +7,7 @@ import { db, storage } from '../firebaseConfig';
 import ChatMessage from './chatMessage';
 import { ref as ref2, getDownloadURL } from 'firebase/storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { sendMessageNotification } from '@/handlers/notificationHandler';
 
 const SpecificChat = () => {
   const router = useRouter();
@@ -50,16 +51,29 @@ const SpecificChat = () => {
 
   const sendMessage = async () => {
     if (newMessage.trim().length > 0) {
-      const message = {
-        sender: user.username,
-        text: newMessage,
-        timestamp: serverTimestamp(),
-      };
+        const message = {
+            sender: user.username,
+            text: newMessage,
+            timestamp: serverTimestamp(),
+        };
 
-      await push(ref(db, `chats/${chatID}/messages`), message);
-      setNewMessage('');
+        try {
+            // Envía el mensaje a Firebase
+            const messageRef = await push(ref(db, `chats/${chatID}/messages`), message);
+
+            // Obtén el email del usuario actual y del receptor
+            const senderEmail = user.username; // Asegúrate de que user tenga el campo email
+            const receiverEmail = email_receiver;
+
+            // Llama a sendMessageNotification
+            await sendMessageNotification(chatID, senderEmail, receiverEmail, newMessage);
+
+            setNewMessage('');
+        } catch (error) {
+            console.error("Error al enviar el mensaje:", error);
+        }
     }
-  };
+};
 
   const handleBackPress = () => {
     router.back();
