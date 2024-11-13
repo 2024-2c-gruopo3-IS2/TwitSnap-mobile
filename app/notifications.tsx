@@ -71,9 +71,6 @@ const NotificationsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>Notificaciones</Text>
       </View>
       <View style={{ flex: 1 }}>
@@ -109,7 +106,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         flex: 1,
         textAlign: 'center',
-        marginLeft: -40,
+        marginLeft: -10,
         },
     backButton: {
       marginRight: 15,

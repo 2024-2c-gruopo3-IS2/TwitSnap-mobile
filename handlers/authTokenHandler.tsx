@@ -29,12 +29,15 @@ export const getToken = async (): Promise<string | null> => {
     if (token) {
       return token;
     } else {
-        console.log('No se encontró el token de autenticación.');
-        return null
+      console.log('No se encontró el token de autenticación.');
+      return null;
     }
-
   } catch (error) {
     console.error('Error al obtener el token:', error);
+    if (error.message.includes('Could not decrypt the value')) {
+      console.log('Token corrupto, eliminando del almacenamiento seguro.');
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+    }
     return null;
   }
 };

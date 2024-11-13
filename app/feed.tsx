@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useContext } from 'react';
+// Feed.tsx
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { getFeedSnaps, getFavouriteSnaps, getLikedSnaps, getSharedSnaps } from '@/handlers/postHandler';
 import styles from '../styles/feed';
@@ -7,6 +8,7 @@ import Toast from 'react-native-toast-message';
 import { AuthContext } from '@/context/authContext';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
+import { sendShareNotification } from '@/handlers/notificationHandler';
 
 interface Snap {
   id: string;
@@ -19,8 +21,7 @@ interface Snap {
   canViewLikes: boolean;
   favouritedByUser: boolean;
   profileImage: string;
-  retweetUsername: string;
-  isShared?: boolean;
+  retweetUser: string;
   originalUsername?: string;
 }
 
@@ -53,34 +54,57 @@ export default function Feed() {
 
         const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
         const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
-        const sharedSnapIds = sharedResponse.snaps?.map(sharedSnap => sharedSnap.id) || [];
+
+        let fetchedSnaps: Snap[] = [];
 
         if (response.success && response.snaps && response.snaps.length > 0) {
-          const fetchedSnaps: Snap[] = await Promise.all(
+          fetchedSnaps = await Promise.all(
             response.snaps.map(async (snap: any) => ({
               id: snap._id,
               username: snap.username,
               time: snap.time,
               message: snap.message,
-              isPrivate: snap.isPrivate,
+              isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,
               likedByUser: likedSnapIds.includes(snap._id),
               canViewLikes: true,
               favouritedByUser: favouriteSnapIds.includes(snap._id),
-              isShared: sharedSnapIds.includes(snap._id),
+              retweetUser: snap.retweet_user || '',
               profileImage: await fetchProfileImage(snap.username),
-              originalUsername: snap.originalUsername || undefined,
+              originalUsername: snap.original_username || undefined,
             }))
           );
-          setSnaps(fetchedSnaps);
-        } else {
-          setSnaps([]);
         }
+
+        // Procesar Snaps Compartidos
+        let sharedSnaps: Snap[] = [];
+        if (sharedResponse.success && sharedResponse.snaps && sharedResponse.snaps.length > 0) {
+          sharedSnaps = await Promise.all(
+            sharedResponse.snaps.map(async (snap: any) => ({
+                id: snap._id ? `${snap._id}-shared-${Date.now()}` : `shared-${Date.now()}`, // Verificar que _id existe, sino usar un valor temporal
+              username: snap.username,
+              time: snap.time,
+              message: snap.message,
+              isPrivate: snap.is_private === 'true',
+              likes: snap.likes || 0,
+              likedByUser: likedSnapIds.includes(snap._id),
+              canViewLikes: true,
+              favouritedByUser: favouriteSnapIds.includes(snap._id),
+              retweetUser: snap.retweet_user || '',
+              profileImage: await fetchProfileImage(snap.username),
+              originalUsername: undefined, // Los Snaps compartidos ya tienen retweetUser
+            }))
+          );
+        }
+
+        // Combinar Snaps Originales y Compartidos
+        setSnaps([...sharedSnaps, ...fetchedSnaps]); // Mostrar primero los compartidos
       } catch (error) {
         console.error("Error fetching feed snaps:", error);
         Toast.show({
           type: 'error',
           text1: 'Error al obtener los snaps del feed',
+          text2: 'Hubo un problema al cargar los Snaps. Inténtalo de nuevo.',
         });
       } finally {
         setIsLoading(false);
@@ -89,6 +113,22 @@ export default function Feed() {
 
     fetchSnaps();
   }, []);
+
+  // Función para manejar la actualización del Feed cuando se comparte un Snap
+  const handleShareSnap = useCallback((sharedSnap: Snap) => {
+    setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
+
+    // Enviar notificación al autor original si es diferente al actual
+    if (sharedSnap.username && sharedSnap.username !== currentUsername) {
+      sendShareNotification(sharedSnap.username, currentUsername, sharedSnap.id);
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Snap compartido',
+      text2: 'El snap ha sido compartido exitosamente.',
+    });
+  }, [currentUsername]);
 
   if (isLoading) {
     return (
@@ -103,14 +143,14 @@ export default function Feed() {
       {snaps.length > 0 ? (
         <FlatList
           data={snaps}
-          keyExtractor={(item) => item.id?.toString() || ''}
+          keyExtractor={(item) => item.id} // Asegurarse de que cada ID sea único
           renderItem={({ item }) => (
             <SnapItem
               snap={item}
-              likeIconColor={item.likedByUser ? 'red' : 'gray'}
-              favouriteIconColor={item.favouritedByUser ? 'yellow' : 'gray'}
-              shareIconColor={item.isShared ? 'green' : 'gray'}
+              isOwnProfile={false} // El feed no es un perfil propio
+              onShare={(sharedSnap: Snap) => handleShareSnap(sharedSnap)} // Pasar el Snap compartido
               currentUsername={currentUsername}
+              isOwned={false} // El feed no tiene propiedad 'isOwned'
             />
           )}
           keyboardShouldPersistTaps="handled"

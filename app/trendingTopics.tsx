@@ -1,11 +1,9 @@
-// TrendingTopics.tsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getTrendingTopics } from '@/handlers/postHandler';
-import { sendTrendingNotification } from '@/handlers/notificationHandler'; // Asegúrate de que la ruta sea correcta
-import { AuthContext } from '@/context/authContext'; // Ajusta la ruta según tu proyecto
+import { sendTrendingNotification } from '@/handlers/notificationHandler';
+import { AuthContext } from '@/context/authContext';
 
 interface TrendingTopic {
     id: string;
@@ -17,6 +15,7 @@ export default function TrendingTopics() {
     const { user } = useContext(AuthContext);
 
     const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
+    const [previousTopics, setPreviousTopics] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +31,11 @@ export default function TrendingTopics() {
                     setTrendingTopics(topics);
                     setError(null);
 
-                    sendNotificationsForTrendingTopics(response.topics);
+                    const newTopics = response.topics.filter(topic => !previousTopics.includes(topic));
+                    if (newTopics.length > 0) {
+                        sendNotificationsForTrendingTopics(newTopics);
+                        setPreviousTopics(response.topics);
+                    }
                 } else {
                     console.error('Error al obtener los temas del momento:', response.message);
                     setTrendingTopics([]);
@@ -47,18 +50,14 @@ export default function TrendingTopics() {
             }
         };
 
-        // Función para enviar notificaciones
-        const sendNotificationsForTrendingTopics = async (currentTopics: string[]) => {
+        const sendNotificationsForTrendingTopics = async (newTopics: string[]) => {
             if (!user.username) {
                 console.log('Usuario no autenticado. No se enviarán notificaciones.');
                 return;
             }
 
-            console.log("[TT SENDING] user: ", user);
-            console.log("[TT SENDING] currentTopics: ", currentTopics);
-            console.log("[TT SENDING] username: ", user.username);
             try {
-                currentTopics.forEach(async (topic) => {
+                newTopics.forEach(async (topic) => {
                     await sendTrendingNotification(user.username, null, topic);
                 });
             } catch (error) {
@@ -66,21 +65,17 @@ export default function TrendingTopics() {
             }
         };
 
-        // Configurar intervalo de actualización cada 1 minuto (60000 ms)
-        const intervalId = setInterval(fetchTrendingTopics, 60000); // 60 segundos
+        const intervalId = setInterval(fetchTrendingTopics, 60000);
 
-        // Llamar a la función inicialmente para cargar los datos
         fetchTrendingTopics();
 
-        // Limpiar el intervalo cuando el componente se desmonte
         return () => clearInterval(intervalId);
-    }, [user]);
+    }, [user, previousTopics]);
 
-    // Función para manejar la selección de un tema
     const handleTopicPress = (topic: string) => {
         router.push({
-            pathname: 'topicDetail',  // Navega a la pantalla de detalle de tema
-            params: { topic },        // Pasar el tema como parámetro
+            pathname: 'topicDetail',
+            params: { topic },
         });
     };
 
@@ -97,12 +92,12 @@ export default function TrendingTopics() {
             ) : error ? (
                 <Text style={styles.errorText}>{error}</Text>
             ) : trendingTopics.length === 0 ? (
-                <Text style={styles.placeholderText}>Aún no hay tendencias.</Text>
+                <Text style={styles.placeholderText}>No se encontraron temas del momento</Text>
             ) : (
                 <FlatList
                     data={trendingTopics}
-                    keyExtractor={(item) => item.id}
                     renderItem={renderItem}
+                    keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.flatListContent}
                 />
             )}
@@ -115,7 +110,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
         padding: 10,
-        justifyContent: 'center', // Centra verticalmente el contenido
+        justifyContent: 'center',
     },
     topicItem: {
         paddingVertical: 15,
@@ -139,18 +134,12 @@ const styles = StyleSheet.create({
         marginTop: -80,
     },
     errorText: {
-        color: '#F44336', // Rojo para indicar error
+        color: '#F44336',
         fontSize: 16,
         textAlign: 'center',
         marginTop: 20,
     },
     flatListContent: {
-        paddingBottom: 20, // Espacio al final de la lista
+        paddingBottom: 20,
     },
-      loaderContainer: {
-        flex: 1,
-        backgroundColor: '#000', // Fondo negro
-        justifyContent: 'center',
-        alignItems: 'center',
-      },
 });
