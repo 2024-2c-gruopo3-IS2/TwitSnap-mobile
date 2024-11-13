@@ -15,6 +15,7 @@ interface NotificationItem {
   read: boolean;
   senderId?: string;
   messageId?: string;
+  topic?: string;
 }
 
 const NotificationsScreen: React.FC = () => {
@@ -23,11 +24,17 @@ const NotificationsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleNotificationPress = (item: NotificationItem) => {
-    if (item.type === 'message' && item.messageId) {
-      router.push(`/chat/${item.messageId}`);
-      markAsRead(item.id);
-    }
-  };
+      if (item.type === 'message' && item.messageId) {
+        router.push(`/chat/${item.messageId}`);
+        markAsRead(item.id);
+      } else if (item.type === 'trending' && item.topic) {
+        router.push({
+          pathname: 'topicDetail',
+          params: { topic: item.topic },
+        });
+        markAsRead(item.id);
+      }
+    };
 
   const handleDeleteNotification = (id: string) => {
     Alert.alert('Eliminar notificación', '¿Estás seguro de que quieres eliminar esta notificación?', [

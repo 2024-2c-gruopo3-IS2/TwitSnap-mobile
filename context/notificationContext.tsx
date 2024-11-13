@@ -1,11 +1,14 @@
+// notificationContext.tsx
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { AuthContext } from './authContext';
-import { ref, onValue, update, remove } from 'firebase/database';
-import { useNavigation } from '@react-navigation/native';
+import { ref, onValue, update, remove, get } from 'firebase/database';
+import { useRouter } from 'expo-router'; // Usar useRouter de expo-router
 import { db } from '../firebaseConfig';
+import Toast from 'react-native-toast-message';
 
 interface NotificationItem {
   id: string;
@@ -15,16 +18,19 @@ interface NotificationItem {
   read: boolean;
   senderId?: string;
   messageId?: string;
+  topic?: string; // Añadido
 }
 
 interface NotificationContextProps {
   notifications: NotificationItem[];
   markAsRead: (id: string) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
 }
 
 export const NotificationContext = createContext<NotificationContextProps>({
   notifications: [],
   markAsRead: async () => {},
+  deleteNotification: async () => {},
 });
 
 // Configuración de manejo de notificaciones en primer plano
@@ -39,7 +45,7 @@ Notifications.setNotificationHandler({
 export const NotificationProvider: React.FC = ({ children }) => {
   const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const navigation = useNavigation();
+  const router = useRouter(); // Usar useRouter
   const [expoPushToken, setExpoPushToken] = useState('');
 
   useEffect(() => {
@@ -75,13 +81,14 @@ export const NotificationProvider: React.FC = ({ children }) => {
       try {
         const data = notification.request.content.data || {};
         const newNotification: NotificationItem = {
-          id: data.messageId || new Date().getTime().toString(),
-          message: notification.request.content.body || 'Nuevo mensaje',
+          id: data.id || new Date().getTime().toString(),
+          message: notification.request.content.body || 'Nueva notificación',
           time: new Date().toLocaleString(),
-          type: 'message',
+          type: data.type || 'general',
           read: false,
-          senderId: data.senderId || null, // Usa null si senderId está undefined
-          messageId: data.messageId || null, // Usa null si messageId está undefined
+          senderId: data.senderId || null,
+          messageId: data.messageId || null,
+          topic: data.topic || null, // Añadido
         };
 
         setNotifications(prev => [newNotification, ...prev]);
@@ -91,8 +98,33 @@ export const NotificationProvider: React.FC = ({ children }) => {
         update(notificationRef, newNotification)
           .then(() => console.log('Notificación guardada en Firebase'))
           .catch(error => console.log('Error al guardar la notificación en Firebase:', error));
+
+        // Mostrar visualmente la notificación si es de tipo 'trending'
+        if (newNotification.type === 'trending' && newNotification.topic) {
+          Toast.show({
+            type: 'info',
+            text1: 'TwitSnap Trending',
+            text2: `Se ha publicado un TwitSnap sobre "${newNotification.topic}".`,
+            onPress: () => handleNotificationPress(newNotification),
+          });
+        }
+
       } catch (error) {
         console.log("Error al procesar la notificación:", error);
+      }
+    });
+
+    // Listener para manejar respuestas a notificaciones (cuando el usuario las toca)
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data || {};
+      const type = data.type || 'general';
+      if (type === 'trending' && data.topic) {
+        router.push({
+          pathname: 'topicDetail',
+          params: { topic: data.topic },
+        });
+      } else if (type === 'message' && data.messageId) {
+        router.push(`/chat/${data.messageId}`);
       }
     });
 
@@ -110,6 +142,7 @@ export const NotificationProvider: React.FC = ({ children }) => {
           read: data.read ?? true,
           senderId: data.senderId,
           messageId: data.messageId,
+          topic: data.topic || null, // Añadido
         });
       });
       setNotifications(notif);
@@ -119,36 +152,58 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
     return () => {
       Notifications.removeNotificationSubscription(notificationListener);
+      Notifications.removeNotificationSubscription(responseListener);
       unsubscribe();
     };
   }, [user]);
 
   // Función para solicitar permisos de notificaciones y obtener el token
   async function registerForPushNotificationsAsync() {
-    const { status } = await Notifications.requestPermissionsAsync();
-
-    if (status !== 'granted') {
-      Alert.alert('Permiso de notificación denegado');
-      return;
+    if (Constants.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        Alert.alert('Permiso de notificación denegado');
+        return;
+      }
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("Expo Push Token:", token);
+      return token;
+    } else {
+      Alert.alert('Debe usar un dispositivo físico para recibir notificaciones');
     }
 
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Expo Push Token:", token);
-    return token;
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
   }
 
   // Función para manejar el clic en una notificación y marcarla como leída
   const handleNotificationPress = async (item: NotificationItem) => {
     if (item.type === 'message' && item.messageId) {
-      navigation.navigate('ChatScreen', { messageId: item.messageId });
+      router.push(`/chat/${item.messageId}`);
+    } else if (item.type === 'trending' && item.topic) {
+      router.push({
+        pathname: 'topicDetail',
+        params: { topic: item.topic },
+      });
+    }
 
-      try {
-        const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${item.id}`);
-        await update(notificationRef, { read: true });
-        console.log('Notificación marcada como leída');
-      } catch (error) {
-        console.log('Error al marcar la notificación como leída:', error);
-      }
+    try {
+      const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${item.id}`);
+      await update(notificationRef, { read: true });
+      console.log('Notificación marcada como leída');
+    } catch (error) {
+      console.log('Error al marcar la notificación como leída:', error);
     }
   };
 
@@ -164,7 +219,6 @@ export const NotificationProvider: React.FC = ({ children }) => {
       console.log('Error al eliminar la notificación:', error);
     }
   };
-
 
   // Función para marcar una notificación específica como leída
   const markAsRead = async (id: string) => {

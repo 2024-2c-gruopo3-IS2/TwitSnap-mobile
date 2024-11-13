@@ -1,9 +1,11 @@
 // TrendingTopics.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getTrendingTopics } from '@/handlers/postHandler';
+import { sendTrendingNotification } from '@/handlers/notificationHandler'; // Asegúrate de que la ruta sea correcta
+import { AuthContext } from '@/context/authContext'; // Ajusta la ruta según tu proyecto
 
 interface TrendingTopic {
     id: string;
@@ -12,6 +14,8 @@ interface TrendingTopic {
 
 export default function TrendingTopics() {
     const router = useRouter();
+    const { user } = useContext(AuthContext);
+
     const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -27,6 +31,8 @@ export default function TrendingTopics() {
                     }));
                     setTrendingTopics(topics);
                     setError(null);
+
+                    sendNotificationsForTrendingTopics(response.topics);
                 } else {
                     console.error('Error al obtener los temas del momento:', response.message);
                     setTrendingTopics([]);
@@ -41,6 +47,25 @@ export default function TrendingTopics() {
             }
         };
 
+        // Función para enviar notificaciones
+        const sendNotificationsForTrendingTopics = async (currentTopics: string[]) => {
+            if (!user.username) {
+                console.log('Usuario no autenticado. No se enviarán notificaciones.');
+                return;
+            }
+
+            console.log("[TT SENDING] user: ", user);
+            console.log("[TT SENDING] currentTopics: ", currentTopics);
+            console.log("[TT SENDING] username: ", user.username);
+            try {
+                currentTopics.forEach(async (topic) => {
+                    await sendTrendingNotification(user.username, null, topic);
+                });
+            } catch (error) {
+                console.error('Error al enviar notificaciones de trending topics:', error);
+            }
+        };
+
         // Configurar intervalo de actualización cada 1 minuto (60000 ms)
         const intervalId = setInterval(fetchTrendingTopics, 60000); // 60 segundos
 
@@ -49,7 +74,7 @@ export default function TrendingTopics() {
 
         // Limpiar el intervalo cuando el componente se desmonte
         return () => clearInterval(intervalId);
-    }, []);
+    }, [user]);
 
     // Función para manejar la selección de un tema
     const handleTopicPress = (topic: string) => {
