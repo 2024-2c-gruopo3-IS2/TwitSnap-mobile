@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, Keyboard, Text, ListRenderItem, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
+import { ref as ref2, get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
 import { ref } from 'firebase/storage';
 import { Entypo } from '@expo/vector-icons';
 import { AuthContext } from '../context/authContext';
@@ -28,14 +28,12 @@ const NewChat: React.FC = () => {
 
   const fetchProfileImage = async (username: string) => {
     try {
-      console.log('[NEW CHAT] Username: ', username);
       const imageRef = ref(storage, `profile_photos/${username}.png`);
-      console.log('[NEW CHAT] Image ref:', imageRef);
+      console.log("[NEW CHAT] imageRef: ", imageRef);
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
       if (error.code === 'storage/object-not-found') {
-        console.warn(`Profile image for ${username} not found, using default image.`);
         return 'https://via.placeholder.com/150'; // URL of the default placeholder image
       } else {
         console.error('Error fetching profile image:', error);
@@ -59,7 +57,6 @@ const NewChat: React.FC = () => {
               profileImage: await fetchProfileImage(username),
             }))
           );
-          console.log('[NEW CHAT] Users:', users);
 
           setUsers(users);
           setFilteredUsers(users);
@@ -108,11 +105,14 @@ const NewChat: React.FC = () => {
     }
 
     const chatID = generateChatID(user.username, item.username);
-    const chat = ref(db, `chats/${chatID}`);
+    console.log('[NEW CHAT] Chat ID:', chatID);
+    const chat = ref2(db, `chats/${chatID}`);
+    console.log('[NEW CHAT] Chat ref:', chat);
 
     get(chat).then((snapshot) => {
       if (snapshot.exists()) {
-        const chatRef = ref(db, `chats/${chatID}/messages`);
+        const chatRef = ref2(db, `chats/${chatID}/messages`);
+        console.log('[NEW CHAT] Chat ref dentro GET:', chatRef);
         const messageQuery = query(chatRef, orderByChild('timestamp'), limitToLast(20));
 
         get(messageQuery).then((snapshot) => {
@@ -128,7 +128,9 @@ const NewChat: React.FC = () => {
               fromNotification: false,
             },
           });
-        }).catch(console.error);
+        }).catch((error) => {
+          console.error('Error fetching messages:', error);
+        });
       } else {
         const currentTimestamp = serverTimestamp();
         set(chat, {
@@ -149,9 +151,13 @@ const NewChat: React.FC = () => {
               fromNotification: false,
             },
           });
-        }).catch(console.error);
+        }).catch((error) => {
+          console.error('Error creating chat:', error);
+        });
       }
-    }).catch(console.error);
+    }).catch((error) => {
+      console.error('Error fetching chat:', error);
+    });
   };
 
   const handleSearchButtonFunction = async (): Promise<void> => {
