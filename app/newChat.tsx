@@ -3,7 +3,7 @@ import { View, FlatList, StyleSheet, Keyboard, Text, ListRenderItem, Pressable, 
 import { useRouter } from 'expo-router';
 import { get, set, serverTimestamp, query, orderByChild, limitToLast } from 'firebase/database';
 import { ref } from 'firebase/storage';
-import { Entypo } from '@expo/vector-icons'; // Importa el icono de retroceso
+import { Entypo } from '@expo/vector-icons';
 import { AuthContext } from '../context/authContext';
 import { db, storage } from '../firebaseConfig';
 import SearchBar from './searchBar';
@@ -34,7 +34,13 @@ const NewChat: React.FC = () => {
       const url = await getDownloadURL(imageRef);
       return url;
     } catch (error) {
-      return 'https://via.placeholder.com/150';
+      if (error.code === 'storage/object-not-found') {
+        console.warn(`Profile image for ${username} not found, using default image.`);
+        return 'https://via.placeholder.com/150'; // URL of the default placeholder image
+      } else {
+        console.error('Error fetching profile image:', error);
+        return 'https://via.placeholder.com/150'; // URL of the default placeholder image
+      }
     }
   };
 
@@ -96,6 +102,11 @@ const NewChat: React.FC = () => {
   };
 
   const handleChatPress = (item: User): void => {
+    if (!user || !user.username) {
+      console.error('User is not defined');
+      return;
+    }
+
     const chatID = generateChatID(user.username, item.username);
     const chat = ref(db, `chats/${chatID}`);
 
@@ -162,10 +173,7 @@ const NewChat: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Título */}
       <Text style={styles.title}>Crear un nuevo Chat</Text>
-
-      {/* Contenedor de encabezado con el botón de retroceso y la barra de búsqueda */}
       <View style={styles.headerContainer}>
         <Pressable style={styles.backButton} onPress={handleBackPress}>
           <Entypo name="chevron-left" size={24} color="#FFFFFF" />
@@ -211,7 +219,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   searchBar: {
-    flex: 1, // Permite que la barra de búsqueda ocupe el espacio restante
+    flex: 1,
   },
   listContent: {
     paddingTop: 10,
@@ -225,7 +233,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 20,
   },
-
   userContainer: {
     flexDirection: 'row',
     alignItems: 'center',
