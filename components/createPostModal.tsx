@@ -95,19 +95,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   const sendNotificationsForTrendingTopics = async (newTopics: string[]) => {
-              if (!user.username) {
-                  console.log('Usuario no autenticado. No se enviarán notificaciones.');
-                  return;
-              }
+    if (!user.username) {
+      console.log('Usuario no autenticado. No se enviarán notificaciones.');
+      return;
+    }
 
-              try {
-                  newTopics.forEach(async (topic) => {
-                      await sendTrendingNotification(user.username, null, topic);
-                  });
-              } catch (error) {
-                  console.error('Error al enviar notificaciones de TT',error)
-              }
-          };
+    try {
+      for (const topic of newTopics) {
+        await sendTrendingNotification(topic);
+      }
+    } catch (error) {
+      console.error('Error al enviar notificaciones de TT', error);
+    }
+  };
 
   const handlePost = async () => {
     if (postContent.trim() === '') {
@@ -142,7 +142,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     console.log("[HASHTAGS]",hashtags)
 
     // Iterate over hashtags and check if they are in trendingTopics
-    const newTopics = hashtags.filter(hashtag => trendingTopics.includes(hashtag));
+    const newTopics = hashtags.filter(hashtag => trendingTopics.topics.includes(hashtag));
 
     console.log("[NEW TOPICS]",newTopics)
 

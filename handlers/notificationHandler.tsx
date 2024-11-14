@@ -146,44 +146,61 @@ export const sendMessageNotification = async (chatID, senderEmail, receiverEmail
 
 
 
-export const sendTrendingNotification = async (currentUsername: string, twitSnapId: string | null, topic: string) => {
-    try {
-        // Obtén el token de notificación del usuario desde Firebase
-        const tokenRef = ref(db, `users/${currentUsername}/expoPushToken`);
-        const tokenSnapshot = await get(tokenRef);
-        const expoPushToken = tokenSnapshot.exists() ? tokenSnapshot.val().token : null;
+export const sendTrendingNotification = async (topic: string) => {
+  try {
+    // Obtén la referencia a todos los usuarios en Firebase
+    const usersRef = ref(db, 'users');
+    const usersSnapshot = await get(usersRef);
 
-        if (!expoPushToken) {
-            console.log(`Token de notificación no encontrado para el usuario: ${currentUsername}`);
-            return;
-        }
-
-        // Crea la notificación
-        const notification = {
-            to: expoPushToken,
-            sound: 'default',
-            title: 'Nuevo Trending Topic',
-            body: `Se ha generado un nuevo trending topic: "${topic}".`,
-            data: { twitSnapId, type: 'trending', topic },
-        };
-
-        // Enviar la notificación utilizando Expo Push API
-        const response = await fetch('https://exp.host/--/api/v2/push/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify(notification),
-        });
-
-        const data = await response.json();
-        if (data?.data?.status === 'ok') {
-            console.log(`Notificación de trending topic enviada a ${currentUsername}`);
-        } else {
-            console.error('Error enviando la notificación de trending topic:', data);
-        }
-    } catch (error) {
-        console.error("Error en sendTrendingNotification:", error);
+    if (!usersSnapshot.exists()) {
+      console.log('No se encontraron usuarios.');
+      return;
     }
+    console.log("SNAPSHOT DE USUARIOS", usersSnapshot.val());
+    console.log("TOPIC: ", topic);
+
+
+    // Itera sobre cada usuario y envía la notificación
+    for (const userSnapshot of Object.values(usersSnapshot.val())) {
+
+        console.log("SNAPSHOT DE USUARIOS", usersSnapshot.val());
+      const userData = userSnapshot;
+      console.log("USER DATA", userData);
+      const expoPushToken = userData.expoPushToken?.token;
+      console.log("Token: ", expoPushToken);
+
+      if (!expoPushToken) {
+        console.log(`Token de notificación no encontrado para el usuario: ${userSnapshot.key}`);
+        continue;
+      }
+
+      // Crea la notificación
+      const notification = {
+        to: expoPushToken,
+        sound: 'default',
+        title: 'Nuevo Trending Topic',
+        body: `Se ha generado un nuevo trending topic: "${topic}".`,
+        data: { type: 'trending', topic },
+      };
+
+      // Enviar la notificación utilizando Expo Push API
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(notification),
+      });
+
+      const data = await response.json();
+      if (data?.data?.status === 'ok') {
+        console.log(`Notificación de trending topic enviada a ${userSnapshot.key}`);
+      } else {
+        console.error('Error enviando la notificación de trending topic:', data);
+      }
+    }
+  } catch (error) {
+    console.error("Error en sendTrendingNotification:", error);
+  }
 };
