@@ -41,7 +41,7 @@ export default function LoginPage() {
   useEffect(() => {
     const checkSession = async () => {
       if (isAuthenticated) {
-        router.replace('./feed');
+        router.replace('./tabs');
       }
     };
 

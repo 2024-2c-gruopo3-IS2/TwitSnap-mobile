@@ -95,11 +95,11 @@ export const NotificationProvider: React.FC = ({ children }) => {
           senderUsername: data.senderUsername || null,
         };
 
-//         // Solo guardar en Firebase, no en el estado local
-//         const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${newNotification.id}`);
-//         update(notificationRef, newNotification)
-//           .then(() => console.log('Notificación guardada en Firebase'))
-//           .catch(error => console.log('Error al guardar la notificación en Firebase:', error));
+        // Solo guardar en Firebase, no en el estado local
+        const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${newNotification.id}`);
+        update(notificationRef, newNotification)
+          .then(() => console.log('Notificación guardada en Firebase'))
+          .catch(error => console.log('Error al guardar la notificación en Firebase:', error));
 
         // Mostrar visualmente la notificación si es de tipo 'trending' o 'follow'
         if (newNotification.type === 'trending' && newNotification.topic) {
