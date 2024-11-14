@@ -14,6 +14,8 @@ import styles from '../styles/createPostModal';
 import { getAllUsers } from '@/handlers/profileHandler'; // Importa el endpoint de seguidores
 import { AuthContext } from '@/context/authContext';
 import {usePostContext} from '@/context/postContext';
+import { getTrendingTopics } from '@/handlers/postHandler';
+import { sendTrendingNotification } from '@/handlers/notificationHandler';
 
 interface Post {
   id?: string;
@@ -92,6 +94,21 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     setShowMentions(false);
   };
 
+  const sendNotificationsForTrendingTopics = async (newTopics: string[]) => {
+              if (!user.username) {
+                  console.log('Usuario no autenticado. No se enviarán notificaciones.');
+                  return;
+              }
+
+              try {
+                  newTopics.forEach(async (topic) => {
+                      await sendTrendingNotification(user.username, null, topic);
+                  });
+              } catch (error) {
+                  console.error('Error al enviar notificaciones de TT',error)
+              }
+          };
+
   const handlePost = async () => {
     if (postContent.trim() === '') {
       Alert.alert('Error', 'El contenido no puede estar vacío');
@@ -107,13 +124,39 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       time: new Date().toLocaleString(),
       message: postContent,
       isPrivate: isPrivate,
+      hashtags: hashtags, // Add the extracted hashtags to the post
     };
 
+    const trendingTopics = await getTrendingTopics();
+
+    console.log("[TRENDING TOPICS]",trendingTopics)
+
     await addNewPost(newPost);
+
+    // Define a regex to match hashtags (words starting with #)
+    const hashtagRegex = /#\w+/g;
+
+    // Extract hashtags from postContent using the regex
+    const hashtags = postContent.match(hashtagRegex) || [];
+
+    console.log("[HASHTAGS]",hashtags)
+
+    // Iterate over hashtags and check if they are in trendingTopics
+    const newTopics = hashtags.filter(hashtag => trendingTopics.includes(hashtag));
+
+    console.log("[NEW TOPICS]",newTopics)
+
+    // Send notifications if any hashtags match trending topics
+    if (newTopics.length > 0) {
+        sendNotificationsForTrendingTopics(newTopics);
+    }
+
+    // Clear post content and reset privacy
     setPostContent('');
     setIsPrivate(false);
     onClose();
   };
+
 
   return (
     <Modal visible={isVisible} animationType="slide" transparent onRequestClose={onClose}>

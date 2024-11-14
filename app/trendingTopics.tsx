@@ -31,11 +31,6 @@ export default function TrendingTopics() {
                     setTrendingTopics(topics);
                     setError(null);
 
-                    const newTopics = response.topics.filter(topic => !previousTopics.includes(topic));
-                    if (newTopics.length > 0) {
-                        sendNotificationsForTrendingTopics(newTopics);
-                        setPreviousTopics(response.topics);
-                    }
                 } else {
                     console.error('Error al obtener los temas del momento:', response.message);
                     setTrendingTopics([]);

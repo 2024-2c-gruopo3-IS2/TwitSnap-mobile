@@ -176,7 +176,6 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
   // Función para solicitar permisos de notificaciones y obtener el token
   async function registerForPushNotificationsAsync() {
-    if (Constants.isDevice) {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
       if (existingStatus !== 'granted') {
@@ -190,9 +189,6 @@ export const NotificationProvider: React.FC = ({ children }) => {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log("Expo Push Token:", token);
       return token;
-    } else {
-      Alert.alert('Debe usar un dispositivo físico para recibir notificaciones');
-    }
 
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
