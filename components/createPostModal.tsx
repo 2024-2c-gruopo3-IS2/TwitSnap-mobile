@@ -110,52 +110,52 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   };
 
   const handlePost = async () => {
-    if (postContent.trim() === '') {
-      Alert.alert('Error', 'El contenido no puede estar vacío');
-      return;
-    }
-    if (postContent.length > MAX_CHAR_COUNT) {
-      Alert.alert('Error', `El contenido no puede exceder ${MAX_CHAR_COUNT} caracteres`);
-      return;
-    }
+      if (postContent.trim() === '') {
+        Alert.alert('Error', 'El contenido no puede estar vacío');
+        return;
+      }
+      if (postContent.length > MAX_CHAR_COUNT) {
+        Alert.alert('Error', `El contenido no puede exceder ${MAX_CHAR_COUNT} caracteres`);
+        return;
+      }
 
-    const newPost = {
-      username: user.username,
-      time: new Date().toLocaleString(),
-      message: postContent,
-      isPrivate: isPrivate,
-      hashtags: hashtags, // Add the extracted hashtags to the post
-    };
+      // Cierra el modal visualmente antes de iniciar las llamadas a la API
+      onClose();
 
-    const trendingTopics = await getTrendingTopics();
+      const newPost = {
+        username: user.username,
+        time: new Date().toLocaleString(),
+        message: postContent,
+        isPrivate: isPrivate,
+        hashtags: hashtags, // Add the extracted hashtags to the post
+      };
 
-    console.log("[TRENDING TOPICS]",trendingTopics)
+      const trendingTopics = await getTrendingTopics();
+      console.log("[TRENDING TOPICS]", trendingTopics);
 
-    await addNewPost(newPost);
+      await addNewPost(newPost);
 
-    // Define a regex to match hashtags (words starting with #)
-    const hashtagRegex = /#\w+/g;
+      // Define a regex to match hashtags (words starting with #)
+      const hashtagRegex = /#\w+/g;
 
-    // Extract hashtags from postContent using the regex
-    const hashtags = postContent.match(hashtagRegex) || [];
+      // Extract hashtags from postContent using the regex
+      const hashtags = postContent.match(hashtagRegex) || [];
+      console.log("[HASHTAGS]", hashtags);
 
-    console.log("[HASHTAGS]",hashtags)
+      // Iterate over hashtags and check if they are in trendingTopics
+      const newTopics = hashtags.filter(hashtag => trendingTopics.topics.includes(hashtag));
+      console.log("[NEW TOPICS]", newTopics);
 
-    // Iterate over hashtags and check if they are in trendingTopics
-    const newTopics = hashtags.filter(hashtag => trendingTopics.topics.includes(hashtag));
+      // Send notifications if any hashtags match trending topics
+      if (newTopics.length > 0) {
+          sendNotificationsForTrendingTopics(newTopics);
+      }
 
-    console.log("[NEW TOPICS]",newTopics)
-
-    // Send notifications if any hashtags match trending topics
-    if (newTopics.length > 0) {
-        sendNotificationsForTrendingTopics(newTopics);
-    }
-
-    // Clear post content and reset privacy
-    setPostContent('');
-    setIsPrivate(false);
-    onClose();
+      // Clear post content and reset privacy
+      setPostContent('');
+      setIsPrivate(false);
   };
+
 
 
   return (

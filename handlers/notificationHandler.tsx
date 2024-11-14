@@ -2,6 +2,10 @@ import { db } from '../firebaseConfig';
 import { get, ref, update, push } from 'firebase/database';
 import * as Notifications from 'expo-notifications';
 
+const sleep = (ms: number) => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 // Función para enviar notificación de mención
 export const sendMentionNotification = async (mentionedUser, currentUser, postId) => {
   try {
@@ -87,25 +91,39 @@ export const followUserNotify = async (followedUser, currentUser) => {
   }
 };
 
-export const sendMessageNotification = async (chatID, senderEmail, receiverEmail, message) => {
+export const sendMessageNotification = async (
+  chatID: string,
+  senderUsername: string, // Cambiado de senderEmail a senderUsername
+  receiverUsername: string, // Cambiado de receiverEmail a receiverUsername
+  message: string
+) => {
   try {
-    // Obtén el token de notificación del usuario receptor desde Firebase
-    const tokenRef = ref(db, `users/${receiverEmail}/expoPushToken`);
+    // Obtener el token de notificación del usuario receptor desde Firebase
+    const tokenRef = ref(db, `users/${receiverUsername}/expoPushToken`);
     const tokenSnapshot = await get(tokenRef);
     const expoPushToken = tokenSnapshot.exists() ? tokenSnapshot.val().token : null;
 
     if (!expoPushToken) {
-      console.log(`Token de notificación no encontrado para el usuario: ${receiverEmail}`);
+      console.log(`Token de notificación no encontrado para el usuario: ${receiverUsername}`);
       return;
     }
 
-    // Crea la notificación push
+    console.log("[NOT] CHAT ID: ", chatID);
+    console.log("[NOT] SENDER: ", senderUsername);
+    console.log("[NOT] RECEIVER: ", receiverUsername);
+    console.log("[NOT] MESSAGE: ", message);
+
+    // Crear la notificación push
     const notification = {
       to: expoPushToken,
       sound: 'default',
       title: 'Nuevo Mensaje',
-      body: `${senderEmail} te ha enviado un mensaje`,
-      data: { chatID },
+      body: `${senderUsername} te ha enviado un mensaje`,
+      data: {
+        type: 'message', // Establecer el tipo a 'message'
+        messageId: chatID,
+        senderUsername // Incluir senderUsername en los datos de la notificación
+      },
     };
 
     // Enviar la notificación utilizando Expo Push API
@@ -120,31 +138,29 @@ export const sendMessageNotification = async (chatID, senderEmail, receiverEmail
 
     const data = await response.json();
     if (data?.data?.status === 'ok') {
-      console.log(`Notificación de mensaje enviada a ${receiverEmail}`);
+      console.log(`Notificación de mensaje enviada a ${receiverUsername}`);
     } else {
       console.error('Error enviando la notificación de mensaje:', data);
     }
 
     // Almacenar la notificación en Firebase bajo la ruta correcta
-    const notificationsRef = ref(db, `notifications/${receiverEmail}/userNotifications`);
+    const notificationsRef = ref(db, `notifications/${receiverUsername}/userNotifications`);
     const newNotificationRef = push(notificationsRef);
     await update(newNotificationRef, {
       id: newNotificationRef.key,
       type: 'message',
-      message: `${senderEmail} te ha enviado un mensaje`,
+      message: `${senderUsername} te ha enviado un mensaje`,
       time: new Date().toLocaleString(),
       read: false,
-      senderId: senderEmail,
+      senderUsername, // Incluir senderUsername en la notificación almacenada
       messageId: chatID,
     });
 
-    console.log(`Notificación de mensaje almacenada para ${receiverEmail}`);
+    console.log(`Notificación de mensaje almacenada para ${receiverUsername}`);
   } catch (error) {
     console.error("Error en sendMessageNotification:", error);
   }
 };
-
-
 
 export const sendTrendingNotification = async (topic: string) => {
   try {
@@ -159,15 +175,10 @@ export const sendTrendingNotification = async (topic: string) => {
     console.log("SNAPSHOT DE USUARIOS", usersSnapshot.val());
     console.log("TOPIC: ", topic);
 
-
     // Itera sobre cada usuario y envía la notificación
     for (const userSnapshot of Object.values(usersSnapshot.val())) {
-
-        console.log("SNAPSHOT DE USUARIOS", usersSnapshot.val());
       const userData = userSnapshot;
-      console.log("USER DATA", userData);
       const expoPushToken = userData.expoPushToken?.token;
-      console.log("Token: ", expoPushToken);
 
       if (!expoPushToken) {
         console.log(`Token de notificación no encontrado para el usuario: ${userSnapshot.key}`);
@@ -199,6 +210,9 @@ export const sendTrendingNotification = async (topic: string) => {
       } else {
         console.error('Error enviando la notificación de trending topic:', data);
       }
+
+      // Pausa de 500 ms entre notificaciones
+      await sleep(500);
     }
   } catch (error) {
     console.error("Error en sendTrendingNotification:", error);

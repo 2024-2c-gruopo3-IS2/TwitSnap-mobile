@@ -11,7 +11,6 @@ import {
   unfavouriteSnap,
   shareSnap
 } from '@/handlers/postHandler';
-import { sendShareNotification } from '@/handlers/notificationHandler';
 import Toast from 'react-native-toast-message';
 
 interface Snap {
@@ -125,16 +124,8 @@ const SnapItem: React.FC<SnapItemProps> = ({
         onShare(sharedSnap);
       }
 
-      // Enviar notificación al autor original si es diferente al actual
-      if (currentUsername && snapData.username !== currentUsername) {
-        await sendShareNotification(snapData.username, currentUsername, snapData.id);
-      }
     } else {
-      Toast.show({
-        type: 'error',
-        text1: 'Error al compartir',
-        text2: 'Hubo un problema al compartir el snap.',
-      });
+        console.log('Error al compartir el snap:', result.message);
     }
   };
 

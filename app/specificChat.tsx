@@ -62,11 +62,11 @@ const SpecificChat = () => {
             const messageRef = await push(ref(db, `chats/${chatID}/messages`), message);
 
             // Obtén el email del usuario actual y del receptor
-            const senderEmail = user.username; // Asegúrate de que user tenga el campo email
-            const receiverEmail = email_receiver;
-
+            const senderUsername  = user.username; // Asegúrate de que user tenga el campo email
+            const receiverUsername  = email_receiver;
+            console.log("CHAT ID: ", chatID);
             // Llama a sendMessageNotification
-            await sendMessageNotification(chatID, senderEmail, receiverEmail, newMessage);
+            await sendMessageNotification(chatID, senderUsername, receiverUsername, newMessage);
 
             setNewMessage('');
         } catch (error) {

@@ -59,11 +59,8 @@ const ChatItem: React.FC<ChatItemProps> = ({ item }) => {
 
   const handleChatPress = async (): void => {
     const chatID = item.chatID;
-    console.log("[specific ITEM] Chat ID: ", chatID);
     const email_sender = user.username === item.user1Email ? user.username : item.user2Email;
-    console.log("[specific ITEM] email_sender: ", email_sender);
     const email_receiver = user.username === item.user1Email ? item.user2Email : item.user1Email;
-    console.log("[specific ITEM] email_receiver: ", email_receiver);
     const fromNotification = false;
 
     router.push({

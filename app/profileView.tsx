@@ -38,10 +38,11 @@ import { AuthContext } from '@/context/authContext';
 import { ref, getDownloadURL, uploadBytes } from 'firebase/storage';
 import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../firebaseConfig';
-import { sendShareNotification } from '@/handlers/notificationHandler';
+import { followUserNotify } from '@/handlers/notificationHandler';
 
 interface Snap {
   id: string;
+  type: 'shared' | 'original'; // New property to indicate snap type
   username: string;
   time: string;
   message: string;
@@ -70,6 +71,9 @@ export default function ProfileView() {
   // Variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
+
+  // Estado para verificar si hay seguimiento mutuo
+  const [isMutuallyFollowing, setIsMutuallyFollowing] = useState<boolean>(false);
 
   // Estados para el modal de edición
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -166,6 +170,8 @@ export default function ProfileView() {
 
         // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
         let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
+        let isFollowedByProfileUserPromise: Promise<boolean> = Promise.resolve(false);
+
         if (!isOwnProfile) {
           isFollowingPromise = (async () => {
             const currentProfile = await getProfile();
@@ -174,6 +180,15 @@ export default function ProfileView() {
               if (followed.success) {
                 return (followed.followed ?? []).includes(profileResponse.profile.username);
               }
+            }
+            return false;
+          })();
+
+          // Check if profile's user is following the current user
+          isFollowedByProfileUserPromise = (async () => {
+            const followedByProfile = await getFollowed(profileResponse.profile.username);
+            if (followedByProfile.success) {
+              return (followedByProfile.followed ?? []).includes(currentUsername);
             }
             return false;
           })();
@@ -193,26 +208,38 @@ export default function ProfileView() {
         const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
 
         // 5. Actualizar estado de seguimiento
-        const isFollowingResult = await isFollowingPromise;
+        const [isFollowingResult, isFollowedByProfileUserResult] = await Promise.all([
+          isFollowingPromise,
+          isFollowedByProfileUserPromise,
+        ]);
+
         if (!isOwnProfile) {
           setIsFollowing(isFollowingResult);
+          setIsMutuallyFollowing(isFollowingResult && isFollowedByProfileUserResult);
+        } else {
+          setIsMutuallyFollowing(true); // Own profile implies mutual following
         }
 
         // 6. Actualizar contadores de seguidores y seguidos
-        if (followersPromise.success) {
-          setFollowersCount((followersPromise.followers ?? []).length);
+        const followersResult = await followersPromise;
+        if (followersResult.success) {
+          setFollowersCount((followersResult.followers ?? []).length);
         } else {
           setFollowersCount(0); // Valor por defecto en caso de error
-          Toast.show({
-            type: 'info',
-            text1: 'Privacidad',
-            text2: 'Este perfil es privado.',
-            visibilityTime: 4000, // Tiempo de visualización (4 segundos)
-          });
+          if (!isMutuallyFollowing && !isOwnProfile) {
+            // Only show privacy toast if not mutual and not own profile
+            Toast.show({
+              type: 'info',
+              text1: 'Privacidad',
+              text2: 'Este perfil es privado.',
+              visibilityTime: 4000, // Tiempo de visualización (4 segundos)
+            });
+          }
         }
 
-        if (followingPromise.success) {
-          setFollowingCount((followingPromise.followed ?? []).length);
+        const followingResult = await followingPromise;
+        if (followingResult.success) {
+          setFollowingCount((followingResult.followed ?? []).length);
         } else {
           setFollowingCount(0); // Valor por defecto en caso de error
         }
@@ -222,7 +249,8 @@ export default function ProfileView() {
         if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
           processedSnaps = await Promise.all(
             snapResponse.snaps.map(async (snap: any) => ({
-              id: snap._id,
+                id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // Asegura un id único
+              type: 'original',
               username: snap.username, // Autor original
               time: snap.time,
               message: snap.message,
@@ -243,7 +271,8 @@ export default function ProfileView() {
         if (sharedResponse.success && sharedResponse.snaps && sharedResponse.snaps.length > 0) {
           sharedSnaps = await Promise.all(
             sharedResponse.snaps.map(async (snap: any) => ({
-              id: snap._id,
+                id: snap._id ? `shared-${snap._id}` : `shared-${Math.random()}`, // Asegura un id único
+              type: 'shared',
               username: snap.username, // Autor original
               time: snap.time,
               message: snap.message,
@@ -258,8 +287,10 @@ export default function ProfileView() {
             }))
           );
         }
-
-        setSnaps([...sharedSnaps, ...processedSnaps]); // Mostrar primero los compartidos
+        const allSnaps = [...sharedSnaps, ...processedSnaps];
+        const uniqueSnaps = Array.from(new Map(allSnaps.map(snap => [snap.id, snap])).values());
+        // Actualiza el estado de snaps con elementos únicos
+        setSnaps(uniqueSnaps);
       } else {
         Alert.alert('Error', profileResponse.message || 'No se pudo obtener el perfil.');
       }
@@ -274,12 +305,7 @@ export default function ProfileView() {
   // Función para manejar la compartición de un snap desde SnapItem
   const handleShareSnap = useCallback((sharedSnap: Snap) => {
     setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
-
-    // Enviar notificación al autor original si es diferente al actual
-    if (sharedSnap.username && sharedSnap.username !== currentUsername) {
-      sendShareNotification(sharedSnap.username, currentUsername || '', sharedSnap.id);
-    }
-  }, [currentUsername]);
+  }, []);
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -307,8 +333,8 @@ export default function ProfileView() {
         setIsFollowing(true);
         setFollowersCount(prev => prev + 1);
         Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
-        await sendShareNotification(profile.username, currentUsername, profile.username); // Asegúrate de que sendShareNotification sea correcto
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
+        await followUserNotify(profile.username, user.username);
       } else {
         Alert.alert('Error', response.message || 'No se pudo seguir al usuario.');
       }
@@ -478,22 +504,32 @@ export default function ProfileView() {
 
       <View style={styles.followContainer}>
         <Pressable
-          onPress={() =>
-            router.push(`/followers?username=${encodeURIComponent(profile.username)}`)
-          }
+          onPress={() => {
+            if (isOwnProfile || isMutuallyFollowing) {
+              router.push(`/followers?username=${encodeURIComponent(profile.username)}`);
+            }
+          }}
           style={styles.followSection}
+          disabled={!(isOwnProfile || isMutuallyFollowing)}
         >
-          <Text style={styles.followNumber}>{followersCount}</Text>
+          <Text style={styles.followNumber}>
+            {isOwnProfile || isMutuallyFollowing ? followersCount : 'X'}
+          </Text>
           <Text style={styles.followLabel}>Seguidores</Text>
         </Pressable>
 
         <Pressable
-          onPress={() =>
-            router.push(`/following?username=${encodeURIComponent(profile.username)}`)
-          }
+          onPress={() => {
+            if (isOwnProfile || isMutuallyFollowing) {
+              router.push(`/following?username=${encodeURIComponent(profile.username)}`);
+            }
+          }}
           style={styles.followSection}
+          disabled={!(isOwnProfile || isMutuallyFollowing)}
         >
-          <Text style={styles.followNumber}>{followingCount}</Text>
+          <Text style={styles.followNumber}>
+            {isOwnProfile || isMutuallyFollowing ? followingCount : 'X'}
+          </Text>
           <Text style={styles.followLabel}>Seguidos</Text>
         </Pressable>
       </View>
@@ -591,7 +627,7 @@ export default function ProfileView() {
     <View style={styles.container}>
       <FlatList
         data={snaps}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id} // Now unique
         renderItem={renderItemCallback}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.snapsList}

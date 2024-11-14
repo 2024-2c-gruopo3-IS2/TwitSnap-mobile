@@ -8,7 +8,6 @@ import Toast from 'react-native-toast-message';
 import { AuthContext } from '@/context/authContext';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../firebaseConfig';
-import { sendShareNotification } from '@/handlers/notificationHandler';
 
 interface Snap {
   id: string;
@@ -98,7 +97,12 @@ export default function Feed() {
         }
 
         // Combinar Snaps Originales y Compartidos
-        setSnaps([...sharedSnaps, ...fetchedSnaps]); // Mostrar primero los compartidos
+        const allSnaps = [...sharedSnaps, ...fetchedSnaps];
+        const uniqueSnaps = Array.from(new Map(allSnaps.map(snap => [snap.id, snap])).values());
+
+        // Actualizar el estado con `uniqueSnaps`
+        setSnaps(uniqueSnaps);
+
       } catch (error) {
         console.error("Error fetching feed snaps:", error);
         Toast.show({
@@ -118,10 +122,6 @@ export default function Feed() {
   const handleShareSnap = useCallback((sharedSnap: Snap) => {
     setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
 
-    // Enviar notificación al autor original si es diferente al actual
-    if (sharedSnap.username && sharedSnap.username !== currentUsername) {
-      sendShareNotification(sharedSnap.username, currentUsername, sharedSnap.id);
-    }
 
     Toast.show({
       type: 'success',

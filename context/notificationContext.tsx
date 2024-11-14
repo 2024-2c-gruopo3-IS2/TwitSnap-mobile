@@ -5,7 +5,7 @@ import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { AuthContext } from './authContext';
-import { ref, onValue, update, remove, get } from 'firebase/database';
+import { ref, onValue, update, remove, get, push } from 'firebase/database';
 import { useRouter } from 'expo-router'; // Usar useRouter de expo-router
 import { db } from '../firebaseConfig';
 import Toast from 'react-native-toast-message';
@@ -19,7 +19,8 @@ interface NotificationItem {
   senderId?: string;
   messageId?: string;
   topic?: string;
-  followUsername?: string;
+  followerUsername?: string; // Cambiado a followerUsername
+  senderUsername?: string;
 }
 
 interface NotificationContextProps {
@@ -90,18 +91,17 @@ export const NotificationProvider: React.FC = ({ children }) => {
           senderId: data.senderId || null,
           messageId: data.messageId || null,
           topic: data.topic || null,
-          followUsername: data.followUsername || null,
+          followerUsername: data.followerUsername || null, // Asegurar followerUsername
+          senderUsername: data.senderUsername || null,
         };
 
-        setNotifications(prev => [newNotification, ...prev]);
+//         // Solo guardar en Firebase, no en el estado local
+//         const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${newNotification.id}`);
+//         update(notificationRef, newNotification)
+//           .then(() => console.log('Notificación guardada en Firebase'))
+//           .catch(error => console.log('Error al guardar la notificación en Firebase:', error));
 
-        // Guardar la notificación en Firebase para persistencia
-        const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${newNotification.id}`);
-        update(notificationRef, newNotification)
-          .then(() => console.log('Notificación guardada en Firebase'))
-          .catch(error => console.log('Error al guardar la notificación en Firebase:', error));
-
-        // Mostrar visualmente la notificación si es de tipo 'trending'
+        // Mostrar visualmente la notificación si es de tipo 'trending' o 'follow'
         if (newNotification.type === 'trending' && newNotification.topic) {
           Toast.show({
             type: 'info',
@@ -112,13 +112,22 @@ export const NotificationProvider: React.FC = ({ children }) => {
         }
 
         if (newNotification.type === 'follow' && newNotification.followerUsername) {
-              Toast.show({
-                type: 'info',
-                text1: 'Nuevo Seguidor',
-                text2: `${newNotification.followerUsername} te ha seguido.`,
-                onPress: () => handleNotificationPress(newNotification),
-              });
-          }
+          Toast.show({
+            type: 'info',
+            text1: 'Nuevo Seguidor',
+            text2: `${newNotification.followerUsername} te ha seguido.`,
+            onPress: () => handleNotificationPress(newNotification),
+          });
+        }
+
+        if (newNotification.type === 'message' && newNotification.senderUsername) { // Manejar tipo 'message'
+          Toast.show({
+            type: 'info',
+            text1: 'Nuevo Mensaje',
+            text2: `${newNotification.senderUsername} te ha enviado un mensaje.`,
+            onPress: () => handleNotificationPress(newNotification),
+          });
+        }
 
       } catch (error) {
         console.log("Error al procesar la notificación:", error);
@@ -127,22 +136,22 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
     // Listener para manejar respuestas a notificaciones (cuando el usuario las toca)
     const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-          const data = response.notification.request.content.data || {};
-          const type = data.type || 'general';
-          if (type === 'trending' && data.topic) {
-            router.push({
-              pathname: 'topicDetail',
-              params: { topic: data.topic },
-            });
-          } else if (type === 'message' && data.messageId) {
-            router.push(`/chat/${data.messageId}`);
-          } else if (type === 'follow' && data.followerUsername) {
-            router.push({
-              pathname: 'profileView',
-              params: { username: data.followerUsername },
-            });
-          }
+      const data = response.notification.request.content.data || {};
+      const type = data.type || 'general';
+      if (type === 'trending' && data.topic) {
+        router.push({
+          pathname: 'topicDetail',
+          params: { topic: data.topic },
         });
+      } else if (type === 'message' && data.messageId) {
+        router.push(`/chat/${data.messageId}`);
+      } else if (type === 'follow' && data.followerUsername) {
+        router.push({
+          pathname: 'profileView', // Asegúrate de que esta ruta es correcta
+          params: { username: data.followerUsername },
+        });
+      }
+    });
 
     // Cargar notificaciones existentes desde Firebase al iniciar
     const notificationsRef = ref(db, `notifications/${user.username}/userNotifications`);
@@ -158,8 +167,9 @@ export const NotificationProvider: React.FC = ({ children }) => {
           read: data.read ?? true,
           senderId: data.senderId,
           messageId: data.messageId,
-          topic: data.topic || null, // Añadido
-          followUsername: data.followUsername || null, // Añadido
+          topic: data.topic || null,
+          followerUsername: data.followerUsername || null,
+          senderUsername: data.senderUsername || null,
         });
       });
       setNotifications(notif);
@@ -176,19 +186,19 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
   // Función para solicitar permisos de notificaciones y obtener el token
   async function registerForPushNotificationsAsync() {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        Alert.alert('Permiso de notificación denegado');
-        return;
-      }
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Expo Push Token:", token);
-      return token;
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== 'granted') {
+      Alert.alert('Permiso de notificación denegado');
+      return;
+    }
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    console.log("Expo Push Token:", token);
+    return token;
 
     if (Platform.OS === 'android') {
       Notifications.setNotificationChannelAsync('default', {
@@ -202,19 +212,19 @@ export const NotificationProvider: React.FC = ({ children }) => {
 
   // Función para manejar el clic en una notificación y marcarla como leída
   const handleNotificationPress = async (item: NotificationItem) => {
-      if (item.type === 'message' && item.messageId) {
-        router.push(`/chat/${item.messageId}`);
-      } else if (item.type === 'trending' && item.topic) {
-        router.push({
-          pathname: 'topicDetail',
-          params: { topic: item.topic },
-        });
-      } else if (item.type === 'follow' && item.followerUsername) {
-        router.push({
-          pathname: 'profile', // Asumir que 'profile' es la pantalla del perfil
-          params: { username: item.followerUsername },
-        });
-      }
+    if (item.type === 'message' && item.messageId) {
+      router.push(`/chat/${item.messageId}`);
+    } else if (item.type === 'trending' && item.topic) {
+      router.push({
+        pathname: 'topicDetail',
+        params: { topic: item.topic },
+      });
+    } else if (item.type === 'follow' && item.followerUsername) { // Usar followerUsername
+      router.push({
+        pathname: 'profileView', // Asegúrate de que esta ruta es correcta
+        params: { username: item.followerUsername },
+      });
+    }
 
     try {
       const notificationRef = ref(db, `notifications/${user.username}/userNotifications/${item.id}`);

@@ -1,3 +1,5 @@
+// NotificationsScreen.tsx
+
 import React, { useContext } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import Footer from '../components/footer';
@@ -5,7 +7,7 @@ import { NotificationContext } from '../context/notificationContext';
 import { useRouter } from 'expo-router';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { StyleSheet } from 'react-native';
-
+import {AuthContext} from '../context/authContext';
 
 interface NotificationItem {
   id: string;
@@ -16,31 +18,42 @@ interface NotificationItem {
   senderId?: string;
   messageId?: string;
   topic?: string;
+  followerUsername?: string; // Asegurarse de que este campo existe
 }
 
 const NotificationsScreen: React.FC = () => {
   const { notifications, markAsRead, deleteNotification } = useContext(NotificationContext);
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+  const {user} = useContext(AuthContext);
 
   const handleNotificationPress = (item: NotificationItem) => {
-      if (item.type === 'message' && item.messageId) {
-        router.push(`/chat/${item.messageId}`);
-        markAsRead(item.id);
-      } else if (item.type === 'trending' && item.topic) {
+      console.log('Notificación presionada:', item);
+      console.log('Tipo de notificación:', item.type);
+      console.log('ID de notificación:', item.id);
+      console.log('msg ID: ', item.messageId);
+    if (item.type === 'message' && item.messageId) {
+        console.log("RUTA CHAT: ", `/chat/${item.messageId}`);
         router.push({
-          pathname: 'topicDetail',
-          params: { topic: item.topic },
+          pathname: '/specificChat',
+          params: { chatID: item.messageId, email_sender: user.username, email_receiver: item.senderUsername, fromNotification: true },
+
         });
-        markAsRead(item.id);
-      } else if (item.type === 'follow' && item.followerUsername) {
-         router.push({
-           pathname: 'profile', // Asumir que 'profile' es la pantalla del perfil
-           params: { username: item.followerUsername },
-         });
-        markAsRead(item.id);
-      }
-    };
+      markAsRead(item.id);
+    } else if (item.type === 'trending' && item.topic) {
+      router.push({
+        pathname: 'topicDetail',
+        params: { topic: item.topic },
+      });
+      markAsRead(item.id);
+    } else if (item.type === 'follow' && item.followerUsername) {
+      router.push({
+        pathname: 'profileView',
+        params: { username: item.followerUsername },
+      });
+      markAsRead(item.id);
+    }
+  };
 
   const handleDeleteNotification = (id: string) => {
     deleteNotification(id);
@@ -75,7 +88,7 @@ const NotificationsScreen: React.FC = () => {
       </View>
       <View style={{ flex: 1 }}>
         <FlatList
-          data={notifications.slice().reverse()}
+          data={notifications.slice().reverse()} // Mostrar las notificaciones más recientes primero
           renderItem={renderNotification}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ flexGrow: 1 }}
@@ -125,10 +138,12 @@ const styles = StyleSheet.create({
       padding: 10,
     },
     notificationItem: {
-      padding: 15,
-      borderRadius: 8,
-      backgroundColor: '#1f1f1f',
-      marginBottom: 10,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 10,
+      borderBottomWidth: 1,
+      borderColor: '#ccc',
+      backgroundColor: '#1f1f1f', // Opcional: Fondo oscuro para las notificaciones
     },
     notificationMessage: {
       color: '#fff',
@@ -157,19 +172,12 @@ const styles = StyleSheet.create({
       borderTopWidth: 1,
       borderTopColor: '#333',
     },
-    notificationItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        borderBottomWidth: 1,
-        borderColor: '#ccc',
-      },
-      notificationContent: {
-        flex: 1,
-      },
-      deleteButton: {
-        padding: 5,
-      },
-  });
+    notificationContent: {
+      flex: 1,
+    },
+    deleteButton: {
+      padding: 5,
+    },
+});
 
 export default NotificationsScreen;
