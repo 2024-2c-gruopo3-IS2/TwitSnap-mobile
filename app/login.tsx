@@ -5,13 +5,10 @@ import { Link, useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import styles from '../styles/login';
-import { saveToken, getToken } from '@/handlers/authTokenHandler';
-import { loginUser } from '@/handlers/loginHandler';
-import { auth, provider } from '@/firebaseConfig';
-import { signInWithCredential } from 'firebase/auth';
-import { GoogleAuthProvider } from 'firebase/auth';
-import {AuthContext} from '@/context/authContext';
-//import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { auth } from '@/firebaseConfig';
+import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
+import { AuthContext } from '@/context/authContext';
+import * as AuthSession from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,20 +20,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const redirectUri = 'https://twitsnap-d3c22.firebaseapp.com'
 
+  // Configura el proveedor de Google con los IDs de cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
+    expoClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+    androidClientId: '856906798335-7gmq64nn5upj2qfng38q858al4ngosu6.apps.googleusercontent.com',
     webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
+    redirectUri,
   });
-
-  // GoogleSignIn.configure({
-  //   webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-  //   offlineAccess: true,
-  //   forceCodeForRefreshToken: true,
-  // });
 
   useEffect(() => {
     const checkSession = async () => {
@@ -51,45 +43,26 @@ export default function LoginPage() {
   useEffect(() => {
     if (response?.type === 'success') {
       const { authentication } = response;
-      if (authentication?.accessToken) {
-        const credential = GoogleAuthProvider.credential(null, authentication.accessToken);
-        signInWithCredential(auth, credential)
-          .then(async (userCredential) => {
-            const token = await userCredential.user.getIdToken();
-            router.replace('./feed');
-          })
-          .catch((error) => {
-            Alert.alert('Error', 'Error al iniciar sesión con Google.');
-          });
-      }
+
+      const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          // Usuario autenticado correctamente
+          const user = userCredential.user;
+          console.log('Usuario autenticado:', user);
+          router.replace('./tabs');
+        })
+        .catch((error) => {
+          console.error('Error al iniciar sesión con Google:', error);
+          Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+        });
     }
   }, [response]);
 
-  // const handleSignInWithGoogle = async () => {
-  //     try {
-  //       await GoogleSignin.hasPlayServices();
-  //       const userInfo = await GoogleSignin.signIn();
-
-  //       const token = userInfo.data.idToken;
-
-  //       const googleCredential = GoogleAuthProvider.credential(token);
-  //       const firebaseUserCredential = await signInWithCredential(auth, googleCredential);
-  //     //const response = await loginWithGoogleCandidate(firebaseUserCredential._tokenResponse.idToken);
-  //     } catch (error) {
-  //       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-  //         console.log('User cancelled the sign-in');
-  //       } else if (error.code === statusCodes.IN_PROGRESS) {
-  //         console.log('Sign-in is in progress');
-  //       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-  //         console.log('Play services are not available');
-  //       } else {
-  //         console.error('Google Sign-In error:', error);
-  //       }
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
+  const handleGoogleSignIn = () => {
+      console.log('Redirect URI:', redirectUri);
+    promptAsync();
+  };
 
   const handleLogin = async () => {
     setError('');
@@ -100,12 +73,13 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-        await login(email,password)
-
-        } catch (error: any) {
-            setError(error.message || 'Error al iniciar sesión.');
-          }
-
+      await login(email, password);
+      router.replace('./tabs');
+    } catch (error) {
+      setError(error.message || 'Error al iniciar sesión.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -117,15 +91,15 @@ export default function LoginPage() {
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-          <Pressable style={styles.googleButton} onPress={() => console.log("a implementar")}>
-            <View style={styles.googleButtonContent}>
-              <Image
-                source={require('../assets/images/google.png')}
-                style={styles.googleLogo}
-              />
-              <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
-            </View>
-          </Pressable>
+        <Pressable style={styles.googleButton} onPress={handleGoogleSignIn} disabled={!request}>
+          <View style={styles.googleButtonContent}>
+            <Image
+              source={require('../assets/images/google.png')}
+              style={styles.googleLogo}
+            />
+            <Text style={styles.buttonText}>Iniciar sesión con Google</Text>
+          </View>
+        </Pressable>
 
         <View style={styles.dividerContainer}>
           <View style={styles.divider} />
