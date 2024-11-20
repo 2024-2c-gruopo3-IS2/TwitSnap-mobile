@@ -124,21 +124,25 @@ export default StyleSheet.create({
         paddingTop: 60,
         paddingRight: 20,
       },
-      modalContent: {
-        backgroundColor: '#1A1A1A',
-        borderRadius: 8,
-        padding: 10,
-        width: 200,
-      },
       menuButton: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
+        justifyContent: 'flex-start', // Asegura que el texto esté alineado con el ícono
+        paddingHorizontal: 10, // Agrega un margen para un diseño más limpio
       },
       menuButtonText: {
         color: '#fff',
-        marginLeft: 10,
+        marginLeft: 10, // Espacio entre el ícono y el texto
         fontSize: 16,
+        textAlign: 'left', // Alinea el texto a la izquierda
+      },
+      modalContent: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        width: 220, // Ajusta el ancho del modal para una mejor presentación
       },
     usernameContainer: {
       flexDirection: 'row',
