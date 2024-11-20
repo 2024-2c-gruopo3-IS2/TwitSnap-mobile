@@ -779,3 +779,44 @@ export async function shareSnap(snapId: string): Promise<{ success: boolean; mes
         return { success: false, message: 'Error al conectar con el servidor.' };
     }
   }
+
+/**
+@snap_router.get("/users-interactions/", summary="Get users iteractions with my snaps")
+
+es un diccionario por snap id con likes y retweets
+*/
+export async function getUsersInteractions(): Promise<{ success: boolean; interactions?: any; message?: string }> {
+    const API_URL = 'https://post-microservice.onrender.com';
+
+    const interactions_url = `${API_URL}/snaps/users-interactions/`;
+    const token = await getToken();
+    if (!token) {
+        console.error('Token de autenticación no encontrado.');
+        return { success: false, message: 'Token de autenticación no encontrado.' };
+    }
+
+    try {
+        const response = await fetch(interactions_url, {
+            method: 'GET',
+            headers: {
+                'token': `${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        console.log('data get users interactions:', data);
+
+        if (response.ok) {
+            console.log('Interacciones de usuarios obtenidas:', data.data);
+            return { success: true, interactions: data.data };
+        } else {
+            console.log('Error al obtener interacciones de usuarios:', data);
+            return { success: false, message: data.detail || 'Error al obtener interacciones de usuarios.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+ }
+

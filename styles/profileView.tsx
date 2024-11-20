@@ -108,6 +108,64 @@ export default StyleSheet.create({
         textAlign: 'center',
         marginTop: 10,
     },
+    statisticsButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        padding: 8,
+        backgroundColor: '#1DA1F2',
+        borderRadius: 20,
+      },
+      modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+        paddingTop: 60,
+        paddingRight: 20,
+      },
+      modalContent: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 8,
+        padding: 10,
+        width: 200,
+      },
+      menuButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+      },
+      menuButtonText: {
+        color: '#fff',
+        marginLeft: 10,
+        fontSize: 16,
+      },
+    usernameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 5,
+      justifyContent: 'center',
+    },
+    verifiedIcon: {
+      marginLeft: 5,
+    },
+    certificationButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center', // Centra el contenido dentro del botón
+        alignSelf: 'center', // Centra el botón en el contenedor padre
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: '#1DA1F2',
+        borderRadius: 5,
+        marginVertical: 10,
+        width: '60%', // Limita el ancho del botón
+      },
+    certificationButtonText: {
+      marginLeft: 5,
+      color: '#fff',
+      fontSize: 16,
+    },
     snapContainer: {
         flexDirection: 'row', // Organiza contenido y botones en una fila
         justifyContent: 'space-between', // Espacia el contenido y los botones

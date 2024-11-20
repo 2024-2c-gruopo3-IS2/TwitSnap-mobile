@@ -26,9 +26,9 @@
       }
     },
     "production": {
-      "distribution": "store",
+      "distribution": "internal",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       },
       "env": {
         "NODE_ENV": "production"

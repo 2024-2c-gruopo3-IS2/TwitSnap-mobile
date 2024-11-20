@@ -3,16 +3,24 @@ import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
   View,
   Text,
-  Image,
-  Pressable,
+  FlatList,
   ActivityIndicator,
   Alert,
-  FlatList,
+  Pressable,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getProfile, getUserProfile } from '@/handlers/profileHandler';
-import { followUser, unfollowUser, getFollowers, getFollowed } from '@/handlers/followHandler';
+import {
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowed,
+} from '@/handlers/followHandler';
 import BackButton from '@/components/backButton';
 import styles from '../styles/profileView';
 import {
@@ -26,7 +34,7 @@ import {
   unlikeSnap,
   getLikedSnaps,
   shareSnap,
-  getSharedSnaps
+  getSharedSnaps,
 } from '@/handlers/postHandler';
 import { Avatar } from 'react-native-elements';
 import EditSnapModal from '@/components/editSnapModal';
@@ -67,6 +75,8 @@ export default function ProfileView() {
   const { user, logout } = useContext(AuthContext);
   const currentUsername = user?.username || '';
   const isOwnProfile = !username;
+  const [isCertified, setIsCertified] = useState<boolean>(false);
+
 
   // Variables de estado para los contadores
   const [followersCount, setFollowersCount] = useState<number>(0);
@@ -82,6 +92,9 @@ export default function ProfileView() {
   // Estados relacionados con el seguimiento
   const [isFollowing, setIsFollowing] = useState(false);
   const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  // Estados para el menú de estadísticas
+  const [isStatisticsMenuVisible, setIsStatisticsMenuVisible] = useState(false);
 
   // Función para manejar la navegación al presionar el botón "Volver"
   const handleBackPress = () => {
@@ -99,9 +112,8 @@ export default function ProfileView() {
   const fetchProfileImage = async (username: string) => {
     try {
       const imageRef = ref(storage, `profile_photos/${username}.png`);
-      const url = await getDownloadURL(imageRef);
-      return url;
-    } catch (error) {
+      return await getDownloadURL(imageRef);
+    } catch {
       return 'https://via.placeholder.com/150';
     }
   };
@@ -140,7 +152,7 @@ export default function ProfileView() {
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       setProfileImage(downloadURL);
-      const updatedSnaps = snaps.map(snap => ({
+      const updatedSnaps = snaps.map((snap) => ({
         ...snap,
         profileImage: downloadURL,
       }));
@@ -167,6 +179,7 @@ export default function ProfileView() {
         setProfile(profileResponse.profile);
         const profileImageUrl = await fetchProfileImage(profileResponse.profile.username);
         setProfileImage(profileImageUrl);
+        setIsCertified(profileResponse.profile.isVerified);
 
         // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
         let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
@@ -204,8 +217,8 @@ export default function ProfileView() {
         const likesResponse = await getLikedSnaps();
         const favouriteResponse = await getFavouriteSnaps();
 
-        const likedSnapsIds = likesResponse.snaps?.map(snap => snap.id) || [];
-        const favouriteSnapsIds = favouriteResponse.snaps?.map(snap => snap.id) || [];
+        const likedSnapsIds = likesResponse.snaps?.map((snap) => snap.id) || [];
+        const favouriteSnapsIds = favouriteResponse.snaps?.map((snap) => snap.id) || [];
 
         // 5. Actualizar estado de seguimiento
         const [isFollowingResult, isFollowedByProfileUserResult] = await Promise.all([
@@ -249,7 +262,7 @@ export default function ProfileView() {
         if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
           processedSnaps = await Promise.all(
             snapResponse.snaps.map(async (snap: any) => ({
-                id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // Asegura un id único
+              id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // Asegura un id único
               type: 'original',
               username: snap.username, // Autor original
               time: snap.time,
@@ -271,7 +284,7 @@ export default function ProfileView() {
         if (sharedResponse.success && sharedResponse.snaps && sharedResponse.snaps.length > 0) {
           sharedSnaps = await Promise.all(
             sharedResponse.snaps.map(async (snap: any) => ({
-                id: snap._id ? `shared-${snap._id}` : `shared-${Math.random()}`, // Asegura un id único
+              id: snap._id ? `shared-${snap._id}-${Date.now()}` : `shared-${Math.random()}`, // Asegura un id único
               type: 'shared',
               username: snap.username, // Autor original
               time: snap.time,
@@ -287,8 +300,9 @@ export default function ProfileView() {
             }))
           );
         }
+
         const allSnaps = [...sharedSnaps, ...processedSnaps];
-        const uniqueSnaps = Array.from(new Map(allSnaps.map(snap => [snap.id, snap])).values());
+        const uniqueSnaps = Array.from(new Map(allSnaps.map((snap) => [snap.id, snap])).values());
         // Actualiza el estado de snaps con elementos únicos
         setSnaps(uniqueSnaps);
       } else {
@@ -303,9 +317,23 @@ export default function ProfileView() {
   };
 
   // Función para manejar la compartición de un snap desde SnapItem
-  const handleShareSnap = useCallback((sharedSnap: Snap) => {
-    setSnaps(prevSnaps => [sharedSnap, ...prevSnaps]);
-  }, []);
+  const handleShareSnap = useCallback(
+    (sharedSnap: Snap) => {
+      setSnaps((prevSnaps) => [sharedSnap, ...prevSnaps]);
+
+      // Enviar notificación al autor original si es diferente al actual
+      if (sharedSnap.username && sharedSnap.username !== currentUsername) {
+        sendShareNotification(sharedSnap.username, currentUsername, sharedSnap.id);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Snap compartido',
+        text2: 'El snap ha sido compartido exitosamente.',
+      });
+    },
+    [currentUsername]
+  );
 
   // Función para recargar el perfil
   const reloadProfile = async () => {
@@ -331,7 +359,7 @@ export default function ProfileView() {
 
       if (response.success) {
         setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
+        setFollowersCount((prev) => prev + 1);
         Toast.show({ type: 'success', text1: 'Has seguido al usuario exitosamente.' });
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
         await followUserNotify(profile.username, user.username);
@@ -356,7 +384,7 @@ export default function ProfileView() {
 
       if (response.success) {
         setIsFollowing(false);
-        setFollowersCount(prev => (prev > 0 ? prev - 1 : 0));
+        setFollowersCount((prev) => (prev > 0 ? prev - 1 : 0));
         Toast.show({ type: 'success', text1: 'Has dejado de seguir al usuario.' });
         await fetchProfile(); // Recargar el perfil para actualizar el estado de seguimiento
       } else {
@@ -413,10 +441,8 @@ export default function ProfileView() {
 
       if (result.success) {
         // Actualizar el snap en la lista usando una actualización funcional
-        setSnaps(prevSnaps =>
-          prevSnaps.map(snap =>
-            snap.id === snapId ? { ...snap, message, isPrivate } : snap
-          )
+        setSnaps((prevSnaps) =>
+          prevSnaps.map((snap) => (snap.id === snapId ? { ...snap, message, isPrivate } : snap))
         );
         Alert.alert('Éxito', 'Snap actualizado exitosamente');
         setIsEditModalVisible(false);
@@ -440,11 +466,11 @@ export default function ProfileView() {
         {
           text: 'Eliminar',
           onPress: async () => {
-            console.log("Snap ID DELETE: " + snapId);
+            console.log('Snap ID DELETE: ' + snapId);
             const result = await deleteSnap(snapId);
 
             if (result.success) {
-              setSnaps(prevSnaps => prevSnaps.filter(snap => snap.id !== snapId));
+              setSnaps((prevSnaps) => prevSnaps.filter((snap) => snap.id !== snapId));
               Alert.alert('Éxito', 'Snap eliminado exitosamente');
             } else {
               Alert.alert('Error', 'No se pudo eliminar el snap.');
@@ -457,25 +483,67 @@ export default function ProfileView() {
 
   // Función para manejar la eliminación de un snap de favoritos desde SnapItem
   const handleUnfavourite = useCallback((snapId: string) => {
-    setSnaps(prevSnaps => prevSnaps.filter(snap => snap.id !== snapId));
+    setSnaps((prevSnaps) => prevSnaps.filter((snap) => snap.id !== snapId));
     Toast.show({
       type: 'success',
       text1: 'Snap eliminado de favoritos',
     });
   }, []);
 
+  // Función para manejar la navegación a las estadísticas de la cuenta
+  const navigateToAccountStatistics = () => {
+    setIsStatisticsMenuVisible(false);
+    router.push('/accountStatistics');
+  };
+
+  // Función para manejar la navegación a las estadísticas de TwitSnaps
+  const navigateToTwitSnapsStatistics = () => {
+    setIsStatisticsMenuVisible(false);
+    router.push('/twitSnapsStatistics');
+  };
+
   const renderHeader = () => (
     <View>
       <View style={styles.headerContainer}>
         <BackButton onPress={handleBackPress} />
         <View style={styles.rightSpace} />
+        {/* Botón de Estadísticas en la esquina superior derecha */}
+        {isOwnProfile && (
+          <TouchableOpacity
+            style={styles.statisticsButton}
+            onPress={() => setIsStatisticsMenuVisible(!isStatisticsMenuVisible)}
+          >
+            <Icon name="bar-chart" size={24} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
 
+      {/* Menú de Estadísticas */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={isStatisticsMenuVisible}
+        onRequestClose={() => setIsStatisticsMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setIsStatisticsMenuVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <Pressable style={styles.menuButton} onPress={navigateToAccountStatistics}>
+              <Icon name="account-circle" size={20} color="#fff" />
+              <Text style={styles.menuButtonText}>Estadísticas de Cuenta</Text>
+            </Pressable>
+            <Pressable style={styles.menuButton} onPress={navigateToTwitSnapsStatistics}>
+              <Icon name="insert-chart" size={20} color="#fff" />
+              <Text style={styles.menuButtonText}>Estadísticas de TwitSnaps</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
       {profile.cover_photo ? (
-        <Image
-          source={{ uri: profile.cover_photo }}
-          style={styles.coverPhoto}
-        />
+        <Image source={{ uri: profile.cover_photo }} style={styles.coverPhoto} />
       ) : (
         <View style={[styles.coverPhoto, { backgroundColor: 'black' }]} />
       )}
@@ -493,13 +561,18 @@ export default function ProfileView() {
       <Text style={styles.name}>
         {profile.name} {profile.surname}
       </Text>
-      <Text style={styles.username}>@{profile.username}</Text>
+
+
+      <View style={styles.usernameContainer}>
+        <Text style={styles.username}>@{profile.username}</Text>
+        {isCertified && (
+          <Icon name="verified" size={16} color="#1DA1F2" style={styles.verifiedIcon} />
+        )}
+      </View>
 
       {/* Descripción del usuario */}
       {profile.description && (
-        <Text style={styles.description}>
-          {profile.description}
-        </Text>
+        <Text style={styles.description}>{profile.description}</Text>
       )}
 
       <View style={styles.followContainer}>
@@ -540,7 +613,7 @@ export default function ProfileView() {
           <Pressable
             style={[
               styles.followButton,
-              isFollowing ? styles.unfollowButton : styles.followButtonStyle
+              isFollowing ? styles.unfollowButton : styles.followButtonStyle,
             ]}
             onPress={isFollowing ? handleUnfollow : handleFollow}
             disabled={isFollowLoading}
@@ -556,14 +629,30 @@ export default function ProfileView() {
         )}
       </View>
 
+      {!isCertified && (
+            <Pressable
+              style={styles.certificationButton}
+              onPress={() => router.push('/profileCertificationRequest')}
+            >
+              <Icon name="verified-user" size={24} color="#fff" />
+              <Text style={styles.certificationButtonText}>Solicitar Certificado</Text>
+            </Pressable>
+      )}
+
       {/* Opciones adicionales solo para el perfil propio */}
       {isOwnProfile && (
         <View style={styles.profileActionsContainer}>
-          <Pressable style={styles.editProfileButton} onPress={() => router.push('/profileEdit')}>
+          <Pressable
+            style={styles.editProfileButton}
+            onPress={() => router.push('/profileEdit')}
+          >
             <Icon name="edit" size={24} color="#fff" />
             <Text style={styles.editButtonText}>Editar Perfil</Text>
           </Pressable>
-          <Pressable style={styles.favouriteSnapsButton} onPress={() => router.push('/favouriteSnapsView')}>
+          <Pressable
+            style={styles.favouriteSnapsButton}
+            onPress={() => router.push('/favouriteSnapsView')}
+          >
             <Icon name="bookmark" size={24} color="#fff" />
             <Text style={styles.favouriteSnapsButtonText}>Fav Snaps</Text>
           </Pressable>
@@ -610,7 +699,9 @@ export default function ProfileView() {
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.errorTextLarge}>No se encontró el perfil.</Text>
-          <Text style={styles.errorTextLarge}>Intenta nuevamente o revisa tu conexión.</Text>
+          <Text style={styles.errorTextLarge}>
+            Intenta nuevamente o revisa tu conexión.
+          </Text>
           <Pressable style={styles.logoutButton} onPress={handleLogout}>
             <Icon name="logout" size={24} color="#fff" />
             <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>

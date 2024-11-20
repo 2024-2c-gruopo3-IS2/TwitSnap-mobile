@@ -241,3 +241,97 @@ export async function deleteProfile(): Promise<{ success: boolean; message?: str
         return { success: false, message: 'Error al conectar con el servidor.' };
     }
 }
+
+/**
+ @router.get("/followers-with-time/")
+    Get followers of a user with the time they followed.
+ */
+export async function getFollowersWithTime(username: string): Promise<{ success: boolean; followers?: any[]; message?: string }> {
+    const token = await getToken();
+    const followers_url = `${API_URL}/profiles/followers-with-time?username=${encodeURIComponent(username)}`;
+
+    try {
+        const response = await fetch(followers_url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'token': `${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Seguidores encontrados:', data);
+            return { success: true, followers: data };
+        } else {
+            console.log('Error al obtener seguidores:', data);
+            return { success: false, message: data.detail || 'Error al obtener seguidores.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+/**
+. /verify: Verifica a un usuario
+ */
+
+export async function verifyUser(username: string): Promise<{ success: boolean; message?: string }> {
+    const token = await getToken();
+    const verify_url = `${API_URL}/profiles/verify?username=${encodeURIComponent(username)}`;
+
+    try {
+        const response = await fetch(verify_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'token': `${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Usuario verificado:', data);
+            return { success: true };
+        } else {
+            console.log('Error al verificar usuario:', data);
+            return { success: false, message: data.detail || 'Error al verificar usuario.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+export async function unverifyUser(username: string): Promise<{ success: boolean; message?: string }> {
+    const token = await getToken();
+    const unverify_url = `${API_URL}/profiles/unverify?username=${encodeURIComponent(username)}`;
+
+    try {
+        const response = await fetch(unverify_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'token': `${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log('Usuario no verificado:', data);
+            return { success: true };
+        } else {
+            console.log('Error al no verificar usuario:', data);
+            return { success: false, message: data.detail || 'Error al no verificar usuario.' };
+        }
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al conectar con el servidor.' };
+    }
+}
+
+
