@@ -1,65 +1,52 @@
-// UserDataPage.tsx
-
 import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, Text, Pressable, Alert, ActivityIndicator, TextInput, ScrollView } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Picker } from '@react-native-picker/picker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker'; // Importa el DateTimePickerModal
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createProfile } from '@/handlers/profileHandler';
 import styles from '../styles/userRegisterData';
 import { clearRegistrationState, saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {AuthContext} from '@/context/authContext';
-import {saveToken} from '@/handlers/authTokenHandler';
-import { Avatar } from 'react-native-elements';
-import { ref, uploadBytes } from 'firebase/storage';
-import { storage } from '../firebaseConfig';
+import { AuthContext } from '@/context/authContext';
 
 export default function UserDataPage() {
   const router = useRouter();
-  const { email, password, country, interests } = useLocalSearchParams(); 
+  const { email, password, country, interests } = useLocalSearchParams();
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [username, setUsername] = useState('');
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
-  const [year, setYear] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [description, setDescription] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null); // Estado para manejar la fecha
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false); // Estado para mostrar/ocultar el DatePicker
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { refreshUser } = useContext(AuthContext);
 
   useEffect(() => {
-      const loadSavedState = async () => {
-          const savedState = await getRegistrationState();
-          if (savedState) {
-              setName(savedState.name || '');
-              setSurname(savedState.surname || '');
-              setUsername(savedState.username || '');
-              setDescription(savedState.description || '');
-              setDay(savedState.day || '');
-              setMonth(savedState.month || '');
-              setYear(savedState.year || '');
-          }
+    const loadSavedState = async () => {
+      const savedState = await getRegistrationState();
+      if (savedState) {
+        setName(savedState.name || '');
+        setSurname(savedState.surname || '');
+        setUsername(savedState.username || '');
+        setDescription(savedState.description || '');
+        if (savedState.date_of_birth) {
+          setDateOfBirth(new Date(savedState.date_of_birth));
         }
-        loadSavedState();
-    }, []);
+      }
+    };
+    loadSavedState();
+  }, []);
+
+  // Función para manejar la selección de fecha
+  const handleConfirmDate = (date: Date) => {
+    setDateOfBirth(date);
+    setDatePickerVisible(false);
+  };
 
   // Función para validar que la fecha de nacimiento sea válida
   const isValidDateOfBirth = () => {
+    if (!dateOfBirth) return false;
     const currentDate = new Date();
-    const enteredDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    
-    if (!year || !month || !day) return false;
-    if (enteredDate > currentDate) return false;
-    if (enteredDate.getFullYear() !== parseInt(year) || enteredDate.getMonth() !== parseInt(month) - 1 || enteredDate.getDate() !== parseInt(day)) {
-      return false;
-    }
-    return true;
-  };
-
-  // Función para generar un PIN aleatorio de 6 dígitos
-  const generatePIN = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return dateOfBirth < currentDate; // Asegura que la fecha es pasada
   };
 
   const handleSubmit = async () => {
@@ -71,8 +58,8 @@ export default function UserDataPage() {
     setIsSubmitting(true);
 
     try {
-      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      
+      const formattedDate = dateOfBirth?.toISOString().split('T')[0]; // Formatea la fecha como YYYY-MM-DD
+
       const profileData = {
         name,
         surname,
@@ -90,22 +77,18 @@ export default function UserDataPage() {
       if (!profileResponse.success) {
         Alert.alert('Error', String(profileResponse.message) || 'Error al crear el perfil.');
         setIsSubmitting(false);
-        router.push('./login')
+        router.push('./login');
       } else {
-          await refreshUser();
+        await refreshUser();
       }
 
-      // Generar un PIN y almacenarlo temporalmente
-      const generatedPIN = generatePIN();
       await clearRegistrationState();
 
-      // Navegar a la página de confirmación del PIN, pasando el PIN generado
+      // Navegar a la página de confirmación del PIN
       router.push({
         pathname: './confirmPin',
-        params: { email, password, country, interests, pin: generatedPIN },
+        params: { email, password, country, interests },
       });
-
-      // En una implementación real, almacenarías el PIN en el backend asociado al usuario
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'No se pudo completar el registro.');
@@ -118,15 +101,14 @@ export default function UserDataPage() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-
-          {/* Logo */}
-          <Image
-            source={require('@/assets/images/twitsnap_logo.png')}
-            style={styles.logo}
-          />
+        {/* Logo */}
+        <Image
+          source={require('@/assets/images/twitsnap_logo.png')}
+          style={styles.logo}
+        />
 
         <Text style={styles.title}>Completa tu perfil</Text>
-        
+
         {/* Nombre */}
         <Text style={styles.label}>Nombre</Text>
         <TextInput
@@ -157,7 +139,7 @@ export default function UserDataPage() {
           value={username}
           autoCapitalize="none"
         />
-        
+
         {/* Descripción del Usuario */}
         <Text style={styles.label}>Descripción</Text>
         <TextInput
@@ -171,50 +153,22 @@ export default function UserDataPage() {
 
         {/* Fecha de Nacimiento */}
         <Text style={styles.label}>Fecha de Nacimiento</Text>
-          
-        <View style={styles.dateRow}>
-          {/* Día */}
-          <View style={styles.dateColumn}>
-            <Text style={styles.subLabel}>Día</Text>
-            <Picker
-              selectedValue={day}
-              onValueChange={(itemValue) => setDay(itemValue)}
-              style={styles.picker}
-            >
-              {[...Array(31).keys()].map(i => (
-                <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
-              ))}
-            </Picker>
-          </View>
-            
-          {/* Mes */}
-          <View style={styles.dateColumn}>
-            <Text style={styles.subLabel}>Mes</Text>
-            <Picker
-              selectedValue={month}
-              onValueChange={(itemValue) => setMonth(itemValue)}
-              style={styles.picker}
-            >
-              {[...Array(12).keys()].map(i => (
-                <Picker.Item key={i + 1} label={`${i + 1}`} value={`${i + 1}`} />
-              ))}
-            </Picker>
-          </View>
-            
-          {/* Año */}
-          <View style={styles.dateColumn}>
-            <Text style={styles.subLabel}>Año</Text>
-            <Picker
-              selectedValue={year}
-              onValueChange={(itemValue) => setYear(itemValue)}
-              style={styles.picker}
-            >
-              {Array.from({ length: 100 }, (_, i) => 2023 - i).map(year => (
-                <Picker.Item key={year} label={`${year}`} value={`${year}`} />
-              ))}
-            </Picker>
-          </View>
-        </View>
+        <Pressable
+          style={styles.datePickerButton}
+          onPress={() => setDatePickerVisible(true)}
+        >
+          <Text style={styles.datePickerText}>
+            {dateOfBirth ? dateOfBirth.toLocaleDateString() : 'Selecciona tu fecha de nacimiento'}
+          </Text>
+        </Pressable>
+
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirmDate}
+          onCancel={() => setDatePickerVisible(false)}
+          maximumDate={new Date()} // Evita seleccionar una fecha futura
+        />
 
         <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? (
@@ -227,4 +181,3 @@ export default function UserDataPage() {
     </ScrollView>
   );
 }
-

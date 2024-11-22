@@ -10,24 +10,22 @@ export default function ConfirmPinPage() {
   const { email, password, country, interests } = useLocalSearchParams(); // Datos del usuario
   const [enteredPin, setEnteredPin] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [pin, setPin] = useState('');
   const [isResending, setIsResending] = useState(false); // Estado para la simulación del envío del nuevo PIN
-  const { setIsAuthenticated } = useContext(AuthContext);
+  const { setIsAuthenticated, updateRegistrationState, clearRegistration } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchPin = async () => {
-      try {
-        const newPin = await generatePin(email); // Genera un nuevo PIN usando generatePin
-        console.log(`Nuevo PIN: ${newPin}`);
-
-      } catch (error) {
-        console.error(error);
-        Alert.alert('Error', 'No se pudo generar un nuevo PIN. Intenta nuevamente.');
-      }
+    const saveInitialState = async () => {
+      await updateRegistrationState({
+        currentStep: 'confirmPin',
+        email,
+        password,
+        country,
+        interests,
+      });
     };
 
-    fetchPin();
-  } , []);
+    saveInitialState();
+  }, [email, password, country, interests, updateRegistrationState]);
 
   const handleConfirmPin = async () => {
     if (!enteredPin) {
@@ -42,6 +40,7 @@ export default function ConfirmPinPage() {
 
       if (isValid) {
         setIsAuthenticated(true);
+        await clearRegistration(); // Limpia el estado de registro al confirmar exitosamente
         router.replace('/tabs');
       } else {
         Alert.alert('Error', 'El PIN ingresado es incorrecto.');
@@ -59,8 +58,9 @@ export default function ConfirmPinPage() {
 
     try {
       const newPin = await generatePin(email); // Genera un nuevo PIN usando generatePin
-      setPin(newPin); // Actualiza el estado del PIN
       console.log(`Nuevo PIN: ${newPin}`);
+      await updateRegistrationState({ pin: newPin }); // Guarda el nuevo PIN en el estado de registro
+      Alert.alert('Éxito', 'Se ha enviado un nuevo PIN a tu correo.');
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'No se pudo enviar un nuevo PIN. Intenta nuevamente.');

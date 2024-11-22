@@ -170,7 +170,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         const token = await getToken();
-        if (token) {
+        const savedRegistrationState = await getRegistrationState();
+
+        if (savedRegistrationState?.currentStep) {
+          // Si existe un paso de registro, establece el estado y no autentiques al usuario todavía
+          setRegistrationState(savedRegistrationState);
+          console.log("[AuthProvider] Estado de registro cargado:", savedRegistrationState);
+        } else if (token) {
           const profileResponse = await getProfile();
           if (profileResponse?.success && profileResponse.profile) {
             setUser(profileResponse.profile);
@@ -180,13 +186,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           setIsAuthenticated(false);
-        }
-
-        // Cargar estado de registro si existe
-        const savedRegistrationState = await getRegistrationState();
-        if (savedRegistrationState) {
-          setRegistrationState(savedRegistrationState);
-          console.log("[AuthProvider] Estado de registro cargado:", savedRegistrationState);
         }
       } catch (error) {
         console.error('Error al inicializar la autenticación:', error);
@@ -199,6 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initializeAuth();
   }, []);
+
 
   return (
     <AuthContext.Provider

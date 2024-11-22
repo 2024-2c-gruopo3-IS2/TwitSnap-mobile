@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#FFFFFF', // Texto claro
-    marginLeft: 30,
+    marginLeft: 50,
   },
   customDatePickerContainer: {
     flexDirection: 'row',

@@ -29,6 +29,17 @@ export default StyleSheet.create({
     marginBottom: 5,
     fontWeight: 'bold',
   },
+  datePickerButton: {
+    backgroundColor: '#1f1f1f',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  datePickerText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+
   input: {
     backgroundColor: '#333', // Cajas en gris oscuro
     paddingHorizontal: 15,

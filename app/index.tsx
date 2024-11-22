@@ -1,21 +1,20 @@
-// app/index.tsx
-
 import React, { useEffect, useContext, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import LoginPage from './login';
-import { getRegistrationState, clearRegistrationState } from '@/helper/registrationStorage';
 import { useRouter } from 'expo-router';
+import { getRegistrationState, clearRegistrationState } from '@/helper/registrationStorage';
 import { AuthContext } from '@/context/authContext';
 import MainTabs from './tabs';
+import LoginPage from './login';
 
 const Index = () => {
-  const { isAuthenticated, isLoading } = useContext(AuthContext);
+  const { isAuthenticated, isLoading, registrationState } = useContext(AuthContext);
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const checkRegistration = async () => {
       try {
+        // Verificar si hay un estado de registro activo
         const registrationState = await getRegistrationState();
 
         if (registrationState && registrationState.currentStep) {
@@ -40,11 +39,23 @@ const Index = () => {
                 params: { email, password, country, interests },
               });
               break;
+            case 'confirmPin':
+              router.replace({
+                pathname: './confirmPin',
+                params: { email, password, country, interests },
+              });
+              break;
             default:
               await clearRegistrationState();
               router.push('./login');
               break;
           }
+        } else if (!isAuthenticated) {
+          // Si no está autenticado y no hay registro, redirige al login
+          router.replace('./login');
+        } else {
+          // Si está autenticado y no hay registro en progreso, redirige al feed
+          router.replace('/tabs');
         }
       } catch (error) {
         console.error('Error al verificar el registro:', error);
@@ -56,7 +67,7 @@ const Index = () => {
     if (!isLoading) {
       checkRegistration();
     }
-  }, [isLoading]);
+  }, [isLoading, isAuthenticated, registrationState]);
 
   if (isLoading || isCheckingRegistration) {
     return (
@@ -66,7 +77,7 @@ const Index = () => {
     );
   }
 
-  return isAuthenticated ? <MainTabs/> : <LoginPage />;
+  return isAuthenticated ? <MainTabs /> : <LoginPage />;
 };
 
 export default Index;
