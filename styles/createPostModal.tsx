@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '90%',
-    backgroundColor: '#1c1c1c',
+    backgroundColor: 'black',
     borderRadius: 15,
     padding: 20,
   },
@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 15,
     textAlign: 'center',
+    fontWeight: 'bold',
   },
   textInput: {
     height: 100,

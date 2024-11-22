@@ -20,14 +20,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const redirectUri = 'https://twitsnap-d3c22.firebaseapp.com'
 
   // Configura el proveedor de Google con los IDs de cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
     androidClientId: '856906798335-7gmq64nn5upj2qfng38q858al4ngosu6.apps.googleusercontent.com',
-    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    redirectUri,
+    useProxy: true,
   });
 
   useEffect(() => {
@@ -41,10 +39,13 @@ export default function LoginPage() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+      console.log('Checking Google response');
     if (response?.type === 'success') {
       const { authentication } = response;
+      console.log('Google authentication:', authentication);
 
       const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
+      console.log('Google credential:', credential);
       signInWithCredential(auth, credential)
         .then((userCredential) => {
           // Usuario autenticado correctamente
@@ -60,7 +61,7 @@ export default function LoginPage() {
   }, [response]);
 
   const handleGoogleSignIn = () => {
-      console.log('Redirect URI:', redirectUri);
+      console.log('Prompting Google sign in');
     promptAsync();
   };
 

@@ -12,6 +12,7 @@ import {
   shareSnap
 } from '@/handlers/postHandler';
 import Toast from 'react-native-toast-message';
+import moment from 'moment';
 
 interface Snap {
   id: string;
@@ -151,9 +152,15 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
   const renderUsername = () => (
     <Pressable onPress={() => router.push(`/profileView?username=${snapData.username}`)}>
-      <Text style={styles.username}>@{snapData.username}</Text>
+      <View style={styles.usernameContainer}>
+        <Text style={styles.username}>@{snapData.username}</Text>
+        <Text style={styles.timeAgo}>
+          {moment(snapData.created_at).fromNow()} {/* Formato como "hace 6h" */}
+        </Text>
+      </View>
     </Pressable>
   );
+
 
   const renderSharedText = () => {
     if (snapData.retweetUser) {
@@ -220,6 +227,11 @@ const SnapItem: React.FC<SnapItemProps> = ({
           </Pressable>
         </View>
       </View>
+
+      {/* Agrega la fecha de creación aquí */}
+      <Text style={styles.snapCreationDate}>
+        {moment(snapData.created_at).format('DD MMM YYYY, HH:mm')}
+      </Text>
     </View>
   );
 };

@@ -28,7 +28,15 @@ export default StyleSheet.create({
       fontWeight: 'bold',
       marginBottom: 10,
   },
-
+  usernameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeAgo: {
+    fontSize: 12,
+    color: '#888', // Color gris tenue
+    marginLeft: 8, // Espacio entre el nombre de usuario y el tiempo
+  },
   username: {
     fontWeight: 'bold',
     fontSize: 15,
@@ -105,5 +113,12 @@ retweetText: {
   fontSize: 14,
   color: 'white',
   marginBottom: 4,
+},
+snapCreationDate: {
+  position: 'absolute',
+  bottom: 10,
+  left: 10,
+  fontSize: 12,
+  color: '#888',
 },
 });

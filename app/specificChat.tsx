@@ -117,14 +117,14 @@ const SpecificChat = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212', // Fondo oscuro
+    backgroundColor: 'black', // Fondo oscuro
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 15,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: 'black',
     borderBottomColor: '#333',
     borderBottomWidth: 1,
     marginTop:50,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    backgroundColor: '#1E1E1E', // Fondo oscuro
+    backgroundColor: 'black', // Fondo oscuro
     borderTopColor: '#333', // Borde oscuro
     paddingVertical: 10,
   },

@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#1f1f1f',
+    backgroundColor: 'black',
     borderBottomWidth: 1,
     borderColor: '#333',
     marginTop: 50,

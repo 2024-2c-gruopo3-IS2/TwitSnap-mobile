@@ -59,6 +59,28 @@ const NotificationsScreen: React.FC = () => {
     deleteNotification(id);
   };
 
+  const handleClearAll = () => {
+      if (notifications.length === 0) {
+        Alert.alert('Info', 'No hay notificaciones para borrar.');
+        return;
+      }
+
+      Alert.alert(
+        'Confirmar',
+        '¿Estás seguro de que deseas borrar todas las notificaciones?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Borrar Todo',
+            style: 'destructive',
+            onPress: () => {
+              notifications.forEach((notification) => deleteNotification(notification.id));
+            },
+          },
+        ]
+      );
+    };
+
   const renderNotification = ({ item }: { item: NotificationItem }) => (
     <View style={styles.notificationItem}>
       <TouchableOpacity onPress={() => handleNotificationPress(item)} style={styles.notificationContent}>
@@ -68,7 +90,7 @@ const NotificationsScreen: React.FC = () => {
         <Text style={styles.notificationTime}>{item.time}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => handleDeleteNotification(item.id)} style={styles.deleteButton}>
-        <Icon name="delete" size={24} color="red" />
+        <Icon name="delete" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -82,11 +104,14 @@ const NotificationsScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notificaciones</Text>
-      </View>
-      <View style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* Encabezado con botón para borrar todas las notificaciones */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Notificaciones</Text>
+          <TouchableOpacity style={styles.clearAllButton} onPress={handleClearAll}>
+            <Icon name="delete-sweep" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={notifications.slice().reverse()} // Mostrar las notificaciones más recientes primero
           renderItem={renderNotification}
@@ -95,89 +120,96 @@ const NotificationsScreen: React.FC = () => {
         />
         <Footer />
       </View>
-    </View>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
   container: {
-      flex: 1,
-      backgroundColor: '#000',
-    },
-    header: {
-        marginTop:60,
+    flex: 1,
+    backgroundColor: 'black', // Fondo oscuro
+  },
+  header: {
+      marginTop: 60,
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 10,
-      paddingVertical: 15,
+      paddingHorizontal: 15,
+      paddingVertical: 20,
+      backgroundColor: 'black',
       borderBottomWidth: 1,
       borderBottomColor: '#333',
+      justifyContent: 'space-between',
     },
-    headerTitle: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-        flex: 1,
-        textAlign: 'center',
-        marginLeft: -10,
-        },
-    backButton: {
-      marginRight: 15,
-      marginLeft: 10,
-    },
-    title: {
+   headerTitle: {
       color: '#FFFFFF',
       fontSize: 20,
       fontWeight: 'bold',
-      flex: 1,
-      textAlign: 'center', // Centrar el título
-      marginLeft: -30,
+      marginLeft: 130,
     },
-    content: {
-      flex: 1,
-      padding: 10,
-    },
-    notificationItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
-      borderBottomWidth: 1,
-      borderColor: '#ccc',
-      backgroundColor: '#1f1f1f', // Opcional: Fondo oscuro para las notificaciones
-    },
-    notificationMessage: {
-      color: '#fff',
-      fontSize: 16,
-    },
-    unreadNotification: {
-      fontWeight: 'bold',
-    },
-    notificationTime: {
-      color: '#bbb',
-      fontSize: 12,
-      marginTop: 5,
-    },
-    loaderContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    noNotifications: {
-      color: '#ccc',
-      textAlign: 'center',
-      marginTop: 20,
-      fontSize: 16,
-    },
-    footerContainer: {
-      borderTopWidth: 1,
-      borderTopColor: '#333',
-    },
-    notificationContent: {
-      flex: 1,
-    },
-    deleteButton: {
-      padding: 5,
-    },
+    clearAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FF4444',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  clearAllText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginLeft: 5,
+    fontWeight: 'bold',
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    marginVertical: 8,
+    padding: 15,
+    borderRadius: 12, // Esquinas redondeadas
+    backgroundColor: '#1E1E1E', // Fondo oscuro para la notificación
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // Sombra para dispositivos Android
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationMessage: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  unreadNotification: {
+    fontWeight: 'bold',
+  },
+  notificationTime: {
+    color: '#BBBBBB',
+    fontSize: 12,
+    marginTop: 5,
+  },
+  deleteButton: {
+    padding: 10,
+    backgroundColor: '#FF4444',
+    borderRadius: 8, // Botón con esquinas redondeadas
+  },
+  deleteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noNotifications: {
+    color: '#AAAAAA',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+  },
 });
+
 
 export default NotificationsScreen;

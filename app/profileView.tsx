@@ -635,7 +635,7 @@ export default function ProfileView() {
               onPress={() => router.push('/profileCertificationRequest')}
             >
               <Icon name="verified-user" size={24} color="#fff" />
-              <Text style={styles.certificationButtonText}>Solicitar Certificado</Text>
+              <Text style={styles.certificationButtonText}>Solicitar Verificado</Text>
             </Pressable>
       )}
 
