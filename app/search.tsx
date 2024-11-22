@@ -38,7 +38,7 @@ interface User {
 interface Snap {
   id: string;
   username: string;
-  time: string;
+  created_at: string;
   message: string;
   isPrivate: boolean;
   likes: number;
@@ -118,7 +118,7 @@ export default function SearchUsersAndTwitSnaps() {
             twitSnapsResponse.snaps.map(async (snap: any) => ({
               id: snap._id,
               username: snap.username,
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.isPrivate === 'true',
               likes: snap.likes || 0,

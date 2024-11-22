@@ -12,6 +12,7 @@ import { storage } from '../firebaseConfig';
 interface Snap {
   id: string;
   username: string;
+  created_at: string;
   time: string;
   message: string;
   isPrivate: boolean;
@@ -61,7 +62,7 @@ export default function Feed() {
             response.snaps.map(async (snap: any) => ({
               id: snap._id,
               username: snap.username,
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,
@@ -82,7 +83,7 @@ export default function Feed() {
             sharedResponse.snaps.map(async (snap: any) => ({
                 id: snap._id ? `${snap._id}-shared-${Date.now()}` : `shared-${Date.now()}`, // Verificar que _id existe, sino usar un valor temporal
               username: snap.username,
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,

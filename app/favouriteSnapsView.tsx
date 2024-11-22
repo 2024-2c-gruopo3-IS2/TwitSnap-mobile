@@ -22,7 +22,7 @@ import { AuthContext } from '@/context/authContext';
 interface Snap {
   id: string;
   username: string;
-  time: string;
+  created_at: string;
   message: string;
   isPrivate: boolean;
   likes: number;
@@ -70,7 +70,7 @@ export default function FavoriteSnapsView() {
             favouriteResponse.snaps.map(async (snap: any) => ({
               id: snap.id,
               username: snap.username,
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.isPrivate === 'true',
               likes: snap.likes || 0,

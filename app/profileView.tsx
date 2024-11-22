@@ -52,7 +52,7 @@ interface Snap {
   id: string;
   type: 'shared' | 'original'; // New property to indicate snap type
   username: string;
-  time: string;
+  created_at: string;
   message: string;
   isPrivate: boolean;
   likes: number;
@@ -265,7 +265,7 @@ export default function ProfileView() {
               id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // Asegura un id único
               type: 'original',
               username: snap.username, // Autor original
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,
@@ -287,7 +287,7 @@ export default function ProfileView() {
               id: snap._id ? `shared-${snap._id}-${Date.now()}` : `shared-${Math.random()}`, // Asegura un id único
               type: 'shared',
               username: snap.username, // Autor original
-              time: snap.time,
+              created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,
