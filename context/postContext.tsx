@@ -14,6 +14,7 @@ interface Post {
 interface Snap {
   id: string;
   username: string;
+    created_at: string;
   time: string;
   message: string;
   isPrivate: boolean;
@@ -53,6 +54,7 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
       const newSnap: Snap = {
         id: response.snap.id.toString(),
         username: response.snap.username || 'Anon',
+        created_at: response.snap.created_at,
         time: response.snap.time,
         message: response.snap.message,
         isPrivate: response.snap.isPrivate,

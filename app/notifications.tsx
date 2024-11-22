@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
       fontSize: 20,
       fontWeight: 'bold',
-      marginLeft: 130,
+      marginLeft: 125,
     },
     clearAllButton: {
     flexDirection: 'row',
@@ -152,6 +152,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
+    marginRight: 8,
   },
   clearAllText: {
     color: '#FFFFFF',

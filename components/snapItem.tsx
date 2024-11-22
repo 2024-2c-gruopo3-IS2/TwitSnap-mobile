@@ -17,6 +17,7 @@ import moment from 'moment';
 interface Snap {
   id: string;
   username: string;
+  created_at: string;
   time: string;
   message: string;
   isPrivate: boolean;
