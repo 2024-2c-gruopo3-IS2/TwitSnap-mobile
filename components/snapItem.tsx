@@ -13,6 +13,8 @@ import {
 } from '@/handlers/postHandler';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
+import 'moment/locale/es';
+moment.locale('es');
 
 interface Snap {
   id: string;

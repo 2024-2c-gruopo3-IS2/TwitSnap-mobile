@@ -6,7 +6,7 @@ import { AuthContext } from '@/context/authContext';
 interface Post {
   id?: string;
   username: string;
-  time: string;
+  created_at: string;
   message: string;
   isPrivate: boolean;
 }
