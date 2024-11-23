@@ -18,7 +18,7 @@ interface NotificationItem {
   senderId?: string;
   messageId?: string;
   topic?: string;
-  followerUsername?: string; // Asegurarse de que este campo existe
+  followerUsername?: string; a
 }
 
 const NotificationsScreen: React.FC = () => {

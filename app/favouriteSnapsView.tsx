@@ -84,8 +84,16 @@ export default function FavoriteSnapsView() {
             }))
           );
 
+          // Ordenar los snaps por fecha y hora (los más recientes primero)
+          favouriteSnaps.sort((a, b) => {
+            const dateA = new Date(a.created_at);
+            const dateB = new Date(b.created_at);
+
+            return dateB.getTime() - dateA.getTime(); // Ordena primero por fecha y hora
+          });
+
           setSnaps(favouriteSnaps);
-          console.log('Snaps Favoritos:', favouriteSnaps);
+          console.log('Snaps Favoritos Ordenados:', favouriteSnaps);
         } else {
           setSnaps([]);
           Toast.show({
@@ -94,7 +102,7 @@ export default function FavoriteSnapsView() {
           });
         }
       } catch (error) {
-        console.error("Error fetching favorite snaps:", error);
+        console.error('Error fetching favorite snaps:', error);
         Toast.show({
           type: 'error',
           text1: 'Error al obtener los snaps favoritos',
@@ -106,6 +114,8 @@ export default function FavoriteSnapsView() {
 
     fetchFavouriteSnaps();
   }, []);
+
+
 
   // Función para manejar la eliminación de un snap de favoritos
   const handleUnfavourite = useCallback((snapId: string) => {

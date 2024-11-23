@@ -173,13 +173,15 @@ export default function ProfileView() {
     setIsLoading(true);
     try {
       // 1. Obtener el perfil (propio o de otro usuario)
-      const profileResponse = isOwnProfile ? await getProfile() : await getUserProfile(username as string);
+      const profileResponse = isOwnProfile
+        ? await getProfile()
+        : await getUserProfile(username as string);
 
       if (profileResponse.success) {
         setProfile(profileResponse.profile);
         const profileImageUrl = await fetchProfileImage(profileResponse.profile.username);
         setProfileImage(profileImageUrl);
-        setIsCertified(profileResponse.profile.isVerified);
+        setIsCertified(profileResponse.profile.is_verified);
 
         // 2. Preparar promesas para obtener estado de seguimiento, seguidores y seguidos
         let isFollowingPromise: Promise<boolean> = Promise.resolve(false);
@@ -197,7 +199,6 @@ export default function ProfileView() {
             return false;
           })();
 
-          // Check if profile's user is following the current user
           isFollowedByProfileUserPromise = (async () => {
             const followedByProfile = await getFollowed(profileResponse.profile.username);
             if (followedByProfile.success) {
@@ -230,7 +231,7 @@ export default function ProfileView() {
           setIsFollowing(isFollowingResult);
           setIsMutuallyFollowing(isFollowingResult && isFollowedByProfileUserResult);
         } else {
-          setIsMutuallyFollowing(true); // Own profile implies mutual following
+          setIsMutuallyFollowing(true); // Propio perfil implica seguimiento mutuo
         }
 
         // 6. Actualizar contadores de seguidores y seguidos
@@ -238,33 +239,24 @@ export default function ProfileView() {
         if (followersResult.success) {
           setFollowersCount((followersResult.followers ?? []).length);
         } else {
-          setFollowersCount(0); // Valor por defecto en caso de error
-          if (!isMutuallyFollowing && !isOwnProfile) {
-            // Only show privacy toast if not mutual and not own profile
-            Toast.show({
-              type: 'info',
-              text1: 'Privacidad',
-              text2: 'Este perfil es privado.',
-              visibilityTime: 4000, // Tiempo de visualización (4 segundos)
-            });
-          }
+          setFollowersCount(0);
         }
 
         const followingResult = await followingPromise;
         if (followingResult.success) {
           setFollowingCount((followingResult.followed ?? []).length);
         } else {
-          setFollowingCount(0); // Valor por defecto en caso de error
+          setFollowingCount(0);
         }
 
-        // 7. Procesar snaps originales si existen
+        // 7. Procesar snaps originales
         let processedSnaps: Snap[] = [];
-        if (snapResponse.success && snapResponse.snaps && snapResponse.snaps.length > 0) {
+        if (snapResponse.success && snapResponse.snaps?.length > 0) {
           processedSnaps = await Promise.all(
             snapResponse.snaps.map(async (snap: any) => ({
-              id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // Asegura un id único
+              id: snap._id ? `original-${snap._id}` : `original-${Math.random()}`, // ID único
               type: 'original',
-              username: snap.username, // Autor original
+              username: snap.username,
               created_at: snap.created_at,
               message: snap.message,
               isPrivate: snap.is_private === 'true',
@@ -279,31 +271,33 @@ export default function ProfileView() {
           );
         }
 
-        // 8. Procesar snaps compartidos si existen
+        // 8. Procesar snaps compartidos por el usuario actual del perfil
         let sharedSnaps: Snap[] = [];
-        if (sharedResponse.success && sharedResponse.snaps && sharedResponse.snaps.length > 0) {
+        if (sharedResponse.success && sharedResponse.snaps?.length > 0) {
           sharedSnaps = await Promise.all(
-            sharedResponse.snaps.map(async (snap: any) => ({
-              id: snap._id ? `shared-${snap._id}-${Date.now()}` : `shared-${Math.random()}`, // Asegura un id único
-              type: 'shared',
-              username: snap.username, // Autor original
-              created_at: snap.created_at,
-              message: snap.message,
-              isPrivate: snap.is_private === 'true',
-              likes: snap.likes || 0,
-              likedByUser: likedSnapsIds.includes(snap._id),
-              canViewLikes: true,
-              favouritedByUser: favouriteSnapsIds.includes(snap._id),
-              retweetUser: snap.retweet_user || '', // Usuario que compartió
-              profileImage: await fetchProfileImage(snap.username),
-              originalUsername: undefined, // Ya tiene retweetUser
-            }))
+            sharedResponse.snaps
+              .filter((snap: any) => snap.retweet_user === profileResponse.profile.username) // Filtrar compartidos por este usuario
+              .map(async (snap: any) => ({
+                id: snap._id ? `shared-${snap._id}-${Date.now()}` : `shared-${Math.random()}`, // ID único
+                type: 'shared',
+                username: snap.username,
+                created_at: snap.created_at,
+                message: snap.message,
+                isPrivate: snap.is_private === 'true',
+                likes: snap.likes || 0,
+                likedByUser: likedSnapsIds.includes(snap._id),
+                canViewLikes: true,
+                favouritedByUser: favouriteSnapsIds.includes(snap._id),
+                retweetUser: snap.retweet_user || '',
+                profileImage: await fetchProfileImage(snap.username),
+                originalUsername: undefined,
+              }))
           );
         }
 
-        const allSnaps = [...sharedSnaps, ...processedSnaps];
+        // 9. Consolidar snaps únicos y actualizarlos en el estado
+        const allSnaps = [...processedSnaps, ...sharedSnaps];
         const uniqueSnaps = Array.from(new Map(allSnaps.map((snap) => [snap.id, snap])).values());
-        // Actualiza el estado de snaps con elementos únicos
         setSnaps(uniqueSnaps);
       } else {
         Alert.alert('Error', profileResponse.message || 'No se pudo obtener el perfil.');
@@ -316,20 +310,23 @@ export default function ProfileView() {
     }
   };
 
+
   // Función para manejar la compartición de un snap desde SnapItem
   const handleShareSnap = useCallback(
     (sharedSnap: Snap) => {
-      setSnaps((prevSnaps) => [sharedSnap, ...prevSnaps]);
+      console.log('[handleShareSnap] Snap recibido para compartir:', sharedSnap);
 
-      // Enviar notificación al autor original si es diferente al actual
-      if (sharedSnap.username && sharedSnap.username !== currentUsername) {
-        sendShareNotification(sharedSnap.username, currentUsername, sharedSnap.id);
-      }
+      setSnaps((prevSnaps) => {
+        console.log('[handleShareSnap] Snaps actuales antes de agregar:', prevSnaps);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Snap compartido',
-        text2: 'El snap ha sido compartido exitosamente.',
+        // Agrega el nuevo snap al inicio de la lista
+        const updatedSnaps = [sharedSnap, ...prevSnaps];
+
+        // Filtrar duplicados basados en el ID único
+        const uniqueSnaps = Array.from(new Map(updatedSnaps.map((snap) => [snap.id, snap])).values());
+
+        console.log('[handleShareSnap] Snaps únicos después de filtrar:', uniqueSnaps);
+        return uniqueSnaps;
       });
     },
     [currentUsername]
@@ -677,7 +674,7 @@ export default function ProfileView() {
           isOwnProfile={isOwnProfile}
           onEdit={isOwned ? handleEditSnap : undefined} // Solo pasar onEdit si es propio
           onDelete={isOwned ? handleDeleteSnap : undefined} // Solo pasar onDelete si es propio
-          onShare={(sharedSnap: Snap) => handleShareSnap(sharedSnap)} // Correcto: pasa el Snap compartido
+          onShare={handleShareSnap} // Correcto: pasa el Snap compartido
           currentUsername={isOwnProfile ? currentUsername : ''}
           isOwned={isOwned}
         />

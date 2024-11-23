@@ -1,11 +1,10 @@
-// ProfileCertificationRequest.tsx
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthContext } from '@/context/authContext';
-import { storage, firestore } from '../firebaseConfig'; // Asegúrate de que la ruta es correcta
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { storage, db } from '../firebaseConfig'; // Importa Storage y Database de Firebase
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'; // Para subir a Storage
+import { ref as databaseRef, push } from 'firebase/database'; // Para guardar en Realtime Database
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileCertificationRequest() {
@@ -21,7 +20,6 @@ export default function ProfileCertificationRequest() {
   // Función para seleccionar una foto del documento
   const handleChoosePhoto = async () => {
     try {
-      // Solicitar permisos si aún no se han otorgado
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permiso denegado', 'Necesitamos permiso para acceder a tus fotos.');
@@ -50,9 +48,10 @@ export default function ProfileCertificationRequest() {
       const response = await fetch(localUri);
       const blob = await response.blob();
 
-      const storageRef = ref(storage, `documents/${username}_certification_${Date.now()}.png`);
-      await uploadBytes(storageRef, blob);
-      const downloadURL = await getDownloadURL(storageRef);
+      // Cambiar el nombre del archivo para seguir el formato id_${username}.png
+      const storagePath = storageRef(storage, `documents/id_${username}.png`);
+      await uploadBytes(storagePath, blob);
+      const downloadURL = await getDownloadURL(storagePath); // Obtén la URL de descarga
       return downloadURL;
     } catch (error) {
       console.error('Error al subir el documento de certificación:', error);
@@ -60,7 +59,7 @@ export default function ProfileCertificationRequest() {
     }
   };
 
-  // Función para enviar la solicitud de certificación a Firestore
+  // Función para enviar la solicitud de certificación a Realtime Database
   const submitCertificationRequest = async (request: {
     name: string;
     surname: string;
@@ -69,8 +68,9 @@ export default function ProfileCertificationRequest() {
     submittedAt: string;
   }): Promise<void> => {
     try {
-      const requestsCollection = collection(firestore, 'certificationRequests');
-      await addDoc(requestsCollection, request);
+      // Crea una nueva entrada en la referencia "certificationRequests"
+      const requestsRef = databaseRef(db, 'certificationRequests');
+      await push(requestsRef, request); // Agrega un nuevo nodo con datos
     } catch (error) {
       console.error('Error al enviar la solicitud de certificación:', error);
       throw error;
@@ -91,19 +91,19 @@ export default function ProfileCertificationRequest() {
       // Subir la foto a Firebase Storage
       const documentURL = await uploadDocument(username, documentImage);
 
-      // Enviar la solicitud de certificación a Firestore
+      // Enviar la solicitud de certificación a Realtime Database
       await submitCertificationRequest({
         name,
         surname,
         username,
         documentURL,
-        submittedAt: Timestamp.now().toDate().toISOString(),
+        submittedAt: new Date().toISOString(),
       });
 
       Alert.alert('Solicitud Enviada', 'Tu solicitud de certificación ha sido enviada exitosamente. Pronto recibirás una confirmación.');
 
       // Regresar al perfil
-      router.replace('/ProfileView');
+      router.replace('/profileView'); // Cambiar a la vista del perfil
     } catch (error) {
       Alert.alert('Error', 'Ocurrió un error al enviar tu solicitud. Inténtalo nuevamente.');
     } finally {
@@ -114,12 +114,9 @@ export default function ProfileCertificationRequest() {
 
   return (
     <View style={styles.container}>
-        <View style={styles.logoContainer}>
-            <Image
-              source={require('@/assets/images/twitsnap_logo.png')}
-              style={styles.logo}
-            />
-       </View>
+      <View style={styles.logoContainer}>
+        <Image source={require('@/assets/images/twitsnap_logo.png')} style={styles.logo} />
+      </View>
       <Text style={styles.title}>Solicitud de Certificación de Perfil</Text>
 
       <TextInput
@@ -144,7 +141,7 @@ export default function ProfileCertificationRequest() {
         placeholderTextColor="#ccc"
         value={username}
         onChangeText={setUsername}
-        editable={false} // Username no editable si se asume que es el del usuario actual
+        editable={false} // Username no editable
       />
 
       <TouchableOpacity style={styles.photoButton} onPress={handleChoosePhoto}>
@@ -172,7 +169,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'black', // Modo oscuro
+    backgroundColor: 'black',
   },
   title: {
     fontSize: 24,
@@ -189,15 +186,15 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   logoContainer: {
-      alignItems: 'center',
-      paddingVertical: 10,
-      marginTop:20,
-    },
-    logo: {
-        width: 50, // Ajusta el tamaño del logo según sea necesario
-        height: 50,
-        resizeMode: 'contain',
-     },
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 20,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
   photoButton: {
     backgroundColor: '#1DA1F2',
     padding: 10,
