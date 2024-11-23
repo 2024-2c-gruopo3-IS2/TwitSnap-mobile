@@ -3,19 +3,13 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, Text, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Link, useRouter } from 'expo-router';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { makeRedirectUri } from 'expo-auth-session';
 import styles from '../styles/signup';
 import { saveToken } from '@/handlers/authTokenHandler';
 import { registerUser } from '@/handlers/signUpHandler';
 import { auth } from '../firebaseConfig';
-import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { saveRegistrationState } from '@/helper/registrationStorage';
 import { AuthContext } from '@/context/authContext';
-
-
-WebBrowser.maybeCompleteAuthSession();
+import {addMetric} from '@/handlers/metricsHandler';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -25,21 +19,6 @@ export default function SignUpPage() {
   const [errors, setErrors] = useState({ email: '', password: '' });
   const router = useRouter();
   const { signup, registrationState, updateRegistrationState } = useContext(AuthContext);
-
-
-  // Configura el esquema de redirección
-  const redirectUri = makeRedirectUri({
-    // Reemplaza 'twitsnap' con el esquema que hayas definido en app.json
-    scheme: 'myapp',
-  });
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    androidClientId: '284091085313-van729jfbnu1uge8ho1slufs0ss0vvvd.apps.googleusercontent.com',
-    webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-    //redirectUri: makeRedirectUri({scheme: 'myapp',}),
-  });
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
@@ -71,16 +50,19 @@ export default function SignUpPage() {
       return;
     }
     setIsLoading(true);
-
+    const startTime = Date.now();
 
     try {
       await signup(email, password);
+      const endTime = Date.now();
+       await addMetric('signups', endTime - startTime);
       // Navegar al siguiente paso después del registro inicial
       router.push({
         pathname: './location',
         params: { email, password },
       });
     } catch (error: any) {
+        await addMetric('signups_failed', 1);
       if (error.message === 'El correo electrónico ya está en uso.') {
         Alert.alert('Error', 'El correo electrónico ya está en uso.');
       } else {
@@ -89,55 +71,6 @@ export default function SignUpPage() {
     }
   };
 
-  const signUpWithGoogle = async () => {
-    try {
-      setIsLoading(true);
-      const result = await promptAsync();
-
-      if (result.type === 'success') {
-        const { authentication } = result;
-        if (authentication?.idToken && authentication.accessToken) {
-          const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
-          const userCredential = await signInWithCredential(auth, credential);
-
-          const token = await userCredential.user.getIdToken();
-          await saveToken(token);
-
-          router.replace('./location');
-        } else {
-          Alert.alert('Error', 'No se pudo completar el registro con Google.');
-        }
-      } else {
-        Alert.alert('Error', 'No se pudo completar el registro con Google.');
-      }
-    } catch (error) {
-      console.error('Google Sign-Up Error:', error);
-      Alert.alert('Error', 'Error en el registro con Google.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      if (authentication?.idToken && authentication.accessToken) {
-        const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
-        signInWithCredential(auth, credential)
-          .then(async (userCredential) => {
-            const token = await userCredential.user.getIdToken();
-            await saveToken(token);
-            router.replace('./location');
-          })
-          .catch((error) => {
-            console.error('Google Sign-Up Error:', error);
-            Alert.alert('Error', 'Error en el registro con Google.');
-          });
-      } else {
-        Alert.alert('Error', 'No se pudo completar el registro con Google.');
-      }
-    }
-  }, [response]);
 
   return (
     <View style={styles.container}>

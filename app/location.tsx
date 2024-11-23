@@ -5,6 +5,8 @@ import * as SecureStore from 'expo-secure-store';
 import styles from '../styles/location';
 import { saveRegistrationState, getRegistrationState } from '@/helper/registrationStorage';
 import { removeToken } from '@/handlers/authTokenHandler';
+import {addMetric} from '@/handlers/metricsHandler';
+
 
 export default function UbicacionPage() {
   const [countries, setCountries] = useState<{ name: string; code: string }[]>([]); // Lista de países
@@ -81,6 +83,12 @@ export default function UbicacionPage() {
             currentStep: 'interests',
           };
           await saveRegistrationState(registrationState);
+
+          try {
+              await addMetric('geographic_zone',`${selectedCountry},1` );
+          } catch (error) {
+                console.error('Error en addMetric:', error);
+              }
 
           router.push({
             pathname: './interests',

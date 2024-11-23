@@ -9,6 +9,8 @@ import { auth } from '@/firebaseConfig';
 import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { AuthContext } from '@/context/authContext';
 import * as AuthSession from 'expo-auth-session';
+import { addMetric } from '@/handlers/metricsHandler';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,25 +41,32 @@ export default function LoginPage() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-      console.log('Checking Google response');
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      console.log('Google authentication:', authentication);
+    const handleGoogleResponse = async () => {
+      if (response?.type === 'success') {
+        const startTime = Date.now();
+        const { authentication } = response;
+        console.log('Google authentication:', authentication);
 
-      const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
-      console.log('Google credential:', credential);
-      signInWithCredential(auth, credential)
-        .then((userCredential) => {
+        const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
+        console.log('Google credential:', credential);
+        try {
+          const userCredential = await signInWithCredential(auth, credential);
+          const endTime = Date.now();
+          await addMetric('logins_google', endTime - startTime);
           // Usuario autenticado correctamente
           const user = userCredential.user;
           console.log('Usuario autenticado:', user);
+          await addMetric('logins_google', 1);
           router.replace('./tabs');
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error('Error al iniciar sesión con Google:', error);
           Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
-        });
-    }
+          await addMetric('logins_google_failed', 1);
+        }
+      }
+    };
+
+    handleGoogleResponse();
   }, [response]);
 
   const handleGoogleSignIn = () => {
@@ -73,11 +82,15 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
+    const startTime = Date.now();
     try {
       await login(email, password);
+      const endTime = Date.now(); // Termina el tiempo
+      await addMetric('logins', endTime - startTime); // Registra el tiempo de login
       router.replace('./tabs');
     } catch (error) {
       setError(error.message || 'Error al iniciar sesión.');
+      await addMetric('logins_failed', 1); // Registra el fallo en login
     } finally {
       setIsLoading(false);
     }

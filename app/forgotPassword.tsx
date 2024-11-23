@@ -16,6 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { requestPasswordReset, resetPassword } from '@/handlers/loginHandler'; // Asegúrate de importar correctamente las funciones
 import styles from '../styles/forgotPassword';
+import {addMetric} from '@/handlers/metricsHandler';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -49,6 +50,7 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
+    const startTime = Date.now();
     console.log(`Sending password reset request for email: ${email}`);
 
     try {
@@ -69,13 +71,19 @@ export default function ForgotPasswordPage() {
             }
           ]
         );
+
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000; // Tiempo en segundos
+        await addMetric('password_recovers', duration);
       } else {
         Alert.alert('Error', response.message || 'No se pudo procesar tu solicitud de recuperación.');
         console.log('Password reset request failed:', response.message);
+        await addMetric('password_recover_failed', 1);
       }
     } catch (error) {
       console.error('Error al solicitar el reseteo de contraseña:', error);
       Alert.alert('Error', 'Ocurrió un error inesperado. Por favor, intenta nuevamente.');
+      await addMetric('password_recover_failed', 1);
     } finally {
       setIsLoading(false);
       console.log('Password reset request process completed');
@@ -107,6 +115,7 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
+    const startTime = Date.now();
     console.log(`Attempting to reset password for email: ${email} with token: ${token}`);
 
     try {
@@ -127,16 +136,22 @@ export default function ForgotPasswordPage() {
             }
           ]
         );
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+        await addMetric('password_recovers', duration);
       } else {
         Alert.alert('Error', response.message || 'No se pudo procesar tu solicitud.');
         console.log('Password reset failed:', response.message);
+        await addMetric('password_recover_failed', 1);
       }
     } catch (error) {
       console.error('Error al cambiar la contraseña:', error);
       Alert.alert('Error', 'Ocurrió un error inesperado. Por favor, intenta nuevamente.');
+      await addMetric('password_recover_failed', 1);
     } finally {
       setIsLoading(false);
       console.log('Password change process completed');
+
     }
   };
 
