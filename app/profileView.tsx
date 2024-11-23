@@ -629,14 +629,14 @@ export default function ProfileView() {
         )}
       </View>
 
-      {!isCertified && (
-            <Pressable
-              style={styles.certificationButton}
-              onPress={() => router.push('/profileCertificationRequest')}
-            >
-              <Icon name="verified-user" size={24} color="#fff" />
-              <Text style={styles.certificationButtonText}>Solicitar Verificado</Text>
-            </Pressable>
+      {isOwnProfile && !isCertified && (
+        <Pressable
+          style={styles.certificationButton}
+          onPress={() => router.push('/profileCertificationRequest')}
+        >
+          <Icon name="verified-user" size={24} color="#fff" />
+          <Text style={styles.certificationButtonText}>Solicitar Verificado</Text>
+        </Pressable>
       )}
 
       {/* Opciones adicionales solo para el perfil propio */}
