@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.system_alert_window"/>
+
+    <application android:usescleartexttraffic="true" tools:targetapi="28" tools:ignore="googleappindexingwarning" tools:replace="android:usescleartexttraffic" />
+</manifest>
