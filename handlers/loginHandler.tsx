@@ -117,3 +117,37 @@ export async function resetPassword(email: string, password: string, token: stri
     }
 
 }
+
+export async function googleSignInHandler(email: string): Promise<LoginResponse> {
+  const API_URL = 'https://auth-microservice-vvr6.onrender.com/auth/signin-with-google';
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    console.log('Response:', response);
+
+    const data = await response.json();
+
+
+    if (response.ok && data.token) {
+      await saveToken(data.token);
+      console.log('Token almacenado:', data.token);
+      return { success: true, token: data.token };
+    } else if (data.status === 'blocked') {
+      return { success: false, message: 'Cuenta bloqueada. Contacte al soporte.' }; // CA4: Usuario bloqueado
+    } else if (data.error === 'invalid credentials') {
+      return { success: false, message: 'El correo o la contraseña son incorrectos.' }; // CA2: Credenciales inválidas
+    } else {
+      return { success: false, message: data.message || 'Error al iniciar sesión.' }; // Error genérico
+    }
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    return { success: false, message: 'Error al conectar con el servidor.' }; // CA2: Error del servicio
+  }
+}

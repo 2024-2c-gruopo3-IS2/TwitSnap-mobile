@@ -10,9 +10,17 @@ import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { AuthContext } from '@/context/authContext';
 import * as AuthSession from 'expo-auth-session';
 import { addMetric } from '@/handlers/metricsHandler';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import { remove, set } from 'firebase/database';
+import { removeToken, saveToken } from '@/handlers/authTokenHandler';
+import { getProfile } from '@/handlers/profileHandler';
+import { googleSignInHandler } from '@/handlers/loginHandler';
 
+GoogleSignin.configure({
+  webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+});
 
-WebBrowser.maybeCompleteAuthSession();
+//WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
   const { login, isAuthenticated } = useContext(AuthContext);
@@ -22,13 +30,6 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-
-  // Configura el proveedor de Google con los IDs de cliente
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-    androidClientId: '856906798335-7gmq64nn5upj2qfng38q858al4ngosu6.apps.googleusercontent.com',
-    useProxy: true,
-  });
 
   useEffect(() => {
     const checkSession = async () => {
@@ -40,39 +41,67 @@ export default function LoginPage() {
     checkSession();
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    const handleGoogleResponse = async () => {
-      if (response?.type === 'success') {
-        const startTime = Date.now();
-        const { authentication } = response;
-        console.log('Google authentication:', authentication);
 
-        const credential = GoogleAuthProvider.credential(authentication.idToken, authentication.accessToken);
-        console.log('Google credential:', credential);
-        try {
-          const userCredential = await signInWithCredential(auth, credential);
-          const endTime = Date.now();
-          await addMetric('logins_google', endTime - startTime);
-          // Usuario autenticado correctamente
-          const user = userCredential.user;
-          console.log('Usuario autenticado:', user);
-          await addMetric('logins_google', 1);
-          router.replace('./tabs');
-        } catch (error) {
-          console.error('Error al iniciar sesión con Google:', error);
-          Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
-          await addMetric('logins_google_failed', 1);
-        }
+  const handleGoogleSignIn = async () => {
+    await GoogleSignin.hasPlayServices();
+    await GoogleSignin.signOut();
+    const userInfo = await GoogleSignin.signIn();
+    console.log('User info:', userInfo);
+    const email = userInfo?.data?.user?.email;
+    if (email) {
+      console.log('Email:', email);
+      const response = await googleSignInHandler(email);
+
+      if (response.success) {
+        router.replace('./tabs');
       }
-    };
+    } else {
+      Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+    }
+  }
 
-    handleGoogleResponse();
-  }, [response]);
+  // const handleGoogleSignIn = async () => {
+  //   await GoogleSignin.hasPlayServices();
+  //   const response = await GoogleSignin.signIn();
 
-  const handleGoogleSignIn = () => {
-      console.log('Prompting Google sign in');
-    promptAsync();
-  };
+  //   const token = response.data?.idToken;
+
+  //   if (token) {
+  //     //await saveToken(token);
+  //     console.log('Token saved:', token);
+  //   } else {
+  //     console.error('Token is null or undefined');
+  //   }
+  //   console.log('Google response:', response);
+
+
+  //   //const profileResponse = await getProfile();
+
+  //   //console.log('Profile response:', profileResponse);
+  //   return;
+  //   if (profileResponse.success && profileResponse.profile) {
+  //     console.log('User profile:', profileResponse.profile);
+  //     router.replace('./tabs');
+  //   } else {
+  //     const email = response.data?.user.email;
+  //     const password = response.data?.user.id;
+
+  //     router.push({
+  //       pathname: './location',
+  //       params: { email, password },
+  //     });
+  //   }
+
+    // console.log('Token:', token);
+
+    // console.log(response);
+    //   const googleCredential = GoogleAuthProvider.credential(idToken);
+    //   await signInWithCredential(auth, googleCredential);
+    //   router.replace('./tabs');
+    // } catch (error) {
+    //   console.error('Error al iniciar sesión con Google:', error);
+    //   Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+  // }
 
   const handleLogin = async () => {
     setError('');
@@ -105,7 +134,7 @@ export default function LoginPage() {
       <Text style={styles.title}>Inicia sesión en TwitSnap</Text>
 
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.googleButton} onPress={handleGoogleSignIn} disabled={!request}>
+        <Pressable style={styles.googleButton} onPress={handleGoogleSignIn}>
           <View style={styles.googleButtonContent}>
             <Image
               source={require('../assets/images/google.png')}
