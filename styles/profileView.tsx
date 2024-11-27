@@ -124,6 +124,14 @@ export default StyleSheet.create({
         paddingTop: 60,
         paddingRight: 20,
       },
+      modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+        textAlign: 'center',
+        marginBottom: 16, // Espaciado entre el título y los botones
+        marginLeft: 10,
+      },
       menuButton: {
         flexDirection: 'row',
         alignItems: 'center',

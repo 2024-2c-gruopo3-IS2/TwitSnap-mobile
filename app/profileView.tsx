@@ -527,17 +527,24 @@ export default function ProfileView() {
           onPress={() => setIsStatisticsMenuVisible(false)}
         >
           <View style={styles.modalContent}>
+            {/* Título del modal */}
+            <Text style={styles.modalTitle}>Estadísticas</Text>
+
+            {/* Botón de "Cuenta" */}
             <Pressable style={styles.menuButton} onPress={navigateToAccountStatistics}>
               <Icon name="account-circle" size={20} color="#fff" />
-              <Text style={styles.menuButtonText}>Estadísticas de Cuenta</Text>
+              <Text style={styles.menuButtonText}>Cuenta</Text>
             </Pressable>
+
+            {/* Botón de "TwitSnaps" */}
             <Pressable style={styles.menuButton} onPress={navigateToTwitSnapsStatistics}>
               <Icon name="insert-chart" size={20} color="#fff" />
-              <Text style={styles.menuButtonText}>Estadísticas de TwitSnaps</Text>
+              <Text style={styles.menuButtonText}>TwitSnaps</Text>
             </Pressable>
           </View>
         </Pressable>
       </Modal>
+
 
       {profile.cover_photo ? (
         <Image source={{ uri: profile.cover_photo }} style={styles.coverPhoto} />

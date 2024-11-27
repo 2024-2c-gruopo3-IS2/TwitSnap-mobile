@@ -10,15 +10,15 @@ import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { AuthContext } from '@/context/authContext';
 import * as AuthSession from 'expo-auth-session';
 import { addMetric } from '@/handlers/metricsHandler';
-import {GoogleSignin} from '@react-native-google-signin/google-signin';
+// import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import { remove, set } from 'firebase/database';
 import { removeToken, saveToken } from '@/handlers/authTokenHandler';
 import { getProfile } from '@/handlers/profileHandler';
 import { googleSignInHandler } from '@/handlers/loginHandler';
 
-GoogleSignin.configure({
-  webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-});
+// GoogleSignin.configure({
+//   webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+// });
 
 //WebBrowser.maybeCompleteAuthSession();
 
@@ -43,21 +43,21 @@ export default function LoginPage() {
 
 
   const handleGoogleSignIn = async () => {
-    await GoogleSignin.hasPlayServices();
-    await GoogleSignin.signOut();
-    const userInfo = await GoogleSignin.signIn();
-    console.log('User info:', userInfo);
-    const email = userInfo?.data?.user?.email;
-    if (email) {
-      console.log('Email:', email);
-      const response = await googleSignInHandler(email);
-
-      if (response.success) {
-        router.replace('./tabs');
-      }
-    } else {
-      Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
-    }
+//     await GoogleSignin.hasPlayServices();
+//     await GoogleSignin.signOut();
+//     const userInfo = await GoogleSignin.signIn();
+//     console.log('User info:', userInfo);
+//     const email = userInfo?.data?.user?.email;
+//     if (email) {
+//       console.log('Email:', email);
+//       const response = await googleSignInHandler(email);
+//
+//       if (response.success) {
+//         router.replace('./tabs');
+//       }
+//     } else {
+//       Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+//     }
   }
 
   // const handleGoogleSignIn = async () => {

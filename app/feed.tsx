@@ -45,17 +45,20 @@ export default function Feed() {
       setIsLoading(true);
 
       try {
-        const [response, favouriteResponse, likesResponse, sharedResponse] = await Promise.all([
-          getFeedSnaps(),
-          getFavouriteSnaps(),
-          getLikedSnaps(),
-          getSharedSnaps(),
-        ]);
+//         const [response, favouriteResponse, likesResponse, sharedResponse] = await Promise.all([
+//           getFeedSnaps(),
+//           getFavouriteSnaps(),
+//           getLikedSnaps(),
+//           getSharedSnaps(),
+//         ]);
+        const [response] = await Promise.all([getFeedSnaps()])
 
-        const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
-        const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
+//         const favouriteSnapIds = favouriteResponse.snaps?.map(favSnap => favSnap.id) || [];
+//         const likedSnapIds = likesResponse.snaps?.map(likeSnap => likeSnap.id) || [];
 
         let fetchedSnaps: Snap[] = [];
+
+        console.log("[FEED] response: ", response);
 
         if (response.success && response.snaps && response.snaps.length > 0) {
           fetchedSnaps = await Promise.all(
@@ -66,43 +69,21 @@ export default function Feed() {
               message: snap.message,
               isPrivate: snap.is_private === 'true',
               likes: snap.likes || 0,
-              likedByUser: likedSnapIds.includes(snap._id),
+              likedByUser: snap.is_liked || false,
               canViewLikes: true,
-              favouritedByUser: favouriteSnapIds.includes(snap._id),
+              favouritedByUser: snap.is_favourited || false,
               retweetUser: snap.retweet_user || '',
               profileImage: await fetchProfileImage(snap.username),
               originalUsername: snap.original_username || undefined,
+              sharedByUser: snap.is_shared || false,
             }))
           );
         }
 
-        // Procesar Snaps Compartidos
-        let sharedSnaps: Snap[] = [];
-        if (sharedResponse.success && sharedResponse.snaps && sharedResponse.snaps.length > 0) {
-          sharedSnaps = await Promise.all(
-            sharedResponse.snaps.map(async (snap: any) => ({
-                id: snap._id ? `${snap._id}-shared-${Date.now()}` : `shared-${Date.now()}`, // Verificar que _id existe, sino usar un valor temporal
-              username: snap.username,
-              created_at: snap.created_at,
-              message: snap.message,
-              isPrivate: snap.is_private === 'true',
-              likes: snap.likes || 0,
-              likedByUser: likedSnapIds.includes(snap._id),
-              canViewLikes: true,
-              favouritedByUser: favouriteSnapIds.includes(snap._id),
-              retweetUser: snap.retweet_user || '',
-              profileImage: await fetchProfileImage(snap.username),
-              originalUsername: undefined, // Los Snaps compartidos ya tienen retweetUser
-            }))
-          );
-        }
 
-        // Combinar Snaps Originales y Compartidos
-        const allSnaps = [...sharedSnaps, ...fetchedSnaps];
-        const uniqueSnaps = Array.from(new Map(allSnaps.map(snap => [snap.id, snap])).values());
-
+//         const uniqueSnaps = Array.from(new Map(allSnaps.map(snap => [snap.id, snap])).values());
         // Actualizar el estado con `uniqueSnaps`
-        setSnaps(uniqueSnaps);
+        setSnaps(fetchedSnaps);
 
       } catch (error) {
         console.error("Error fetching feed snaps:", error);

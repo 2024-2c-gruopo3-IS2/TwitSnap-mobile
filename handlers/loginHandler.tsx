@@ -131,9 +131,7 @@ export async function googleSignInHandler(email: string): Promise<LoginResponse>
     });
 
     console.log('Response:', response);
-
     const data = await response.json();
-
 
     if (response.ok && data.token) {
       await saveToken(data.token);

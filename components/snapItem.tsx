@@ -31,6 +31,7 @@ interface Snap {
   retweetUser: string;
   originalUsername?: string;
   mentions?: string[];
+  sharedByUser?: string;
 }
 
 interface SnapItemProps {
@@ -63,10 +64,8 @@ const SnapItem: React.FC<SnapItemProps> = ({
     const updatedLikeStatus = !snapData.likedByUser;
     const updatedLikes = updatedLikeStatus ? snapData.likes + 1 : snapData.likes - 1;
     setSnapData({ ...snapData, likedByUser: updatedLikeStatus, likes: updatedLikes });
-    //splitear  el snap id para obtener el id del snap original
-    const originalSnapId = snapData.id.split('-')[1];
 
-    const apiResponse = updatedLikeStatus ? await likeSnap(originalSnapId) : await unlikeSnap(originalSnapId);
+    const apiResponse = updatedLikeStatus ? await likeSnap(snapData.id) : await unlikeSnap(snapData.id);
 
     if (!apiResponse.success) {
       setSnapData({ ...snapData, likedByUser: !updatedLikeStatus, likes: snapData.likes });
@@ -81,12 +80,10 @@ const SnapItem: React.FC<SnapItemProps> = ({
   const handleFavourite = async () => {
     const updatedFavouriteStatus = !snapData.favouritedByUser;
     setSnapData({ ...snapData, favouritedByUser: updatedFavouriteStatus });
-    const originalSnapId = snapData.id.split('-')[1];
-
 
     const apiResponse = updatedFavouriteStatus
-      ? await favouriteSnap(originalSnapId)
-      : await unfavouriteSnap(originalSnapId);
+      ? await favouriteSnap(snapData.id)
+      : await unfavouriteSnap(snapData.id);
 
     if (!apiResponse.success) {
       setSnapData({ ...snapData, favouritedByUser: !updatedFavouriteStatus });
@@ -103,11 +100,12 @@ const SnapItem: React.FC<SnapItemProps> = ({
   };
 
   const handleSnapShare = async () => {
-    if (snapData.retweetUser) return; // Evita duplicar el compartido
+    if (snapData.sharedByUser) return; // Evita duplicar el compartido
 
-    const originalSnapId = snapData.id.split('-')[1];
-    const result = await shareSnap(originalSnapId);
+    const updatedSharedStauts = !snapData.sharedByUser;
+    setSnapData({ ...snapData, sharedByUser: updatedSharedStauts });
 
+    const result = await shareSnap(snapData.id);
     if (result.success && result.sharedSnap) {
       Toast.show({
         type: 'success',
@@ -117,7 +115,7 @@ const SnapItem: React.FC<SnapItemProps> = ({
 
       const sharedSnap: Snap = {
         ...result.sharedSnap,
-        id:  `shared-${result.sharedSnap.id}`, // Crear un ID único para el compartido
+        id:  snapData.id, // Crear un ID único para el compartido
         retweetUser: currentUsername || '',
         originalUsername: snapData.username, // Autor original
         profileImage: snapData.profileImage, // Mantener la misma imagen de perfil
@@ -239,7 +237,7 @@ const SnapItem: React.FC<SnapItemProps> = ({
             style={styles.snapShareButton}
             disabled={!!snapData.retweetUser}
           >
-            <Icon name="repeat" size={24} color={snapData.retweetUser ? activeShareColor : 'gray'} />
+            <Icon name="repeat" size={24} color={snapData.sharedByUser ? activeShareColor : 'gray'} />
           </Pressable>
         </View>
       </View>
