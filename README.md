@@ -78,6 +78,35 @@ Esta plataforma digital permitirá a los usuarios compartir ideas, noticias y pe
 
 ---
 
+
+## 🚀 Guía de Usuario
+### Registro
+- Completa los campos de nombre, correo electrónico y contraseña.
+Recibirás un PIN por correo para verificar tu cuenta.
+- Crear y Publicar TwitSnaps
+- En el feed, selecciona el botón "Crear TwitSnap".
+- Escribe tu mensaje (máximo 280 caracteres).
+- Publica tu TwitSnap como público o privado.
+### Interacciones
+- Me gusta: Presiona el ícono de corazón.
+- SnapShare: Selecciona el botón de compartir.
+- Menciones: Escribe @usuario para mencionar a alguien.
+### Exploración
+- Busca usuarios, hashtags o contenido mediante la barra de búsqueda.
+- Consulta los Trending Topics para descubrir los temas más relevantes.
+### Mensajes Directos
+- Ve al perfil de un usuario.
+- Haz clic en "Enviar mensaje".
+- Inicia una conversación en tiempo real.
+
+
+##  🧑‍💻 Tecnologías Utilizadas
+- Frontend: React Native, Expo
+- Backend: Firebase, MongoDB, PostgreSQL
+- Estilo: react-native-paper, material UI
+- Compilación: EAS Build
+
+
 ## 🖥️ Estructura del Proyecto
 
 ```plaintext
@@ -190,34 +219,6 @@ Esta plataforma digital permitirá a los usuarios compartir ideas, noticias y pe
 │   └── userRegisterData.tsx
 └── tsconfig.json
 ```
-
-## 🚀 Guía de Usuario
-### Registro
-- Completa los campos de nombre, correo electrónico y contraseña.
-Recibirás un PIN por correo para verificar tu cuenta.
-- Crear y Publicar TwitSnaps
-- En el feed, selecciona el botón "Crear TwitSnap".
-- Escribe tu mensaje (máximo 280 caracteres).
-- Publica tu TwitSnap como público o privado.
-### Interacciones
-- Me gusta: Presiona el ícono de corazón.
-- SnapShare: Selecciona el botón de compartir.
-- Menciones: Escribe @usuario para mencionar a alguien.
-### Exploración
-- Busca usuarios, hashtags o contenido mediante la barra de búsqueda.
-- Consulta los Trending Topics para descubrir los temas más relevantes.
-### Mensajes Directos
-- Ve al perfil de un usuario.
-- Haz clic en "Enviar mensaje".
-- Inicia una conversación en tiempo real.
-
-
-##  🧑‍💻 Tecnologías Utilizadas
-- Frontend: React Native, Expo
-- Backend: Firebase, MongoDB, PostgreSQL
-- Estilo: react-native-paper, material UI
-- Compilación: EAS Build
-
 
 ##  🌐 GitHub Pages
 La guía de usuario también está disponible en GitHub Pages.
