@@ -73,6 +73,8 @@ export const PostProvider = ({ children }: { children: ReactNode }) => {
               await sendMentionNotification(mentionedUser, user.username, newSnap.id);
       }
     }
+
+    return response;
   };
 
   const toggleLike = async (snapId: string, likedByUser: boolean): Promise<void> => {

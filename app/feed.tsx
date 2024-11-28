@@ -86,7 +86,7 @@ export default function Feed() {
         setSnaps(fetchedSnaps);
 
       } catch (error) {
-        console.error("Error fetching feed snaps:", error);
+          setSnaps([]);
         Toast.show({
           type: 'error',
           text1: 'Error al obtener los snaps del feed',

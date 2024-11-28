@@ -87,8 +87,10 @@ export default function TwitSnapsStatistics() {
   };
 
   const filterSnaps = () => {
-    let filtered = snaps;
+    // Crear una copia de los TwitSnaps originales
+    let filtered = [...snaps];
 
+    // Determinar el rango de fechas
     if (selectedDateRange !== 'all') {
       let start: moment.Moment;
       let end: moment.Moment = moment();
@@ -116,6 +118,7 @@ export default function TwitSnapsStatistics() {
           start = moment(0);
       }
 
+      // Filtrar los TwitSnaps dentro del rango de fechas
       filtered = filtered.filter((snap) => {
         const snapTime = moment(snap.time);
         return snapTime.isBetween(start, end, undefined, '[]');
@@ -124,22 +127,35 @@ export default function TwitSnapsStatistics() {
 
     // Calcular totales
     let likes = 0;
-    let shares = 0;
+      let shares = 0;
 
-    filtered.forEach((snap) => {
-      const snapInteractions = interactions[snap._id] || {};
-      if (Array.isArray(snapInteractions.likes)) {
-        likes += snapInteractions.likes.length;
-      }
-      if (Array.isArray(snapInteractions.retweets)) {
-        shares += snapInteractions.retweets.length;
-      }
-    });
+      filtered.forEach((snap) => {
+        // Asegúrate de obtener las interacciones correctamente
+        const snapInteractions = interactions[snap._id] || {};
 
-    setTotalLikes(likes);
-    setTotalShares(shares);
-    setFilteredSnaps(filtered);
-  };
+        // Logs para depuración
+        console.log('Snap ID:', snap._id);
+        console.log('Snap Interactions:', snapInteractions);
+
+        // Calcula los likes y shares
+        if (Array.isArray(snapInteractions.likes)) {
+          likes += snapInteractions.likes.length;
+        }
+        if (Array.isArray(snapInteractions.retweets)) {
+          shares += snapInteractions.retweets.length;
+        }
+      });
+
+      // Actualizar estado con los datos filtrados
+      setTotalLikes(likes);
+      setTotalShares(shares);
+      setFilteredSnaps(filtered);
+
+      // Log para confirmar el resultado
+      console.log('Filtered Snaps:', filtered);
+      console.log('Total Likes:', likes);
+      console.log('Total Shares:', shares);
+    };
 
   const showStartDatePicker = () => {
     setStartDatePickerVisibility(true);

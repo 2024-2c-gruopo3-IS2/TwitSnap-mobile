@@ -32,12 +32,12 @@ export default function TrendingTopics() {
                     setError(null);
 
                 } else {
-                    console.error('Error al obtener los temas del momento:', response.message);
+
                     setTrendingTopics([]);
                     setError(response.message || 'No se pudieron obtener los temas del momento.');
                 }
             } catch (err) {
-                console.error('Error al obtener los temas del momento:', err);
+
                 setTrendingTopics([]);
                 setError('Ocurrió un error al obtener los temas del momento.');
             } finally {

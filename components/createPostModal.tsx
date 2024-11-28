@@ -16,6 +16,7 @@ import { AuthContext } from '@/context/authContext';
 import {usePostContext} from '@/context/postContext';
 import { getTrendingTopics } from '@/handlers/postHandler';
 import { sendTrendingNotification } from '@/handlers/notificationHandler';
+import Toast from 'react-native-toast-message';
 
 interface Post {
   id?: string;
@@ -133,7 +134,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       const trendingTopics = await getTrendingTopics();
       console.log("[TRENDING TOPICS]", trendingTopics);
 
-      await addNewPost(newPost);
+      const postResponse = await addNewPost(newPost);
+      if (!postResponse.success) {
+        Toast && Toast.show({
+            type: 'error',
+            text1: 'Error al publicar',
+            text2: 'Hubo un problema al publicar tu TwitSnap. Inténtalo de nuevo.',
+        });
+        return;
+      }
 
       // Define a regex to match hashtags (words starting with #)
       const hashtagRegex = /#\w+/g;

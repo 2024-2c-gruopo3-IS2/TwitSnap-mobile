@@ -16,6 +16,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import moment from 'moment';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { getProfile } from '@/handlers/profileHandler';
+import { LineChart } from 'react-native-chart-kit';
 
 interface Follower {
   username: string;
@@ -73,14 +74,24 @@ export default function AccountStatistics() {
         const followersResponse = await getFollowers(username);
         if (followersResponse.success && followersResponse.followers) {
           const followers: Follower[] = followersResponse.followers;
-
+            console.log('Followers:', followers);
           // Calcular el número actual de seguidores
           setFollowersCount(followers.length);
+        console.log('start date: ', startDate);
+        console.log('end date: ', endDate);
 
           // Filtrar seguidores por el rango de fechas seleccionado
           const filteredFollowers = followers.filter((follower) => {
             const followerDate = moment(follower.created_at);
-            return followerDate.isBetween(startDate, endDate, undefined, '[]');
+            const isInRange = followerDate.isBetween(
+              moment(startDate).startOf('day'),
+              moment(endDate).endOf('day'),
+              undefined,
+              '[]'
+            );
+            console.log('follower date: ', followerDate);
+            console.log('is in range: ', isInRange);
+            return isInRange;
           });
 
           // Calcular la tendencia de seguidores
@@ -158,6 +169,41 @@ export default function AccountStatistics() {
     );
   }
 
+  const renderTrendChart = () => {
+       if (followersTrend.length === 0) return null;
+
+       const labels = followersTrend.map((item) => item.date);
+       const data = followersTrend.map((item) => item.count);
+
+       return (
+         <LineChart
+           data={{
+             labels,
+             datasets: [{ data }],
+           }}
+           width={410 - 20} // Tamaño del gráfico
+           height={220}
+           yAxisLabel=""
+           chartConfig={{
+             backgroundColor: '#1E1E1E',
+             backgroundGradientFrom: '#1E1E1E',
+             backgroundGradientTo: '#1E1E1E',
+             decimalPlaces: 0,
+             color: (opacity = 1) => `rgba(29, 161, 242, ${opacity})`,
+             labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+             style: {
+               borderRadius: 16,
+             },
+           }}
+           style={{
+             marginVertical: 10,
+             borderRadius: 16
+
+           }}
+         />
+       );
+     };
+
   return (
     <View style={styles.container}>
       {/* Encabezado con botón de volver */}
@@ -229,6 +275,7 @@ export default function AccountStatistics() {
           No hay datos de tendencia para el período seleccionado.
         </Text>
       )}
+      {renderTrendChart()}
     </View>
   );
 }
