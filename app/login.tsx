@@ -10,20 +10,21 @@ import { signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { AuthContext } from '@/context/authContext';
 import * as AuthSession from 'expo-auth-session';
 import { addMetric } from '@/handlers/metricsHandler';
-// import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import { remove, set } from 'firebase/database';
 import { removeToken, saveToken } from '@/handlers/authTokenHandler';
 import { getProfile } from '@/handlers/profileHandler';
 import { googleSignInHandler } from '@/handlers/loginHandler';
 
-// GoogleSignin.configure({
-//   webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
-// });
 
-//WebBrowser.maybeCompleteAuthSession();
+GoogleSignin.configure({
+  webClientId: '856906798335-iqj29rkp14s4f8m4bmlg7rtk9rllh8vl.apps.googleusercontent.com',
+});
+
+// WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useContext(AuthContext);
+  const { login, isAuthenticated, googleSignInAuth } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -43,65 +44,29 @@ export default function LoginPage() {
 
 
   const handleGoogleSignIn = async () => {
-//     await GoogleSignin.hasPlayServices();
-//     await GoogleSignin.signOut();
-//     const userInfo = await GoogleSignin.signIn();
-//     console.log('User info:', userInfo);
-//     const email = userInfo?.data?.user?.email;
-//     if (email) {
-//       console.log('Email:', email);
-//       const response = await googleSignInHandler(email);
-//
-//       if (response.success) {
-//         router.replace('./tabs');
-//       }
-//     } else {
-//       Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
-//     }
+        const start = Date.now();
+        await GoogleSignin.hasPlayServices();
+        await GoogleSignin.signOut();
+        const userInfo = await GoogleSignin.signIn();
+        console.log('User info:', userInfo);
+        const email = userInfo?.data?.user?.email;
+        if (email) {
+            try {
+          console.log('Email:', email);
+          await googleSignInAuth(email);
+            const end = Date.now();
+            const final = (end - start) / 1000;
+//             await addMetric('logins_google', final); // Registra el login con Google
+          router.replace('./tabs');
+          } catch (error) {
+            console.error('Error en googleSignInAuth:', error);
+            Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+//             await addMetric('logins_google_failed', final);
+          }
+        } else {
+          Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
+        }
   }
-
-  // const handleGoogleSignIn = async () => {
-  //   await GoogleSignin.hasPlayServices();
-  //   const response = await GoogleSignin.signIn();
-
-  //   const token = response.data?.idToken;
-
-  //   if (token) {
-  //     //await saveToken(token);
-  //     console.log('Token saved:', token);
-  //   } else {
-  //     console.error('Token is null or undefined');
-  //   }
-  //   console.log('Google response:', response);
-
-
-  //   //const profileResponse = await getProfile();
-
-  //   //console.log('Profile response:', profileResponse);
-  //   return;
-  //   if (profileResponse.success && profileResponse.profile) {
-  //     console.log('User profile:', profileResponse.profile);
-  //     router.replace('./tabs');
-  //   } else {
-  //     const email = response.data?.user.email;
-  //     const password = response.data?.user.id;
-
-  //     router.push({
-  //       pathname: './location',
-  //       params: { email, password },
-  //     });
-  //   }
-
-    // console.log('Token:', token);
-
-    // console.log(response);
-    //   const googleCredential = GoogleAuthProvider.credential(idToken);
-    //   await signInWithCredential(auth, googleCredential);
-    //   router.replace('./tabs');
-    // } catch (error) {
-    //   console.error('Error al iniciar sesión con Google:', error);
-    //   Alert.alert('Error', 'No se pudo iniciar sesión con Google.');
-  // }
 
   const handleLogin = async () => {
     setError('');

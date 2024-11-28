@@ -6,6 +6,7 @@ import { loginUser } from '../handlers/loginHandler';
 import { registerUser } from '../handlers/signUpHandler';
 import { getProfile } from '../handlers/profileHandler';
 import { saveRegistrationState, getRegistrationState, clearRegistrationState } from '../helper/registrationStorage';
+import { googleSignInHandler } from '../handlers/loginHandler';
 
 interface UserProfile {
   id: string;
@@ -32,6 +33,7 @@ interface AuthContextProps {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+    googleSignInAuth: (email: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   registrationState: RegistrationState | null;
   updateRegistrationState: (newState: Partial<RegistrationState>) => Promise<void>;
@@ -87,6 +89,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   };
+
+  const googleSignInAuth = async (email: string) => {
+      setIsLoading(true);
+      try {
+        const response = await googleSignInHandler(email);
+        console.log('Google Sign In Response:', response);
+        if (response.success && response.token) {
+          const profileResponse = await getProfile();
+          console.log('Profile Response:', profileResponse);
+          if (profileResponse.success && profileResponse.profile) {
+            saveToken(response.token);
+            setUser(profileResponse.profile);
+            setIsAuthenticated(true);
+            console.log("[AuthProvider] User logged in:", profileResponse.profile.username);
+          } else {
+            console.error('Error al obtener el perfil después de iniciar sesión.');
+            throw new Error('Error al obtener el perfil.');
+          }
+        } else {
+          console.error('Error en el inicio de sesión:', response.message);
+          throw new Error(response.message || 'Error al iniciar sesión.');
+        }
+
+      } catch (error) {
+        console.log('Error durante el login:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // Nueva función de signup
   const signup = async (email: string, password: string) => {
@@ -207,6 +238,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated,
         isLoading,
         login,
+        googleSignInAuth,
         logout,
         signup,
         registrationState,
